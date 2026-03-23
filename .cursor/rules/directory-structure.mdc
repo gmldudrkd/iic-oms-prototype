@@ -1,0 +1,626 @@
+---
+alwaysApply: true
+---
+<!-- # 프로젝트 디렉토리 구조 -->
+# Project Directory Structure
+
+src
+│-- app
+│   │-- (auth)
+│   │   │-- channel
+│   │   │   └-- channel-list
+│   │   │       │-- add
+│   │   │       │   └-- page.tsx
+│   │   │       │-- detail
+│   │   │       │   └-- [id]
+│   │   │       │       └-- page.tsx
+│   │   │       └-- page.tsx
+│   │   │-- order
+│   │   │   │-- exchange-list
+│   │   │   │   │-- detail
+│   │   │   │   │   └-- [orderId]
+│   │   │   │   │       └-- page.tsx
+│   │   │   │   └-- page.tsx
+│   │   │   │-- export
+│   │   │   │   └-- page.tsx
+│   │   │   │-- log-history
+│   │   │   │   └-- detail
+│   │   │   │       └-- [orderId]
+│   │   │   │           └-- page.tsx
+│   │   │   │-- order-dashboard
+│   │   │   │   └-- page.tsx
+│   │   │   │-- order-list
+│   │   │   │   │-- detail
+│   │   │   │   │   └-- [orderId]
+│   │   │   │   │       └-- page.tsx
+│   │   │   │   └-- page.tsx
+│   │   │   └-- return-list
+│   │   │       │-- detail
+│   │   │       │   └-- [orderId]
+│   │   │       │       └-- page.tsx
+│   │   │       └-- page.tsx
+│   │   │-- product
+│   │   │   │-- channel-product-list
+│   │   │   │   └-- page.tsx
+│   │   │   └-- product-list
+│   │   │       │-- detail
+│   │   │       │   │-- [sku]
+│   │   │       │   │   └-- page.tsx
+│   │   │       │   └-- product-master
+│   │   │       │       └-- [sku]
+│   │   │       │           └-- page.tsx
+│   │   │       └-- page.tsx
+│   │   │-- stock
+│   │   │   │-- distribution-setting
+│   │   │   │   └-- page.tsx
+│   │   │   │-- history
+│   │   │   │   └-- page.tsx
+│   │   │   └-- overview
+│   │   │       └-- page.tsx
+│   │   │-- user
+│   │   │   └-- [email]
+│   │   │       └-- page.tsx
+│   │   │-- layout.tsx
+│   │   └-- page.tsx
+│   │-- (unauth)
+│   │   │-- change-password
+│   │   │   └-- page.tsx
+│   │   │-- sign-in
+│   │   │   │-- verify
+│   │   │   │   └-- page.tsx
+│   │   │   └-- page.tsx
+│   │   └-- layout.tsx
+│   │-- 403
+│   │   └-- page.tsx
+│   │-- api
+│   │   └-- auth
+│   │       └-- [...nextauth]
+│   │           └-- route.ts
+│   └-- layout.tsx
+│-- assets
+│   │-- fonts
+│   │-- icons
+│   │   │-- IconArrow.tsx
+│   │   │-- IconArrowDropDownFilled.tsx
+│   │   │-- IconExchange.tsx
+│   │   │-- IconInfoFilled.tsx
+│   │   │-- IconOrder.tsx
+│   │   └-- IconReturn.tsx
+│   └-- images
+│-- features
+│   │-- change-password
+│   │   │-- components
+│   │   │   └-- ForgotPasswordModal.tsx
+│   │   │-- hooks
+│   │   │   │-- useGetVerifyEmailCode.ts
+│   │   │   │-- usePatchChangePassword.ts
+│   │   │   └-- usePostVerifyChangePasswordEmail.ts
+│   │   │-- models
+│   │   │   └-- api.ts
+│   │   └-- index.tsx
+│   │-- channel-detail
+│   │   │-- components
+│   │   │   │-- DetailForm.tsx
+│   │   │   │-- InputRenderer.tsx
+│   │   │   │-- SelectRenderer.tsx
+│   │   │   └-- SwitchRenderer.tsx
+│   │   │-- hooks
+│   │   │   │-- useGetChannelDetail.ts
+│   │   │   │-- useGetSAPChannelList.ts
+│   │   │   │-- usePatchChannelDetail.ts
+│   │   │   └-- usePostChannelDetail.ts
+│   │   │-- models
+│   │   │   └-- apis.ts
+│   │   └-- index.tsx
+│   │-- channel-list
+│   │   │-- hooks
+│   │   │   └-- useGetChannelListWithFetch.ts
+│   │   │-- models
+│   │   │   │-- apis.ts
+│   │   │   └-- transform.ts
+│   │   │-- modules
+│   │   │   └-- columns.tsx
+│   │   └-- index.tsx
+│   │-- channel-product-list
+│   │   │-- components
+│   │   │   └-- SearchForm.tsx
+│   │   │-- hooks
+│   │   │   └-- usePostProductChannelList.ts
+│   │   │-- models
+│   │   │   │-- apis.ts
+│   │   │   └-- transform.ts
+│   │   │-- modules
+│   │   │   └-- columns.ts
+│   │   └-- index.tsx
+│   │-- dashboard
+│   │   │-- components
+│   │   │   │-- DashboardSection.tsx
+│   │   │   │-- DashboardTitle.tsx
+│   │   │   │-- StatusCards.tsx
+│   │   │   └-- StatusTotalTitle.tsx
+│   │   │-- hooks
+│   │   │   │-- useDashboardParams.ts
+│   │   │   └-- useGetDashboard.ts
+│   │   │-- models
+│   │   │   │-- apis.ts
+│   │   │   │-- transforms.ts
+│   │   │   └-- types.ts
+│   │   │-- modules
+│   │   │   └-- constants.tsx
+│   │   └-- index.tsx
+│   │-- export-order
+│   │   │-- hooks
+│   │   │   └-- usePostExportExcel.ts
+│   │   │-- models
+│   │   │   └-- apis.ts
+│   │   └-- index.tsx
+│   │-- header
+│   │   │-- components
+│   │   │   │-- UserInfoToggle.tsx
+│   │   │   │-- UserPermission.tsx
+│   │   │   └-- UserTimezone.tsx
+│   │   │-- hooks
+│   │   │   │-- useAddressSearch.ts
+│   │   │   │-- useGetUserPermission.ts
+│   │   │   │-- useUserPermission.ts
+│   │   │   │-- useUserPermissionData.ts
+│   │   │   │-- useUserPermissionUI.ts
+│   │   │   └-- useUserTimezone.ts
+│   │   │-- models
+│   │   │   └-- apis.ts
+│   │   │-- modules
+│   │   │   │-- constants.ts
+│   │   │   │-- styles.ts
+│   │   │   │-- types.ts
+│   │   │   └-- utils.ts
+│   │   └-- index.tsx
+│   │-- integrated-order-detail
+│   │   │-- components
+│   │   │   │-- AddressForm.tsx
+│   │   │   │-- CancelOrder.tsx
+│   │   │   │-- CancelShipment.tsx
+│   │   │   │-- ClaimInformation.tsx
+│   │   │   │-- CollapsibleSection.tsx
+│   │   │   │-- DataGridClaim.tsx
+│   │   │   │-- EditRecipientInfo.tsx
+│   │   │   │-- ExchangeDetailInfo.tsx
+│   │   │   │-- InfoExchange.tsx
+│   │   │   │-- InfoLogHistory.tsx
+│   │   │   │-- InfoOrder.tsx
+│   │   │   │-- InfoReturn.tsx
+│   │   │   │-- ModalLogHistoryExchange.tsx
+│   │   │   │-- ModalLogHistoryOrder.tsx
+│   │   │   │-- ModalLogHistoryReturn.tsx
+│   │   │   │-- ModalOrder.tsx
+│   │   │   │-- OrderDetailInfo.tsx
+│   │   │   │-- OrderInfoWrapper.tsx
+│   │   │   │-- OrderedProductInfo.tsx
+│   │   │   │-- PaymentInfo.tsx
+│   │   │   │-- PickupInformation.tsx
+│   │   │   │-- RecipientInfo.tsx
+│   │   │   │-- RegisterClaim.tsx
+│   │   │   │-- RequestShipment.tsx
+│   │   │   │-- ReturnDetailInfo.tsx
+│   │   │   │-- SapIfCell.tsx
+│   │   │   │-- ShipmentInfo.tsx
+│   │   │   │-- Summary.tsx
+│   │   │   │-- Tab.tsx
+│   │   │   └-- TrackingInformation.tsx
+│   │   │-- hooks
+│   │   │   │-- useGetExchangeDetail.ts
+│   │   │   │-- useGetLogHistoryDetail.ts
+│   │   │   │-- useGetOrderDetail.ts
+│   │   │   │-- useGetReturnDetail.ts
+│   │   │   │-- usePatchExchangeCancel.ts
+│   │   │   │-- usePatchOrderRecipient.ts
+│   │   │   │-- usePatchPartialShipment.ts
+│   │   │   │-- usePatchReturnCancel.tsx
+│   │   │   │-- usePatchReturnRecipient.ts
+│   │   │   │-- usePatchReturnRequestPickup.tsx
+│   │   │   │-- usePatchShipmentCancel.tsx
+│   │   │   │-- usePostClaims.tsx
+│   │   │   │-- usePostEstimateRefundFee.tsx
+│   │   │   └-- useRecipientDefaultAddress.ts
+│   │   │-- models
+│   │   │   │-- apis.ts
+│   │   │   │-- transforms.ts
+│   │   │   └-- types.ts
+│   │   │-- modules
+│   │   │   │-- columns.tsx
+│   │   │   │-- constants.ts
+│   │   │   │-- schema.ts
+│   │   │   │-- styles.ts
+│   │   │   │-- types.ts
+│   │   │   └-- utils.ts
+│   │   └-- index.tsx
+│   │-- integrated-order-list
+│   │   │-- components
+│   │   │   │-- DataGridWrap.tsx
+│   │   │   │-- ModalBulkCancel.tsx
+│   │   │   │-- PeriodPickerField.tsx
+│   │   │   │-- SearchForm.tsx
+│   │   │   └-- SelectCheckboxField.tsx
+│   │   │-- hooks
+│   │   │   │-- useGetIntegratedOrderList.ts
+│   │   │   │-- usePostBulkCancel.ts
+│   │   │   └-- useRefundFeeCalculator.ts
+│   │   │-- models
+│   │   │   │-- apis.ts
+│   │   │   │-- transforms.ts
+│   │   │   └-- types.ts
+│   │   │-- modules
+│   │   │   │-- columns.tsx
+│   │   │   │-- constants.tsx
+│   │   │   │-- renderCell.tsx
+│   │   │   └-- styles.ts
+│   │   └-- index.tsx
+│   │-- navigation
+│   │   └-- modules
+│   │       └-- constants.ts
+│   │-- product-detail
+│   │   │-- components
+│   │   │   │-- ImagesMasterAtiissu.tsx
+│   │   │   │-- ImagesMasterNuflaat.tsx
+│   │   │   │-- PaidPackagingOptions.tsx
+│   │   │   │-- PriceMaster.tsx
+│   │   │   │-- ProductInformation.tsx
+│   │   │   │-- ProductMaster.tsx
+│   │   │   │-- ProductMasterDetail.tsx
+│   │   │   └-- Sales.tsx
+│   │   │-- hooks
+│   │   │   │-- useGetProductDetail.ts
+│   │   │   │-- usePatchUpdateProduct.ts
+│   │   │   └-- usePostUploadImages.ts
+│   │   │-- models
+│   │   │   │-- apis.ts
+│   │   │   └-- transforms.ts
+│   │   │-- modules
+│   │   │   │-- columns.tsx
+│   │   │   │-- constants.ts
+│   │   │   │-- styles.tsx
+│   │   │   │-- types.ts
+│   │   │   └-- utils.ts
+│   │   └-- index.tsx
+│   │-- product-list
+│   │   │-- components
+│   │   │   │-- CreateBundle.tsx
+│   │   │   │-- ModalItemBundler.tsx
+│   │   │   │-- ProductAlertDialog.tsx
+│   │   │   │-- ProductInfoBulkUpdate.tsx
+│   │   │   │-- SearchForm.tsx
+│   │   │   │-- SearchInputBulk.tsx
+│   │   │   │-- SearchSingleInput.tsx
+│   │   │   └-- SearchTypeRadioGroup.tsx
+│   │   │-- hooks
+│   │   │   │-- usePostBulkUploadAssetFiles.ts
+│   │   │   │-- usePostCreateBundle.ts
+│   │   │   │-- usePostProductList.ts
+│   │   │   │-- usePostProductListExportExcel.ts
+│   │   │   └-- usePutProductListExcelImport.ts
+│   │   │-- models
+│   │   │   │-- apis.ts
+│   │   │   └-- constants.ts
+│   │   │-- modules
+│   │   │   │-- columns.tsx
+│   │   │   │-- renderCell.tsx
+│   │   │   │-- transform.ts
+│   │   │   └-- types.ts
+│   │   └-- index.tsx
+│   │-- sign-in
+│   │   │-- components
+│   │   │   │-- SignInInfo.tsx
+│   │   │   └-- VerifyCode.tsx
+│   │   │-- hooks
+│   │   │   │-- useActivateMfa.ts
+│   │   │   │-- useGetMfaStatus.ts
+│   │   │   │-- useLoginForm.tsx
+│   │   │   │-- usePostLogin.tsx
+│   │   │   │-- usePostLogout.ts
+│   │   │   └-- usePostVerifyCode.tsx
+│   │   │-- models
+│   │   │   │-- api.ts
+│   │   │   └-- types.ts
+│   │   │-- modules
+│   │   │   └-- constants.ts
+│   │   └-- index.tsx
+│   │-- sign-up
+│   │   │-- components
+│   │   │   │-- BrandCorpTable.tsx
+│   │   │   └-- RequestAccountModal.tsx
+│   │   │-- hooks
+│   │   │   │-- usePostRequestAccount.ts
+│   │   │   └-- useRequestAccountForm.ts
+│   │   │-- models
+│   │   │   │-- api.ts
+│   │   │   └-- types.ts
+│   │   └-- modules
+│   │       │-- constants.ts
+│   │       └-- utils.ts
+│   │-- stock
+│   │   │-- distributionSetting
+│   │   │   │-- components
+│   │   │   │   │-- ChannelDefaultRate.tsx
+│   │   │   │   │-- ModalEdit.tsx
+│   │   │   │   │-- ProductRate.tsx
+│   │   │   │   │-- SearchField.tsx
+│   │   │   │   └-- SearchForm.tsx
+│   │   │   │-- hooks
+│   │   │   │   │-- useChannelDefaultRateColumns.tsx
+│   │   │   │   │-- useGetChannelStockSetting.ts
+│   │   │   │   │-- useGetOnlineStockSettings.ts
+│   │   │   │   │-- usePatchChannelStockDistributionRates.ts
+│   │   │   │   └-- usePatchOnlineStockDistributionRates.ts
+│   │   │   │-- models
+│   │   │   │   │-- apis.ts
+│   │   │   │   │-- transform.ts
+│   │   │   │   └-- types.ts
+│   │   │   │-- modules
+│   │   │   │   │-- columns.tsx
+│   │   │   │   │-- constants.ts
+│   │   │   │   │-- schema.ts
+│   │   │   │   │-- styles.ts
+│   │   │   │   └-- utils.ts
+│   │   │   └-- index.tsx
+│   │   │-- history
+│   │   │   │-- components
+│   │   │   │   │-- channel-stock-history
+│   │   │   │   │   │-- ChannelStockHistoryDataGrid.tsx
+│   │   │   │   │   └-- ChannelStockHistoryFilter.tsx
+│   │   │   │   │-- online-stock-history
+│   │   │   │   │   │-- OnlineStockHistoryDataGrid.tsx
+│   │   │   │   │   └-- OnlineStockHistoryFilter.tsx
+│   │   │   │   │-- shared
+│   │   │   │   │   │-- ProductInfoTable.tsx
+│   │   │   │   │   │-- StockHistoryDataGrid.tsx
+│   │   │   │   │   │-- StockHistoryDetailDialog.tsx
+│   │   │   │   │   └-- StockHistorySearchFilter.tsx
+│   │   │   │   └-- stock-history-chart
+│   │   │   │       │-- ChartLegend.tsx
+│   │   │   │       │-- FilterItem.tsx
+│   │   │   │       │-- FilterSection.tsx
+│   │   │   │       └-- StockHistoryChart.tsx
+│   │   │   │-- hooks
+│   │   │   │   │-- channel-stock-history
+│   │   │   │   │   │-- useChannelStockHistoryDataGridColumns.tsx
+│   │   │   │   │   └-- useGetChannelStockHistory.ts
+│   │   │   │   │-- online-stock-history
+│   │   │   │   │   │-- useGetOnlineStockHistory.ts
+│   │   │   │   │   └-- useOnlineStockHistoryDataGridColumns.tsx
+│   │   │   │   │-- shared
+│   │   │   │   │   │-- useGetStockHistory.ts
+│   │   │   │   │   │-- useStockHistoryDataGridColumns.tsx
+│   │   │   │   │   │-- useStockHistoryDateValidation.ts
+│   │   │   │   │   │-- useStockHistoryDetailSearchFilterForm.ts
+│   │   │   │   │   └-- useStockHistorySearchFilterForm.ts
+│   │   │   │   └-- stock-history-chart
+│   │   │   │       │-- useChartData.ts
+│   │   │   │       └-- useChartFilters.ts
+│   │   │   │-- models
+│   │   │   │   │-- apis.ts
+│   │   │   │   │-- transforms.ts
+│   │   │   │   └-- types.ts
+│   │   │   │-- modules
+│   │   │   │   │-- constants.ts
+│   │   │   │   │-- styles.ts
+│   │   │   │   └-- utils.ts
+│   │   │   │-- README.md
+│   │   │   └-- index.tsx
+│   │   └-- overview
+│   │       │-- components
+│   │       │   │-- channel-send-status
+│   │       │   │   │-- ChangeChannelSendStatusAlerts.tsx
+│   │       │   │   │-- ChangeChannelSendStatusDialog.tsx
+│   │       │   │   └-- ChangeChannelSendStatusSaveAlerts.tsx
+│   │       │   │-- channel-stock
+│   │       │   │   │-- ChannelCheckboxCell.tsx
+│   │       │   │   │-- ChannelStockDataGrid.tsx
+│   │       │   │   │-- ChannelStockSearchFilter.tsx
+│   │       │   │   └-- ChannelStockSetting.tsx
+│   │       │   │-- online-stock
+│   │       │   │   │-- OnlineStockDataGrid.tsx
+│   │       │   │   │-- OnlineStockSearchFilter.tsx
+│   │       │   │   └-- OnlineStockSetting.tsx
+│   │       │   │-- pre-order-setting
+│   │       │   │   │-- PreOrderSettingAlerts.tsx
+│   │       │   │   │-- PreOrderSettingDialog.tsx
+│   │       │   │   └-- PreOrderSettingSaveAlerts.tsx
+│   │       │   │-- safety-stock
+│   │       │   │   │-- ChangeSafetyStockAlerts.tsx
+│   │       │   │   │-- ChangeSafetyStockDialog.tsx
+│   │       │   │   │-- PreOrderSafetyStockToggle.tsx
+│   │       │   │   └-- SafetyStockToggle.tsx
+│   │       │   │-- shared
+│   │       │   │   └-- SearchField.tsx
+│   │       │   │-- stock-export
+│   │       │   │   └-- StockExportDialog.tsx
+│   │       │   └-- stock-transfer
+│   │       │       │-- StockTransferAlerts.tsx
+│   │       │       │-- StockTransferDialog.tsx
+│   │       │       └-- StockTransferSaveAlerts.tsx
+│   │       │-- hooks
+│   │       │   │-- channel-send-status
+│   │       │   │   │-- useChangeChannelSendStatusDialog.ts
+│   │       │   │   │-- useChangeChannelSendStatusValidation.ts
+│   │       │   │   └-- usePatchChannelSendStatus.ts
+│   │       │   │-- channel-stock
+│   │       │   │   │-- useChannelStockSettingColumns.tsx
+│   │       │   │   └-- useGetChannelStockOverview.ts
+│   │       │   │-- online-stock
+│   │       │   │   │-- useGetOnlineStockOverview.ts
+│   │       │   │   └-- useOnlineStockSettingColumns.tsx
+│   │       │   │-- pre-order-setting
+│   │       │   │   │-- usePatchPreOrderSetting.ts
+│   │       │   │   │-- usePreOrderSettingDialog.ts
+│   │       │   │   └-- usePreOrderSettingValidation.ts
+│   │       │   │-- safety-stock
+│   │       │   │   │-- useChangeSafetyStockValidation.ts
+│   │       │   │   └-- usePatchSafetyStock.ts
+│   │       │   │-- shared
+│   │       │   │   │-- useStockOverviewFilterForm.ts
+│   │       │   │   │-- useStockOverviewSetting.ts
+│   │       │   │   │-- useStockPagination.ts
+│   │       │   │   └-- useStockSettingColumns.tsx
+│   │       │   │-- stock-export
+│   │       │   │   └-- usePostStockExport.ts
+│   │       │   └-- stock-transfer
+│   │       │       │-- usePatchTransferStock.ts
+│   │       │       └-- useStockTransferValidation.ts
+│   │       │-- models
+│   │       │   │-- apis.ts
+│   │       │   │-- transforms.ts
+│   │       │   └-- types.ts
+│   │       │-- modules
+│   │       │   │-- constants.ts
+│   │       │   └-- styles.ts
+│   │       │-- README.md
+│   │       └-- index.tsx
+│   └-- user
+│       │-- components
+│       │   └-- UserDataGrid.tsx
+│       │-- hooks
+│       │   │-- useGetUsers.ts
+│       │   └-- usePatchSignupConfirm.ts
+│       │-- models
+│       │   └-- apis.ts
+│       │-- modules
+│       │   └-- constants.ts
+│       └-- index.tsx
+└-- shared
+    │-- apis
+    │   │-- constants.ts
+    │   │-- fetchExtended.ts
+    │   │-- getChannelList.ts
+    │   │-- getUsers.ts
+    │   │-- types.ts
+    │   └-- utils.ts
+    │-- components
+    │   │-- dialog
+    │   │   │-- AlertDialog.tsx
+    │   │   │-- ContentDialog.tsx
+    │   │   └-- DialogWithClose.tsx
+    │   │-- form-elements
+    │   │   │-- modules
+    │   │   │   └-- type.ts
+    │   │   │-- CustomInput.tsx
+    │   │   │-- CustomSelect.tsx
+    │   │   │-- CustomSelectCheckbox.tsx
+    │   │   │-- FormActions.tsx
+    │   │   │-- PasswordInput.tsx
+    │   │   └-- SelectTextField.tsx
+    │   │-- modal
+    │   │   └-- ModalBump.tsx
+    │   │-- table
+    │   │   │-- CustomTableRows.tsx
+    │   │   └-- tableStyle.ts
+    │   │-- text
+    │   │   │-- LatestAt.tsx
+    │   │   │-- Title.tsx
+    │   │   └-- TotalResult.tsx
+    │   │-- Breadcrumbs.tsx
+    │   │-- CustomSnackbar.tsx
+    │   │-- DaumAddressSearch.tsx
+    │   │-- FullScreenLoader.tsx
+    │   │-- HeaderChip.tsx
+    │   │-- LoadingSpinner.tsx
+    │   │-- ModalOrder.tsx
+    │   └-- SearchFormFields.tsx
+    │-- constants
+    │   └-- index.ts
+    │-- generated
+    │   │-- auth
+    │   │   └-- types
+    │   │       │-- Auth.ts
+    │   │       │-- Log.ts
+    │   │       │-- MFA.ts
+    │   │       │-- User.ts
+    │   │       └-- UserInternal.ts
+    │   │-- oms
+    │   │   └-- types
+    │   │       │-- Channel.ts
+    │   │       │-- Claim.ts
+    │   │       │-- Exchange.ts
+    │   │       │-- Order.ts
+    │   │       │-- OrderDashboard.ts
+    │   │       │-- OrderExport.ts
+    │   │       │-- Return.ts
+    │   │       │-- Shipment.ts
+    │   │       │-- Stock.ts
+    │   │       │-- StockExport.ts
+    │   │       │-- User.ts
+    │   │       └-- common.ts
+    │   │-- pim
+    │   │   └-- types
+    │   │       │-- AccountAdmin.ts
+    │   │       │-- AccountRequestPublic.ts
+    │   │       │-- Asset.ts
+    │   │       │-- Auth.ts
+    │   │       │-- Bundle.ts
+    │   │       │-- OMSChannelSettingsMigration.ts
+    │   │       │-- Product.ts
+    │   │       └-- Upload.ts
+    │   └-- sap
+    │       └-- types
+    │           │-- Accounts.ts
+    │           │-- BranchPackageMapping.ts
+    │           │-- ExternalMember.ts
+    │           │-- Global.ts
+    │           │-- IPOS.ts
+    │           │-- IPOSJP.ts
+    │           │-- MasterProduct.ts
+    │           │-- MasterStore.ts
+    │           │-- Netsuite.ts
+    │           │-- SAP.ts
+    │           │-- StockReconciliation.ts
+    │           │-- StockRetry.ts
+    │           │-- WMSGlobalinbound.ts
+    │           │-- WMSGlobaloutbound.ts
+    │           │-- common.ts
+    │           │-- mailchimp.ts
+    │           └-- popbill.ts
+    │-- hooks
+    │   │-- useBrandId.ts
+    │   │-- useCurrentTime.tsx
+    │   │-- useCustomMutation.ts
+    │   │-- useFileDownload.ts
+    │   │-- useFormRenderers.tsx
+    │   │-- useFormValidation.ts
+    │   │-- useGetActiveChannelList.ts
+    │   │-- useHandlePasswordInput.ts
+    │   │-- useIndefiniteDate.tsx
+    │   │-- useLocalStorage.ts
+    │   │-- usePIMPagination.tsx
+    │   │-- useSelectCell.ts
+    │   │-- useSingleBrandAndCorp.ts
+    │   └-- useSnackbar.ts
+    │-- provider
+    │   │-- AuthCheck.tsx
+    │   │-- MuiThemeProvider.tsx
+    │   │-- NextAuthProvider.tsx
+    │   │-- RootWrapper.tsx
+    │   │-- SnackBarProvider.tsx
+    │   └-- TanstackQueryProvider.tsx
+    │-- queryKeys
+    │   └-- index.ts
+    │-- stores
+    │   │-- useMfaStore.ts
+    │   │-- useOrderNoStore.ts
+    │   │-- useRouteStore.ts
+    │   │-- useSnackbarStore.ts
+    │   │-- useTimezoneStore.ts
+    │   └-- useUserPermissionStore.ts
+    │-- styles
+    │   │-- globals.css
+    │   └-- theme.ts
+    │-- types
+    │   └-- index.ts
+    └-- utils
+        │-- cleanParams.ts
+        │-- cn.ts
+        │-- downloadUtils.ts
+        │-- formatDate.ts
+        │-- imageUtils.ts
+        │-- querystring.ts
+        │-- renderCell.tsx
+        │-- stringUtils.tsx
+        └-- updateNextAuthSession.ts
+

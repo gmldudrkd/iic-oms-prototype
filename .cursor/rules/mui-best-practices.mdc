@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+<!-- # Material-UI(MUI) 컴포넌트 모범 사례 -->
+# Best practices for Material-UI (MUI) components
+
+<!-- - 애플리케이션 전반에 일관된 디자인을 유지하기 위해 MUI 테마를 커스터마이징하세요. -->
+- Customize MUI themes to maintain consistent design across the application.
+<!-- - 커스텀 CSS 필요성을 줄이기 위해 MUI의 sx prop을 인라인 스타일링에 활용하세요. -->
+- Use MUI's sx prop for inline styling to reduce the need for custom CSS.
+<!-- - 복잡한 테이블 구조와 데이터 관리를 위해 MUI의 데이터 그리드를 구현하세요. -->
+- Implement MUI's data grid for complex table structures and data management.
+<!-- - 애플리케이션 전반에 일관된 날짜 입력을 위해 MUI의 데이트 피커를 활용하세요. -->
+- Utilize MUI's date pickers for consistent date input across the application.

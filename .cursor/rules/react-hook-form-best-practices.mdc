@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+<!-- # React Hook Form 모범 사례 -->
+# Best practices for form handling with React Hook Form
+
+<!-- - 더 나은 성능과 쉬운 상태 관리를 위해 제어 컴포넌트를 사용하세요. -->
+- Use controlled components for better performance and easier state management.
+<!-- - 내장 register 함수나 커스텀 유효성 검사 규칙을 사용하여 유효성 검사를 구현하세요. -->
+- Implement validation using the built-in `register` function or custom validation rules.
+<!-- - 중첩된 컴포넌트 간에 폼 상태를 공유하기 위해 useFormContext를 활용하세요. -->
+- Utilize `useFormContext` for sharing form state across nested components.
+<!-- - MUI와 같은 UI 라이브러리와의 통합을 위해 Controller 컴포넌트를 활용하세요. -->
+- Leverage `Controller` component for integrating with UI libraries like MUI.

@@ -1,0 +1,47 @@
+version: 0.2
+
+env:
+  variables:
+    DOCKERFILE_PATH: "buildspec/Dockerfile"
+    RUN_ENV: "prd"
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22.14.0
+    run-as: root
+    commands:
+      - update-ca-trust
+      - node -v
+      - npm ci # 의존성 설치
+      - npm run codegen:types # 타입 생성
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...........!!
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - export IMAGE_TAG="v-$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
+      - echo $CODEBUILD_RESOLVED_SOURCE_VERSION
+      - echo $IMAGE_TAG
+      - curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o /usr/local/bin/jq
+      - chmod a+x /usr/local/bin/jq
+      - chmod +x buildspec/pre_build.sh
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - sh buildspec/pre_build.sh
+      - docker build -f $DOCKERFILE_PATH -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - chmod +x buildspec/post_build.sh
+      - sh buildspec/post_build.sh
+
+cache:
+  paths:
+    - "node_modules/**/*"
+    - ".next/cache/**/*"
+
+artifacts:
+  files:
+    - imagedefinitions.json

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /Users/heeyoungkang/iicombined/IIC_OMS_Prototype/.env*)",
+      "Bash(cat \"/Users/heeyoungkang/iicombined/IIC_OMS_Prototype/src/app/\\(auth\\)/channel/channel-list/page.tsx\")",
+      "Bash(cat \"/Users/heeyoungkang/iicombined/IIC_OMS_Prototype/src/app/\\(auth\\)/order/order-list/page.tsx\")"
+    ]
+  }
+}

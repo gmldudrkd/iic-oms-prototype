@@ -1,0 +1,20 @@
+# Next.js 빌드/캐시 폴더
+.next/
+!/.next/standalone
+!/.next/static
+
+# 테스트 산출물
+tests/
+__tests__/
+jest.config.js
+
+node_modules
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+README.md
+
+# 2) 환경 변수
+.env
+.env.*

@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+<!-- # Next.js 모범 사례 -->
+# Best practices for Next.js applications and routing
+
+<!-- - 향상된 성능과 간단한 데이터 페칭을 위해 Next.js 14의 App Router를 활용하세요. -->
+- Utilize Next.js 14's App Router for improved performance and simpler data fetching.
+<!-- - SEO 이점과 더 빠른 초기 로드 시간을 위해 서버 사이드 렌더링을 구현하세요. -->
+- Implement server-side rendering for SEO benefits and faster initial load times.
+<!-- - 최적화된 이미지 로딩과 자동 형식 선택을 위해 next/image를 사용하세요. -->
+- Use `next/image` for optimized image loading and automatic format selection.
+<!-- - 폰트 최적화와 레이아웃 시프트 감소를 위해 next/font를 활용하세요. -->
+- Leverage `next/font` for font optimization and reduced layout shift.

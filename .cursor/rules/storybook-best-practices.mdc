@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+<!-- # Storybook 컴포넌트 개발 모범 사례 -->
+# Best practices for component development with Storybook
+
+<!-- - 각 컴포넌트의 다양한 상태와 변형을 보여주는 스토리를 생성하세요. -->
+- Create stories for each component to showcase different states and variations.
+<!-- - 향상된 개발 경험을 위해 addon-essentials와 같은 Storybook 애드온을 사용하세요. -->
+- Use Storybook addons like `addon-essentials` for enhanced development experience.
+<!-- - 컴포넌트의 시각적 회귀 테스트를 위해 chromatic 테스트를 구현하세요. -->
+- Implement chromatic testing for visual regression testing of components.
+<!-- - 컴포넌트 문서화 유지를 위해 Storybook의 문서화 기능을 활용하세요. -->
+- Utilize Storybook's documentation features to maintain component documentation.

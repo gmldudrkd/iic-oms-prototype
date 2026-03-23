@@ -1,0 +1,16 @@
+---
+description: 
+globs: *.ts,*.tsx
+alwaysApply: false
+---
+<!-- # TypeScript 모범 사례 -->
+# Best practices for TypeScript development
+
+<!-- - null이나 undefined 오류를 방지하기 위해 strict null 체크를 사용하세요. -->
+- Use strict null checks to prevent null or undefined errors.
+<!-- - 객체 형태 정의에는 타입보다 인터페이스를 선호하세요. -->
+- Prefer interfaces over types for defining object shapes.
+<!-- - 런타임 타입 검사를 위한 타입 가드와 어설션을 구현하세요. -->
+- Implement type guards and assertions for runtime type checking.
+<!-- - 재사용 가능하고 타입 안전한 컴포넌트와 함수를 위해 제네릭을 활용하세요. -->
+- Utilize generics for creating reusable and type-safe components and functions.

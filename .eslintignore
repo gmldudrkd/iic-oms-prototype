@@ -1,0 +1,4 @@
+package.json
+.eslintignore
+.prettierignore
+src/shared/generated/

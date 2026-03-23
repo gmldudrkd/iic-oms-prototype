@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+<!-- # NextAuth.js 인증 모범 사례 -->
+# Best practices for authentication with NextAuth.js
+
+<!-- - 인증 흐름과 세션 관리를 위해 NextAuth.js를 사용하세요. -->
+- Use NextAuth.js for handling authentication flows and session management.
+<!-- - 다양한 인증 서비스와의 통합을 위해 커스텀 프로바이더를 구현하세요. -->
+- Implement custom providers for integrating with various authentication services.
+<!-- - 서버리스 환경에서 상태 없는 인증을 위해 JWT 전략을 활용하세요. -->
+- Utilize JWT strategy for stateless authentication in serverless environments.
+<!-- - 인증 검사를 위해 NextAuth.js 미들웨어를 사용하여 API 라우트를 보안하세요. -->
+- Secure API routes using NextAuth.js middleware for authentication checks.

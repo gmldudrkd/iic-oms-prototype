@@ -1,0 +1,76 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --h1: 70px;
+  --button-height: 68.5px;
+  --latest-height: 24px;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+  --header-height: 64px;
+  --footer-height: 50px;
+  /* --breadcrumb-height: 72px; */
+  --navigation-width: 320px;
+  --scroll-width: 0px;
+  --font-pretendard:
+    "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --color-default: rgba(0, 0, 0, 0.87);
+  --color-light-black: rgba(0, 0, 0, 0.6);
+  --color-primary: rgba(66, 165, 245, 1);
+  --color-primary-dark: rgba(30, 136, 229, 1);
+  --color-nav-selected: rgba(33, 150, 243, 0.08);
+  --color-cell-selected: rgba(33, 150, 243, 0.12);
+  --color-cell-error: rgba(211, 47, 47, 0.08);
+  --color-image-error: rgba(255, 23, 23, 0.2);
+  --color-error: #d32f2f;
+  --color-error-light: rgba(239, 83, 80, 1);
+  --color-text-primary: rgba(0, 0, 0, 0.87);
+  --color-text-secondary: rgba(0, 0, 0, 0.6);
+  --color-text-disabled: rgba(0, 0, 0, 0.38);
+  --color-order: rgba(33, 150, 243, 1);
+  --color-order-opacity: rgba(33, 150, 243, 0.08);
+  --color-return: rgba(239, 108, 0, 1);
+  --color-return-opacity: rgba(239, 108, 0, 0.08);
+  --color-exchange: rgba(46, 125, 50, 1);
+  --color-exchange-opacity: rgba(46, 125, 50, 0.08);
+  --color-outlined: rgba(224, 224, 224, 1);
+}
+.height100vh {
+  height: calc(
+    100vh - var(--header-height) - var(--h1) - var(--button-height) -
+      var(--latest-height)
+  );
+  background-color: #fff;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body,
+* {
+  font-family:
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    "Noto Sans",
+    sans-serif !important;
+}
+
+main {
+  background: #f5f5f5;
+  padding-bottom: 24px;
+}
+a {
+  text-decoration: none;
+  cursor: pointer;
+}

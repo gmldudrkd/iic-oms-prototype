@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+<!-- # Tailwind CSS 모범 사례 -->
+# Best practices for using Tailwind CSS
+
+<!-- - 빠른 개발과 일관된 스타일링을 위해 유틸리티 우선 클래스를 사용하세요. -->
+- Use utility-first classes for rapid development and consistent styling.
+<!-- - 재사용 가능한 스타일을 위해 @apply 지시문으로 커스텀 컴포넌트를 생성하세요. -->
+- Create custom components with `@apply` directive for reusable styles.
+<!-- - Tailwind의 반응형 수정자를 사용하여 반응형 디자인을 구현하세요. -->
+- Implement responsive design using Tailwind's responsive modifiers.
+<!-- - JIT(Just-In-Time) 모드를 사용하여 빌드 시간을 최적화하세요. -->
+- Optimize build times by using JIT (Just-In-Time) mode.

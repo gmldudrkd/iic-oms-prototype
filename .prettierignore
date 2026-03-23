@@ -1,0 +1,5 @@
+# ignore generated swagger files
+src/shared/generated/
+
+# ignore eslint config
+.eslintignore

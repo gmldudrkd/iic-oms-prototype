@@ -1,0 +1,22 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+<!-- # 프론트엔드 성능 최적화 가이드라인 -->
+# Frontend Performance Optimization Guidelines
+
+<!-- - 불필요한 리렌더링 방지를 위한 메모이제이션 전략 (React.memo, useMemo, useCallback) 활용 -->
+- Utilize memoization strategies (React.memo, useMemo, useCallback) to prevent unnecessary re-renders
+<!-- - 코드 스플리팅과 지연 로딩(lazy loading)을 통한 초기 로드 시간 개선 -->
+- Improve initial load time through code splitting and lazy loading techniques
+<!-- - 이미지와 에셋 최적화 및 CDN 활용으로 로딩 속도 향상 -->
+- Enhance loading speed by optimizing images and assets, and leveraging CDN
+<!-- - Next.js의 서버 사이드 렌더링(SSR)과 정적 생성(SSG)의 적절한 활용 -->
+- Proper utilization of Next.js server-side rendering (SSR) and static site generation (SSG)
+<!-- - 코어 웹 바이탈(CWV) 측정 및 개선 전략 구현 -->
+- Implement and monitor Core Web Vitals (CWV) improvement strategies
+<!-- - 불필요한 리렌더링을 줄이기 위한 상태 관리 최적화 -->
+- Optimize state management to reduce unnecessary re-renders
+<!-- - 네트워크 요청 최소화 및 데이터 캐싱 전략 사용 -->
+- Minimize network requests and implement effective data caching strategies

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/heeyoungkang/iicombined/oms-spec/.claude",
+      "/Users/heeyoungkang/iicombined/IIC_OMS_Prototype/.claude"
+    ]
+  }
+}

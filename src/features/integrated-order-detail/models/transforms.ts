@@ -1,0 +1,1356 @@
+import { GridRowModel } from "@mui/x-data-grid";
+import { GridRowModel as GridRowModelPro } from "@mui/x-data-grid-pro";
+
+import { NOT_STARTED } from "@/features/integrated-order-detail/modules/constants";
+import { TAddressForm } from "@/features/integrated-order-detail/modules/types";
+
+import { ClaimCreateRequestTypeEnum } from "@/shared/generated/oms/types/Claim";
+import {
+  ExchangeDetailResponse,
+  ExchangeDetailShipmentResponse,
+  ExchangeSearchRequestExchangeStatusesEnum,
+} from "@/shared/generated/oms/types/Exchange";
+import {
+  OrderDetailResponse,
+  OrderDetailOrderItemResponse,
+  OrderDetailShipmentResponse,
+  OrderDetailShipmentItemResponse,
+  OrderEstimateRefundFeeResponse,
+  OrderHistoryResponse,
+  RefundPayment,
+} from "@/shared/generated/oms/types/Order";
+import {
+  ReturnDetailClaimItemResponse,
+  ReturnDetailResponse,
+} from "@/shared/generated/oms/types/Return";
+import { getLocalTime } from "@/shared/utils/formatDate";
+import { getDefaultImageUrl } from "@/shared/utils/imageUtils";
+import { formatLine1, snakeToTitleCase } from "@/shared/utils/stringUtils";
+
+interface TransformOrderDetailDataProps {
+  data?: OrderDetailResponse;
+  timezone: string;
+}
+
+/**
+ * order detail 데이터 변환
+ * @param TransformOrderDetailDataProps { data: OrderDetailResponse, timezone: string }
+ */
+export const transformOrderDetailData = ({
+  data,
+  timezone,
+}: TransformOrderDetailDataProps) => {
+  return {
+    orderDetail: {
+      channel: data?.channelType?.description ?? "-",
+      orderDate: getLocalTime(data?.orderedAt ?? "-", timezone),
+      orderStatus: data?.status.description ?? "-",
+      purchaseNo: data?.purchaseNo,
+      ordererName: data?.orderer?.fullName ?? "-",
+      phoneCountryNo: data?.orderer?.phoneCountryNo || "",
+      ordererPhone: data?.orderer?.phone,
+      ordererEmail: data?.orderer?.email ?? "-",
+    },
+    recipientInfo: {
+      orderStatus: snakeToTitleCase(data?.status.name ?? "-"),
+      recipientFirstName: data?.recipient.firstName ?? "-",
+      recipientLastName: data?.recipient.lastName ?? "-",
+      recipientName: data?.recipient.fullName ?? "-",
+      phoneCountryNo: data?.recipient?.phoneCountryNo || "",
+      recipientPhone: data?.recipient?.phone,
+      deliveryAddress: {
+        postcode: data?.recipient?.address?.postalCode ?? "-",
+        address1: formatLine1(
+          data?.recipient?.address?.line1 ?? "-",
+          data?.recipient?.address?.state ?? "",
+          data?.recipient?.address?.city ?? "",
+        ),
+        address2: data?.recipient?.address?.line2 ?? "-",
+        city: data?.recipient?.address?.city ?? "-",
+        stateProvince: data?.recipient?.address?.state ?? "-",
+        countryRegion: data?.recipient?.address?.countryType ?? "-",
+      },
+    },
+  };
+};
+
+const formatWithSequence = (
+  value: string | number | null | undefined,
+  sequence: number | string,
+): string => {
+  return `${value ?? ""}^${sequence}`;
+};
+
+const createCommonQuantityFields = <T>(
+  fields: (keyof T)[],
+  item: T,
+  sequence: number | string,
+) => {
+  return fields.reduce(
+    (acc, key) => {
+      const value = (item as Record<string, unknown>)[key as string];
+      acc[key as string] = `${value ?? ""}^${sequence}`;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+};
+
+/**
+ * ordered product info rows 변환
+ * @param data OrderDetailResponse
+ * @returns rows: GridRowModel[]
+ */
+export const transformRowsOrderedProductInfo = (
+  data: OrderDetailResponse | undefined,
+) => {
+  if (!data) return [];
+  const { currency } = data.payments[0] ?? {};
+  const fields: (keyof OrderDetailOrderItemResponse)[] = [
+    "orderedQuantity",
+    "shipmentQuantity",
+    "canceledQuantity",
+    "returnedQuantity",
+    "reshippedQuantity",
+    "price",
+    "subTotal",
+  ];
+
+  const rows: GridRowModel[] = data.items.flatMap((item, itemIndex) => {
+    const totalSubItems =
+      (item.products?.length || 0) + (item.components?.length || 0);
+    const { sequence } = item;
+
+    const commonFields = {
+      ...createCommonQuantityFields(fields, item, sequence),
+      currency,
+    };
+    const itemRows: GridRowModel[] = [];
+
+    // ✅ products
+    item.products?.forEach((product, productIndex) => {
+      itemRows.push({
+        id: `item-${itemIndex}-product-${productIndex}-${sequence}`,
+        no: sequence,
+        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`,
+        skuCode: formatWithSequence(item.sku, sequence),
+        productName: formatWithSequence(item.productName, sequence),
+        sapCode: formatWithSequence(product.productCode, sequence),
+        sapName: formatWithSequence(product.productName, sequence),
+        ...commonFields,
+      });
+    });
+
+    // ✅ components
+    item.components?.forEach((component, componentIndex) => {
+      itemRows.push({
+        id: `item-${itemIndex}-component-${componentIndex}-${sequence}`,
+        no: sequence,
+        image: null,
+        skuCode: formatWithSequence(component.sku, sequence),
+        productName: formatWithSequence(component.productName, sequence),
+        sapCode: formatWithSequence(component.productCode, sequence),
+        sapName: formatWithSequence(component.productName, sequence),
+        ...commonFields,
+      });
+    });
+
+    // ✅ 단일 상품
+    if (totalSubItems === 0) {
+      itemRows.push({
+        id: item.productCode || `item-${itemIndex}`,
+        no: sequence,
+        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`,
+        skuCode: formatWithSequence(item.sku, sequence),
+        productName: item.productName ?? "-",
+        sapCode: formatWithSequence(item.productCode, sequence),
+        sapName: formatWithSequence(item.productName, sequence),
+        ...commonFields,
+      });
+    }
+
+    return itemRows;
+  });
+
+  // 배송비 추가
+  rows.push({
+    id: "shipping-fee",
+    no: "-",
+    skuCode: "",
+    sapCode: "",
+    image: null,
+    productName: "",
+    sapName: "배송비^",
+    orderedQuantity: `^`,
+    shipmentQuantity: `^`,
+    canceledQuantity: `^`,
+    returnedQuantity: `^`,
+    reshippedQuantity: `^`,
+    price: null,
+    subTotal: `${data.shippingFee}^`,
+    currency,
+  });
+
+  return rows;
+};
+
+/**
+ * payment info rows 변환
+ * @param data OrderDetailResponse
+ * @returns rows: GridRowModel[]
+ */
+export const transformRowsPaymentInfo = (
+  data: OrderDetailResponse | undefined,
+  timezone: string,
+): GridRowModel[] => {
+  if (!data) return [];
+  const { currency } = data.payments[0] ?? {};
+
+  const payments = data.payments.map((payment, index) => ({
+    id: `${payment.transactionNo}-${index}`,
+    no: index + 1,
+    occurredAt: getLocalTime(payment.paidAt, timezone),
+    type: "Payment",
+    method: payment.method,
+    tid: payment.transactionNo,
+    note: null,
+    amount: payment.paidAmount,
+    currency,
+  }));
+
+  // 이전 refundGroup들의 총 refundPayments 개수를 누적하기 위한 변수
+  let previousRefundCount = 0;
+
+  const refundPayments = data.refundPayments.flatMap(
+    (refundGroup, refundGroupIndex) => {
+      const refunds = refundGroup.refundPayments
+        .filter((refund) => refund !== null)
+        .map((refund: RefundPayment, refundIndex) => ({
+          id: `${refund.transactionNo}-${refundGroupIndex}-${refundIndex}`,
+          no: data.payments.length + previousRefundCount + refundIndex + 1,
+          occurredAt: getLocalTime(refund.refundAt, timezone),
+          type: "Refund",
+          method: refund.method,
+          tid: refund.transactionNo,
+          note: refundGroup.reason
+            ? `${refundGroup.reason}${
+                refund.shippingFee
+                  ? ` (excl., shipping ${refund.shippingFee.toLocaleString()})`
+                  : ""
+              }`
+            : "-",
+          amount: refund.refundAmount ? refund.refundAmount * -1 : 0,
+          currency,
+        }));
+
+      // 현재 refundGroup의 개수를 누적
+      previousRefundCount += refundGroup.refundPayments.length;
+
+      return refunds;
+    },
+  );
+
+  return [...payments, ...refundPayments];
+};
+
+/**
+ * shipment info 데이터 변환
+ * @param data OrderDetailResponse
+ */
+export const transformRowsShipmentInfo = (
+  shipment: OrderDetailShipmentResponse,
+  // index: number,
+  timezone: string,
+) => {
+  const rows = transformRowsShipmentInfoRows(shipment);
+
+  return {
+    sequence: shipment.shipmentNo,
+    shipmentNo: shipment.shipmentNo,
+    event: shipment.event,
+    status: shipment.status,
+    updatedAt: getLocalTime(shipment.updatedAt, timezone),
+    carrier: shipment.delivery?.carrierCode ?? NOT_STARTED,
+    trackingNo:
+      shipment.deliveries.length > 0
+        ? shipment.deliveries
+        : [{ trackingNo: NOT_STARTED, trackingUrl: null }],
+    recipientName: shipment.recipient.fullName,
+    phoneCountryNo: shipment.recipient.phoneCountryNo ?? "",
+    recipientNo: shipment.recipient.phone ?? "",
+    deliveryAddress: {
+      postcode: shipment.recipient.address.postalCode ?? "",
+      address1: formatLine1(
+        shipment.recipient.address.line1,
+        shipment.recipient.address.state ?? "",
+        shipment.recipient.address.city ?? "",
+      ),
+      address2: shipment.recipient.address.line2 ?? "",
+      city: shipment.recipient.address.city ?? "",
+      stateProvince: shipment.recipient.address.state ?? "",
+      countryRegion: shipment.recipient.address.countryType,
+    },
+    deliveryMessage: shipment.recipient.deliveryMessage || "-",
+    rows,
+  };
+};
+
+/**
+ * shipment info rows 데이터 변환
+ * @param shipment OrderDetailShipmentResponse
+ * @returns rows: GridRowModel[]
+ */
+export const transformRowsShipmentInfoRows = (
+  shipment: OrderDetailShipmentResponse,
+) => {
+  const fields: (keyof OrderDetailShipmentItemResponse)[] = [
+    "shipmentQuantity",
+    "canceledQuantity",
+    "shippedQuantity",
+  ];
+
+  const rows: GridRowModel[] = shipment.items.flatMap((item, itemIndex) => {
+    const totalSubItems =
+      (item.products?.length || 0) + (item.components?.length || 0);
+    const { sequence } = item;
+
+    const commonFields = createCommonQuantityFields(fields, item, sequence);
+    const itemRows: GridRowModel[] = [];
+
+    // ✅ products
+    item.products?.forEach((product, productIndex) => {
+      itemRows.push({
+        id: `item-${itemIndex}-product-${productIndex}-${sequence}`,
+        no: sequence,
+        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`,
+        skuCode: formatWithSequence(item.sku, sequence),
+        productName: formatWithSequence(item.productName, sequence),
+        sapCode: formatWithSequence(product.productCode, sequence),
+        sapName: formatWithSequence(product.productName, sequence),
+        ...commonFields,
+      });
+    });
+
+    // ✅ components
+    item.components?.forEach((component, componentIndex) => {
+      itemRows.push({
+        id: `item-${itemIndex}-component-${componentIndex}-${sequence}`,
+        no: sequence,
+        image: null,
+        skuCode: formatWithSequence(component.sku, sequence),
+        productName: formatWithSequence(component.productName, sequence),
+        sapCode: formatWithSequence(component.productCode, sequence),
+        sapName: formatWithSequence(component.productName, sequence),
+        ...commonFields,
+      });
+    });
+
+    // ✅ 단일 상품
+    if (totalSubItems === 0) {
+      itemRows.push({
+        id: item.productCode || `item-${itemIndex}`,
+        no: sequence,
+        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`,
+        skuCode: formatWithSequence(item.sku, sequence),
+        productName: item.productName ?? "-",
+        sapCode: formatWithSequence(item.productCode, sequence),
+        sapName: formatWithSequence(item.productName, sequence),
+        ...commonFields,
+      });
+    }
+
+    return itemRows;
+  });
+
+  return rows;
+};
+
+/**
+ * request shipment rows 데이터 변환
+ * @param data OrderDetailResponse
+ * @param shipment? OrderDetailShipmentResponse
+ * @returns rows: GridRowModel[]
+ */
+export const transformRowsRequestShipment = (
+  data: OrderDetailResponse | undefined,
+) => {
+  if (!data) return [];
+
+  return data.items.map((item) => {
+    const shippable = item.allocateQuantity - item.shipmentQuantity;
+
+    return {
+      no: item.sequence,
+      id: item.orderItemId,
+      sapCode: item.productCode,
+      image: getDefaultImageUrl(item.thumbnailUrl),
+      productName: item.productName,
+      orderedQuantity: item.orderedQuantity,
+      shippable: shippable > 0 ? shippable : 0, // 음수 방지를 위한 0 조건
+      toShip: shippable > 0 ? shippable : 0, // TODO: toShip 디폴트 값 맞는지 체크
+      products: item.products,
+      components: item.components,
+      sku: item.sku,
+    };
+  });
+};
+
+/**
+ * [cancel order] rows 데이터 변환
+ * @param data OrderDetailResponse
+ * @returns rows: GridRowModel[]
+ */
+export const transformRowsCancelOrder = (
+  data: OrderDetailResponse | undefined,
+) => {
+  if (!data) return [];
+  return data.items.flatMap((item, itemIndex): GridRowModel[] => {
+    const itemOriginalQuantity = Number(item.orderedQuantity) || 0;
+    const itemId = item.orderItemId;
+    const { currency } = data.payments[0] ?? {};
+
+    // 취소 가능한 실제 수량 계산
+    const actualAvailableQuantity = Math.max(
+      0,
+      itemOriginalQuantity -
+        (Number(item.canceledQuantity) || 0) -
+        (Number(item.shipmentQuantity) || 0) -
+        (Number(item.returnedQuantity) || 0),
+    );
+
+    const rowsToAdd: GridRowModel[] = [];
+
+    // 취소 가능한 수량이 있는 경우 행 추가 (활성)
+    if (actualAvailableQuantity > 0) {
+      rowsToAdd.push({
+        no: item.sequence,
+        id: itemId,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        sapCode: item.productCode,
+        productName: item.productName,
+        cellQuantity: actualAvailableQuantity, // TODO: cellQuantity 디폴트 값 맞는지 체크
+        cancelPrice: item.price,
+        initialAvailableQuantity: actualAvailableQuantity,
+        isActive: actualAvailableQuantity > 0,
+        currency,
+      });
+    }
+
+    // 이미 취소된 수량이 있는 경우 행 추가 (비활성)
+    if ((Number(item.canceledQuantity) || 0) > 0) {
+      const canceledQuantity = Number(item.canceledQuantity);
+      rowsToAdd.push({
+        no: item.sequence,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        id: `${itemId}-canceled-${itemIndex}`,
+        sapCode: item.productCode,
+        productName: item.productName,
+        cellQuantity:
+          canceledQuantity > item.orderedQuantity
+            ? item.orderedQuantity
+            : canceledQuantity,
+        cancelPrice: item.price,
+        isActive: false,
+        currency,
+      });
+    }
+
+    // 이미 배송된 수량이 있는 경우 행 추가 (비활성, 취소 불가 상태 표시 목적)
+    if ((Number(item.shipmentQuantity) || 0) > 0) {
+      const shipmentQuantity = Number(item.shipmentQuantity);
+      rowsToAdd.push({
+        no: item.sequence,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        id: `${itemId}-shipment-${itemIndex}`,
+        sapCode: item.productCode,
+        productName: item.productName,
+        cellQuantity:
+          shipmentQuantity > item.orderedQuantity
+            ? item.orderedQuantity
+            : shipmentQuantity,
+        cancelPrice: item.price,
+        isActive: false,
+        currency,
+      });
+    }
+
+    // 이미 반환된 수량이 있는 경우 행 추가 (비활성)
+    if ((Number(item.returnedQuantity) || 0) > 0) {
+      const returnedQuantity = Number(item.returnedQuantity);
+      rowsToAdd.push({
+        no: item.sequence,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        id: `${itemId}-returned-${itemIndex}`,
+        sapCode: item.productCode,
+        image: item.thumbnailUrl,
+        productName: item.productName,
+        cellQuantity:
+          returnedQuantity > item.orderedQuantity
+            ? item.orderedQuantity
+            : returnedQuantity,
+        cancelPrice: item.price,
+        isActive: false,
+        currency,
+      });
+    }
+
+    return rowsToAdd;
+  });
+};
+
+/**
+ * [cancel order] shipment level rows 데이터 변환
+ * @param shipmentOrderItemId string[]
+ * @param data OrderDetailResponse
+ * @returns rows: GridRowModel[]
+ */
+export const transformRowsCancelOrderShipment = (
+  shipment: OrderDetailShipmentResponse | undefined,
+  data: OrderDetailResponse | undefined,
+) => {
+  if (!data) return [];
+  return data.items.flatMap((item, itemIndex): GridRowModel[] => {
+    const itemOriginalQuantity = Number(item.orderedQuantity) || 0;
+    const itemId = item.orderItemId;
+
+    // 취소 가능한 실제 수량 계산
+    const actualAvailableQuantity = Math.max(
+      0,
+      itemOriginalQuantity -
+        (Number(item.canceledQuantity) || 0) -
+        (Number(item.shipmentQuantity) || 0) -
+        (Number(item.returnedQuantity) || 0),
+    );
+
+    const rowsToAdd: GridRowModel[] = [];
+
+    // 취소 가능한 수량이 있는 경우 행 추가 (활성)
+    if (actualAvailableQuantity > 0) {
+      rowsToAdd.push({
+        no: item.sequence,
+        id: itemId,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        sapCode: item.productCode,
+        productName: item.productName,
+        cellQuantity: actualAvailableQuantity,
+        cancelPrice: item.price,
+        initialAvailableQuantity: actualAvailableQuantity,
+        isActive: actualAvailableQuantity > 0,
+      });
+    }
+
+    // 이미 취소된 수량이 있는 경우 행 추가 (비활성)
+    if ((Number(item.canceledQuantity) || 0) > 0) {
+      const canceledQuantity = Number(item.canceledQuantity);
+      rowsToAdd.push({
+        no: item.sequence,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        id: `${itemId}-canceled-${itemIndex}`,
+        sapCode: item.productCode,
+        productName: item.productName,
+        cellQuantity:
+          canceledQuantity > item.orderedQuantity
+            ? item.orderedQuantity
+            : canceledQuantity,
+        cancelPrice: item.price,
+        isActive: false,
+      });
+    }
+
+    // 이미 배송된 수량이 있는 경우 행 추가 (비활성, 취소 불가 상태 표시 목적)
+    if ((Number(item.shipmentQuantity) || 0) > 0) {
+      const shipmentQuantity = Number(item.shipmentQuantity);
+      rowsToAdd.push({
+        no: item.sequence,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        id: `${itemId}-shipment-${itemIndex}`,
+        sapCode: item.productCode,
+        productName: item.productName,
+        cellQuantity:
+          shipmentQuantity > item.orderedQuantity
+            ? item.orderedQuantity
+            : shipmentQuantity,
+        cancelPrice: item.price,
+        isActive: false,
+      });
+    }
+
+    // 이미 반환된 수량이 있는 경우 행 추가 (비활성)
+    if ((Number(item.returnedQuantity) || 0) > 0) {
+      const returnedQuantity = Number(item.returnedQuantity);
+      rowsToAdd.push({
+        no: item.sequence,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        id: `${itemId}-returned-${itemIndex}`,
+        sapCode: item.productCode,
+        image: item.thumbnailUrl,
+        productName: item.productName,
+        cellQuantity:
+          returnedQuantity > item.orderedQuantity
+            ? item.orderedQuantity
+            : returnedQuantity,
+        cancelPrice: item.price,
+        isActive: false,
+      });
+    }
+
+    console.log(data);
+
+    return rowsToAdd;
+  });
+};
+
+/**
+ * [cancel shipment] shipment level rows 데이터 변환
+ * @param shipment OrderDetailShipmentResponse
+ * @param data OrderDetailResponse
+ * @returns rows: GridRowModel[]
+ */
+export const transformRowsCancelShipment = (
+  shipment: OrderDetailShipmentResponse | undefined,
+  currency: string | undefined,
+) => {
+  if (!shipment) return [];
+
+  return shipment.items.map((item): GridRowModel => {
+    // 실제 취소 가능한 수량 계산 (배송 예정 수량 - 이미 취소된 수량)
+    const availableQuantity = Math.max(
+      0,
+      item.shipmentQuantity - item.canceledQuantity,
+    );
+
+    return {
+      no: item.sequence,
+      id: item.orderItemId,
+      orderItemId: item.orderItemId,
+      originItemId: item.originItemId,
+      skuCode: item.sku,
+      products: item.products,
+      components: item.components,
+      sapCode: item.productCode,
+      productName: item.productName,
+      cellQuantity:
+        availableQuantity > 0 ? availableQuantity : item.canceledQuantity, // TODO: cellQuantity 디폴트 값 맞는지 체크
+      cancelPrice:
+        item.products.reduce(
+          (acc, product) => acc + product.price * product.quantity,
+          0,
+        ) +
+        item.components.reduce(
+          (acc, component) => acc + component.price * component.quantity,
+          0,
+        ),
+      initialAvailableQuantity: availableQuantity,
+      isActive: availableQuantity > 0,
+      currency,
+    };
+  });
+};
+
+/**
+ * [claim order] rows 데이터 변환
+ * @param data OrderDetailResponse
+ * @returns rows: GridRowModel[]
+ */
+export const transformRowsClaimOrder = (
+  data: OrderDetailResponse | undefined,
+) => {
+  if (!data) return [];
+
+  let globalIndex = 1; // 부분 배송 대응을 위해 sequence 대신 index 사용
+
+  return data.items.flatMap((item, itemIndex): GridRowModel[] => {
+    const itemId = item.orderItemId;
+
+    // 환불 가능한 실제 수량 계산
+    const actualAvailableQuantity = Math.max(
+      (Number(item.shipmentQuantity) || 0) +
+        (Number(item.reshippedQuantity) || 0) -
+        (Number(item.returnedQuantity) || 0),
+    );
+
+    const isActive = actualAvailableQuantity > 0;
+    const rowsToAdd: GridRowModel[] = [];
+
+    // 활성 행 (취소 가능한 수량)
+    if (actualAvailableQuantity > 0 && item.shippedQuantity > 0) {
+      rowsToAdd.push({
+        no: globalIndex++,
+        id: `${itemId}-active-${itemIndex}`,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        sapCode: item.productCode,
+        productName: item.productName,
+        cellQuantity: actualAvailableQuantity,
+        cancelPrice: item.price,
+        initialAvailableQuantity: actualAvailableQuantity,
+        isActive,
+      });
+    }
+
+    // 비활성 행 (이미 반품된 수량이거나 배송된 수량이 없는 경우)
+    if (item.returnedQuantity > 0 || item.shippedQuantity === 0) {
+      rowsToAdd.push({
+        no: "-",
+        id: `${itemId}-inActive-${itemIndex}`,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: item.sku,
+        products: item.products,
+        components: item.components,
+        sapCode: item.productCode,
+        productName: item.productName,
+        cellQuantity:
+          item.returnedQuantity > item.orderedQuantity
+            ? item.orderedQuantity
+            : item.returnedQuantity,
+        cancelPrice: item.price,
+        isActive: false,
+      });
+    }
+
+    return rowsToAdd;
+  });
+};
+
+/**
+ * summary 데이터 변환
+ */
+export const transformSummaryDefaultData = (
+  data: OrderDetailResponse | undefined,
+): OrderEstimateRefundFeeResponse => {
+  if (!data)
+    return {
+      orderPayment: {
+        subtotal: 0,
+        taxAmount: 0,
+        dutyAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+      },
+      estimateRefundPayment: {
+        subtotal: 0,
+        taxAmount: 0,
+        dutyAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+      },
+      refundPayment: {
+        subtotal: 0,
+        taxAmount: 0,
+        dutyAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+      },
+      netPayment: {
+        subtotal: 0,
+        taxAmount: 0,
+        dutyAmount: 0,
+        shippingFee: 0,
+        totalAmount: 0,
+      },
+    };
+
+  const orderPayment = {
+    subtotal: data.payments.reduce(
+      (acc, payment) =>
+        acc + (payment.paidAmount ?? 0) - (payment.shippingFee ?? 0),
+      0,
+    ),
+    taxAmount: data.payments.reduce(
+      (acc, payment) => acc + (payment.taxAmount ?? 0),
+      0,
+    ),
+    dutyAmount: data.payments.reduce(
+      (acc, payment) => acc + (payment.dutyAmount ?? 0),
+      0,
+    ),
+    shippingFee: data.shippingFee,
+    totalAmount: data.payments.reduce(
+      (acc, payment) => acc + (payment.paidAmount ?? 0),
+      0,
+    ),
+  };
+
+  // 이미 반환된 금액
+  const refundPayment = {
+    subtotal: data.refundPayments.reduce(
+      (acc, payment) =>
+        acc +
+        payment.refundPayments.reduce(
+          (acc, refund) =>
+            acc + (refund.refundAmount ?? 0) - (refund.shippingFee ?? 0),
+          0,
+        ),
+      0,
+    ),
+    taxAmount: data.refundPayments.reduce(
+      (acc, payment) =>
+        acc +
+        payment.refundPayments.reduce(
+          (acc, refund) => acc + (refund.taxAmount ?? 0),
+          0,
+        ),
+      0,
+    ),
+    dutyAmount: data.refundPayments.reduce(
+      (acc, payment) =>
+        acc +
+        payment.refundPayments.reduce(
+          (acc, refund) => acc + (refund.dutyAmount ?? 0),
+          0,
+        ),
+      0,
+    ),
+    shippingFee: data.refundPayments.reduce(
+      (acc, payment) =>
+        acc +
+        payment.refundPayments.reduce(
+          (acc, refund) => acc + (refund.shippingFee ?? 0),
+          0,
+        ),
+      0,
+    ),
+    totalAmount: data.refundPayments.reduce(
+      (acc, payment) =>
+        acc +
+        payment.refundPayments.reduce(
+          (acc, refund) => acc + (refund.refundAmount ?? 0),
+          0,
+        ),
+      0,
+    ),
+  };
+
+  // 반환 요청 예상 금액
+  const estimateRefundPayment = {
+    subtotal: 0,
+    taxAmount: 0,
+    dutyAmount: 0,
+    shippingFee: 0,
+    totalAmount: 0,
+  };
+
+  const orderFinancialSummary = {
+    orderPayment,
+    refundPayment,
+    estimateRefundPayment,
+    netPayment: {
+      subtotal: orderPayment.subtotal - refundPayment.subtotal,
+      taxAmount: orderPayment.taxAmount - refundPayment.taxAmount,
+      dutyAmount: orderPayment.dutyAmount - refundPayment.dutyAmount,
+      shippingFee: orderPayment.shippingFee - refundPayment.shippingFee,
+      totalAmount: orderPayment.totalAmount - refundPayment.totalAmount,
+    },
+  };
+
+  return orderFinancialSummary;
+};
+
+interface TransformClaimCreateRequestProps {
+  claimType: ClaimCreateRequestTypeEnum;
+  reason: string;
+  fault: string;
+  recipientInfo: {
+    pickupRecipient: TAddressForm;
+    shipmentRecipient: TAddressForm;
+  };
+  selectedRows: GridRowModelPro[];
+  carrierCode?: string;
+  trackingNo?: string;
+}
+
+/**
+ * claim 생성 요청 데이터 변환
+ * @param TransformClaimCreateRequestProps
+ * @returns ClaimCreateRequest
+ */
+export const transformClaimCreateRequest = ({
+  claimType,
+  reason,
+  fault,
+  recipientInfo,
+  selectedRows,
+  carrierCode,
+  trackingNo,
+}: TransformClaimCreateRequestProps) => {
+  const items = selectedRows.map((row) => ({
+    orderItemId: row.orderItemId,
+    quantity: row.cellQuantity,
+  }));
+
+  if (claimType === "RETURN") {
+    return {
+      type: "RETURN" as ClaimCreateRequestTypeEnum,
+      reason,
+      fault,
+      pickupRecipient: {
+        fullName:
+          recipientInfo.pickupRecipient.recipientLastName +
+          recipientInfo.pickupRecipient.recipientFirstName,
+        firstName: recipientInfo.pickupRecipient.recipientFirstName,
+        lastName: recipientInfo.pickupRecipient.recipientLastName,
+        phone: recipientInfo.pickupRecipient.recipientPhone,
+        phoneCountryNo: recipientInfo.pickupRecipient.phoneCountryNo,
+        address: {
+          countryType: recipientInfo.pickupRecipient.countryRegion,
+          postalCode: recipientInfo.pickupRecipient.postcode,
+          state: recipientInfo.pickupRecipient.stateProvince,
+          city: recipientInfo.pickupRecipient.city,
+          line1: `${recipientInfo.pickupRecipient.stateProvince} ${recipientInfo.pickupRecipient.city} ${recipientInfo.pickupRecipient.address1}`,
+          line2: recipientInfo.pickupRecipient.address2,
+        },
+      },
+      items,
+      ...(carrierCode &&
+        trackingNo && {
+          carrierCode,
+          trackingNo,
+        }),
+    };
+  }
+
+  if (claimType === "RETURN_FORCE_REFUND") {
+    return {
+      type: "RETURN_FORCE_REFUND" as ClaimCreateRequestTypeEnum,
+      reason,
+      fault,
+      items,
+    };
+  }
+
+  if (claimType === "EXCHANGE") {
+    return {
+      type: "EXCHANGE" as ClaimCreateRequestTypeEnum,
+      reason,
+      fault,
+      pickupRecipient: {
+        fullName:
+          `${recipientInfo.pickupRecipient.recipientLastName || ""}${recipientInfo.pickupRecipient.recipientFirstName || ""}`.trim(),
+        firstName: recipientInfo.pickupRecipient.recipientFirstName,
+        lastName: recipientInfo.pickupRecipient.recipientLastName,
+        phone: recipientInfo.pickupRecipient.recipientPhone,
+        phoneCountryNo: recipientInfo.pickupRecipient.phoneCountryNo,
+        address: {
+          countryType: recipientInfo.pickupRecipient.countryRegion,
+          postalCode: recipientInfo.pickupRecipient.postcode,
+          state: recipientInfo.pickupRecipient.stateProvince,
+          city: recipientInfo.pickupRecipient.city,
+          line1: `${recipientInfo.pickupRecipient.stateProvince} ${recipientInfo.pickupRecipient.city} ${recipientInfo.pickupRecipient.address1}`,
+          line2: recipientInfo.pickupRecipient.address2,
+        },
+      },
+      shipmentRecipient: {
+        fullName:
+          `${recipientInfo.shipmentRecipient.recipientLastName || ""}${recipientInfo.shipmentRecipient.recipientFirstName || ""}`.trim(),
+        firstName: recipientInfo.shipmentRecipient.recipientFirstName,
+        lastName: recipientInfo.shipmentRecipient.recipientLastName,
+        phone: recipientInfo.shipmentRecipient.recipientPhone,
+        phoneCountryNo: recipientInfo.shipmentRecipient.phoneCountryNo,
+        address: {
+          countryType: recipientInfo.shipmentRecipient.countryRegion,
+          postalCode: recipientInfo.shipmentRecipient.postcode,
+          state: recipientInfo.shipmentRecipient.stateProvince,
+          city: recipientInfo.shipmentRecipient.city,
+          line1: `${recipientInfo.shipmentRecipient.stateProvince} ${recipientInfo.shipmentRecipient.city} ${recipientInfo.shipmentRecipient.address1}`,
+          line2: recipientInfo.shipmentRecipient.address2,
+        },
+      },
+      items,
+      ...(carrierCode &&
+        trackingNo && {
+          carrierCode,
+          trackingNo,
+        }),
+    };
+  }
+
+  throw new Error(`Unsupported claim type: ${claimType}`);
+};
+
+/**
+ * return detail 데이터 변환
+ * @param returnData ReturnDetailResponse
+ * @returns returnDetail
+ */
+export const transformReturnDetail = (
+  returnData: ReturnDetailResponse,
+  timezone: string,
+) => {
+  return {
+    productInspectionResult: returnData.items.map((item, idx) => ({
+      id: item.productCode || `item-${idx}`,
+      ...item,
+    })),
+    claimFault: returnData.claimFault,
+    returnId: returnData.returnId,
+    registeredBy: returnData.claimCreatedBy,
+    returnReason: returnData.claimReason,
+    returnStatus: snakeToTitleCase(returnData.status.name),
+    returnUpdatedDate: getLocalTime(returnData.updatedAt, timezone),
+    recipientName: returnData.recipient?.fullName || "-",
+    recipientFirstName: returnData.recipient?.firstName || "-",
+    recipientLastName: returnData.recipient?.lastName || "-",
+    recipientPhone: returnData.recipient?.phone || "",
+    phoneCountryNo: returnData.recipient?.phoneCountryNo || "",
+    pickupAddress: {
+      postcode: returnData.recipient?.address?.postalCode || "",
+      address1: formatLine1(
+        returnData.recipient?.address?.line1 || "-",
+        returnData.recipient?.address?.state || "-",
+        returnData.recipient?.address?.city || "",
+      ),
+      address2: returnData.recipient?.address?.line2 || "",
+      city: returnData.recipient?.address?.city || "",
+      stateProvince: returnData.recipient?.address?.state || "-",
+      countryRegion: returnData.recipient?.address?.countryType || "-",
+    },
+    returnNo: returnData.returnNo,
+    carrier: returnData.delivery?.carrierCode || NOT_STARTED,
+    trackingNo: returnData.delivery?.trackingNo || NOT_STARTED,
+    trackingUrl: returnData.trackingUrl,
+  };
+};
+
+/**
+ * return detail rows 데이터 변환
+ * @param returnData ReturnDetailResponse
+ * @returns returnDetailRows
+ */
+export const transformRowsReturnDetail = (returnData: ReturnDetailResponse) => {
+  const fields: (keyof ReturnDetailClaimItemResponse)[] = [
+    "quantity",
+    "cancelQuantity",
+  ];
+
+  const rows = returnData.claimItems.flatMap((item, itemIndex) => {
+    const totalSubItems =
+      (item.products?.length || 0) + (item.components?.length || 0);
+    const sequence = itemIndex + 1;
+
+    const commonFields = createCommonQuantityFields(fields, item, sequence);
+    const itemRows: GridRowModel[] = [];
+
+    // ✅ products
+    item.products?.forEach((product, productIndex) => {
+      itemRows.push({
+        id: `${item.productCode || `item-${itemIndex}`}-product-${productIndex}-${itemIndex + 1}`,
+        no: itemIndex + 1, // sequence가 없으므로 index + 1 사용
+        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${itemIndex + 1}`,
+        skuCode: item.sku || "-",
+        productName: item.productName || "-",
+        sapCode: formatWithSequence(product.productCode, sequence),
+        sapName: formatWithSequence(product.productName, sequence),
+        returnItem: item.productName,
+        ...commonFields,
+      });
+    });
+
+    // ✅ components
+    item.components?.forEach((component, componentIndex) => {
+      itemRows.push({
+        id: `${item.productCode || `item-${itemIndex}`}-component-${componentIndex}-${itemIndex + 1}`,
+        no: itemIndex + 1, // sequence가 없으므로 index + 1 사용
+        image: null,
+        skuCode: component.sku || "-",
+        productName: component.productName || "-",
+        sapCode: formatWithSequence(component.productCode, sequence),
+        sapName: formatWithSequence(component.productName, sequence),
+        returnItem: item.productName,
+        ...commonFields,
+      });
+    });
+
+    // ✅ 단일 상품
+    if (totalSubItems === 0) {
+      itemRows.push({
+        id: item.productCode || `item-${itemIndex}`,
+        no: itemIndex + 1,
+        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${itemIndex + 1}`,
+        skuCode: item.sku || "-",
+        productName: item.productName || "-",
+        sapCode: formatWithSequence(item.productCode, sequence),
+        sapName: formatWithSequence(item.productName, sequence),
+        returnItem: item.productName || "-",
+        ...commonFields,
+      });
+    }
+
+    return itemRows;
+  });
+
+  return rows;
+};
+
+/**
+ * exchange detail 데이터 변환
+ * @param exchangeData ExchangeDetailResponse
+ * @returns exchangeDetail
+ */
+export const transformExchangeDetail = (
+  exchangeData: ExchangeDetailResponse,
+  timezone: string,
+) => {
+  const { CANCELED } = ExchangeSearchRequestExchangeStatusesEnum;
+
+  const getResendInfo = (shipments: ExchangeDetailShipmentResponse[]) => {
+    if (!shipments.length) {
+      return [];
+    }
+
+    return shipments.map(
+      ({ status, wmsNo, shipmentNo, delivery, deliveries }) => {
+        const isCanceled = status.name === CANCELED;
+
+        return {
+          shipmentNo: shipmentNo,
+          resendWMSNo: isCanceled ? CANCELED : wmsNo,
+          resendSAPDeliveryID: isCanceled ? CANCELED : shipmentNo,
+          resendShipCo: isCanceled
+            ? CANCELED
+            : delivery?.carrierCode || NOT_STARTED,
+          resendDeliveries: isCanceled
+            ? [{ trackingNo: CANCELED, trackingUrl: null }]
+            : deliveries.length
+              ? deliveries.map(({ trackingNo, trackingUrl }) => ({
+                  trackingNo: trackingNo || NOT_STARTED,
+                  trackingUrl,
+                }))
+              : [{ trackingNo: NOT_STARTED, trackingUrl: null }],
+        };
+      },
+    );
+  };
+
+  return {
+    productInspectionResult: exchangeData.items.map((item, idx) => ({
+      id: item.productCode || `item-${idx}`,
+      ...item,
+    })),
+
+    exchangeId: exchangeData.exchangeId,
+    registeredBy: exchangeData.claimCreatedBy,
+    exchangeReason: exchangeData.claimReason,
+    exchangeStatus: snakeToTitleCase(exchangeData.status.name),
+    returnUpdatedDate: getLocalTime(exchangeData.updatedAt, timezone),
+    recipientName: exchangeData.pickupRecipient.fullName,
+    recipientFirstName: exchangeData.pickupRecipient.firstName,
+    recipientLastName: exchangeData.pickupRecipient.lastName,
+    phoneCountryNo: exchangeData.pickupRecipient.phoneCountryNo ?? "",
+    recipientPhone: exchangeData.pickupRecipient.phone ?? "",
+
+    // pickup 정보
+    pickupAddress: {
+      postcode: exchangeData.pickupRecipient.address.postalCode || "",
+      address1: formatLine1(
+        exchangeData.pickupRecipient.address.line1,
+        exchangeData.pickupRecipient.address.state || "",
+        exchangeData.pickupRecipient.address.city || "",
+      ),
+      address2: exchangeData.pickupRecipient.address.line2 || "",
+      city: exchangeData.pickupRecipient.address.city || "",
+      stateProvince: exchangeData.pickupRecipient.address.state || "",
+      countryRegion: exchangeData.pickupRecipient.address.countryType,
+    },
+    pickupWMSNo: exchangeData.wmsNo,
+    exchangeNo: exchangeData.exchangeNo,
+    pickupShipCo: exchangeData.pickupDelivery?.carrierCode || NOT_STARTED,
+    pickupShippingNo: exchangeData.pickupDelivery?.trackingNo || NOT_STARTED,
+    pickupTrackingUrl: exchangeData.pickupTrackingUrl,
+
+    // resend 정보
+    resendAddress: {
+      postcode: exchangeData.shipmentRecipient.address.postalCode || "",
+      address1: formatLine1(
+        exchangeData.shipmentRecipient.address.line1,
+        exchangeData.shipmentRecipient.address.state || "",
+        exchangeData.shipmentRecipient.address.city || "",
+      ),
+      address2: exchangeData.shipmentRecipient.address.line2 || "",
+      city: exchangeData.shipmentRecipient.address.city || "",
+      stateProvince: exchangeData.shipmentRecipient.address.state || "",
+      countryRegion: exchangeData.shipmentRecipient.address.countryType,
+    },
+    resendInfo: getResendInfo(exchangeData.shipments),
+    carrier: exchangeData.pickupDelivery?.carrierCode || NOT_STARTED,
+    trackingNo: exchangeData.pickupDelivery?.trackingNo || NOT_STARTED,
+    trackingUrl: exchangeData.pickupTrackingUrl,
+  };
+};
+
+/**
+ * exchange detail rows 데이터 변환
+ * @param exchangeData ExchangeDetailResponse
+ * @returns exchangeDetailRows
+ */
+export const transformRowsExchangeDetail = (
+  exchangeData: ExchangeDetailResponse,
+) => {
+  const fields: (keyof ReturnDetailClaimItemResponse)[] = [
+    "quantity",
+    "cancelQuantity",
+  ];
+
+  const rows = exchangeData.claimItems.flatMap((item, itemIndex) => {
+    const totalSubItems =
+      (item.products?.length || 0) + (item.components?.length || 0);
+    const sequence = itemIndex + 1;
+
+    const commonFields = createCommonQuantityFields(fields, item, sequence);
+    const itemRows: GridRowModel[] = [];
+
+    // ✅ products
+    item.products?.forEach((product, productIndex) => {
+      itemRows.push({
+        id: `${item.productCode || `item-${itemIndex}`}-product-${productIndex}-${itemIndex + 1}`,
+        no: itemIndex + 1, // sequence가 없으므로 index + 1 사용
+        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${itemIndex + 1}`,
+        skuCode: item.sku || "-",
+        productName: item.productName || "-",
+        sapCode: formatWithSequence(product.productCode, sequence),
+        sapName: formatWithSequence(product.productName, sequence),
+        returnItem: item.productName,
+        ...commonFields,
+      });
+    });
+
+    // ✅ components - 쇼핑백, 기프트 박스 등 부가제품
+    item.components?.forEach((component, componentIndex) => {
+      itemRows.push({
+        id: `${item.productCode || `item-${itemIndex}`}-component-${componentIndex}-${itemIndex + 1}`,
+        no: itemIndex + 1, // sequence가 없으므로 index + 1 사용
+        image: null,
+        skuCode: component.sku || "-",
+        productName: component.productName || "-",
+        sapCode: formatWithSequence(component.productCode, sequence),
+        sapName: formatWithSequence(component.productName, sequence),
+        returnItem: item.productName,
+        ...commonFields,
+      });
+    });
+
+    // ✅ 단일 상품
+    if (totalSubItems === 0) {
+      itemRows.push({
+        id: item.productCode || `item-${itemIndex}`,
+        no: itemIndex + 1,
+        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${itemIndex + 1}`,
+        skuCode: item.sku || "-",
+        productName: item.productName || "-",
+        sapCode: formatWithSequence(item.productCode, sequence),
+        sapName: formatWithSequence(item.productName, sequence),
+        returnItem: item.productName || "-",
+        ...commonFields,
+      });
+    }
+
+    return itemRows;
+  });
+
+  return rows;
+};
+
+/**
+ * log history detail 데이터 변환
+ */
+export const transformLogHistoryDetail = (
+  data: OrderHistoryResponse,
+  timezone: string,
+) => {
+  if (!data)
+    return { orderHistories: [], returnHistories: [], exchangeHistories: [] };
+  const getSapIf = (sapIf: { result: string; resultAt: string }[]) => {
+    return sapIf.length > 0
+      ? sapIf.map((item) => {
+          const parts = item.result.split(" / ");
+          return {
+            sap: parts[0],
+            if: parts[1],
+            resultAt: getLocalTime(item.resultAt, timezone),
+          };
+        })
+      : [];
+  };
+
+  const orderHistories = data.orderHistories.map((item) => {
+    const isShipmentStatus = item.shipmentStatus !== null ? true : false;
+    return {
+      seq: isShipmentStatus ? item.sequence : "-",
+      timeStamp: getLocalTime(item.updatedAt, timezone),
+      sapIf: getSapIf(item.sapResults),
+      updatedStatus: {
+        status: isShipmentStatus
+          ? (item.shipmentStatus?.description ?? "")
+          : (item.status?.description ?? ""),
+        groupStatus: isShipmentStatus ? "shipping" : "order",
+      },
+    };
+  });
+
+  const returnHistories =
+    data.returnHistories !== null
+      ? data.returnHistories.map((item) => ({
+          seq: item.sequence,
+          timeStamp: getLocalTime(item.updatedAt, timezone),
+          sapIf: getSapIf(item.sapResults),
+          updatedStatus: {
+            status: item.status?.description ?? "",
+            groupStatus: "return",
+          },
+        }))
+      : [];
+
+  const exchangeHistories =
+    data.exchangeHistories !== null
+      ? data.exchangeHistories.map((item) => ({
+          seq: item.sequence,
+          timeStamp: getLocalTime(item.updatedAt, timezone),
+          sapIf: getSapIf(item.sapResults),
+          updatedStatus: {
+            status: item.status?.description ?? "",
+            groupStatus: "exchange",
+          },
+        }))
+      : [];
+
+  return {
+    orderHistories,
+    returnHistories,
+    exchangeHistories,
+  };
+};

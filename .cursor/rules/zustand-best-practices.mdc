@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+<!-- # Zustand 상태 관리 모범 사례 -->
+# Best practices for state management with Zustand
+
+<!-- - 상태를 체계적으로 관리하기 위해 도메인별로 별도의 스토어를 생성하세요. -->
+- Create separate stores for different domains to keep state organized.
+<!-- - 세션 간 상태 유지를 위해 persist 미들웨어를 사용하세요. -->
+- Use middleware like `persist` for persisting state across sessions.
+<!-- - 개발 시 디버깅을 쉽게 하기 위해 devtools 미들웨어를 구현하세요. -->
+- Implement devtools middleware for easier debugging in development.
+<!-- - 불변 상태 업데이트를 위해 immer 통합을 활용하세요. -->
+- Utilize `immer` integration for immutable state updates.
