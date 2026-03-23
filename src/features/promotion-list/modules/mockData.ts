@@ -90,7 +90,7 @@ function generateMockPromotions(): PromotionRow[] {
     const rewardIndex = index < 2 ? 1 : 1;
 
     rows.push({
-      id: 997,
+      id: 997 - index,
       brand: "TB",
       corp: "KR",
       title,

@@ -1,5 +1,6 @@
 import { Chip } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-pro";
+import Link from "next/link";
 
 const renderStatusCell = (params: GridRenderCellParams) => {
   const statusColorMap: Record<
@@ -87,14 +88,16 @@ export const COLUMNS_PROMOTION_LIST: GridColDef[] = [
     flex: 1.2,
     minWidth: 200,
     renderCell: (params: GridRenderCellParams) => (
-      <span
+      <Link
+        href={`/promotion/promotion-list/detail/${params.row.id}`}
         style={{
           textDecoration: "underline",
           cursor: "pointer",
+          color: "inherit",
         }}
       >
         {params.value}
-      </span>
+      </Link>
     ),
   },
   {
