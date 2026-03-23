@@ -4,6 +4,7 @@ export interface PromotionRow {
   corp: string;
   title: string;
   status: "Active" | "Upcoming" | "Expired" | "Draft";
+  triggerType: string;
   triggerChannels: string[];
   trigger: string;
   reward: string;
@@ -13,19 +14,25 @@ export interface PromotionRow {
   createdAt: string;
 }
 
-const CHANNEL_NAMES = [
-  "GM_KR_KAKAOKAKAO",
-  "GM_KR_NAVERNAVER",
-  "GM_KR_COUPANGCOUP",
-  "GM_KR_11ST11STREET",
+// 999 (Active) - detail과 동일
+const CHANNELS_999 = [
+  "GM_KR_KAKAO",
+  "GM_KR_SSG",
+  "GM_KR_OFFICIAL",
+  "GM_KR_NAVER",
+  "GM_KR_TIKTOK",
+  "GM_KR_INSTAGRAM",
 ];
 
-const TRIGGER_TYPES = [
-  "Purchase Over 70,000 KRW",
-  "SHRY 240ml BLACK RIBBON_23년_24년 ...\n(+3 more specific products purchase)",
-  "PERFUME SHELL X BLAHBLAH\n(specific products purchase)",
-  "Purchase Any Products",
-  "PERFUME SHELL X PUMKINI (15ML) ...\n(+3 more specific product purchase)",
+// 998 (Upcoming) - detail과 동일
+const CHANNELS_998 = ["GM_KR_KAKAO", "GM_KR_NAVER"];
+
+// 997~ (Draft/Expired) - detail과 동일
+const CHANNELS_EXPIRED = [
+  "GM_KR_KAKAO",
+  "GM_KR_NAVER",
+  "GM_KR_SSG",
+  "GM_KR_OFFICIAL",
 ];
 
 const REWARD_TYPES = [
@@ -44,8 +51,9 @@ function generateMockPromotions(): PromotionRow[] {
     corp: "KR",
     title: "2026 크리스마스 이벤트 🎅",
     status: "Active",
-    triggerChannels: [CHANNEL_NAMES[0], "(+3 more)"],
-    trigger: TRIGGER_TYPES[0],
+    triggerType: "Purchase Specific Product or Label",
+    triggerChannels: [...CHANNELS_999],
+    trigger: "SHRY 240ml BLACK RIBBON_23년\n(+1 more specific products)",
     reward: REWARD_TYPES[0],
     startDate: "2025.02.10 00:00:00",
     endDate: "2025.02.10 00:00:00",
@@ -60,8 +68,9 @@ function generateMockPromotions(): PromotionRow[] {
     corp: "KR",
     title: "2026 크리스마스 이브 이벤트...",
     status: "Upcoming",
-    triggerChannels: [CHANNEL_NAMES[0], "(+3 more)"],
-    trigger: TRIGGER_TYPES[1],
+    triggerType: "Purchase Over Amount Threshold",
+    triggerChannels: [...CHANNELS_998],
+    trigger: "Purchase Over 100,000 KRW",
     reward: REWARD_TYPES[1],
     startDate: "2025.02.10 00:00:00",
     endDate: "2025.02.10 00:00:00",
@@ -86,8 +95,10 @@ function generateMockPromotions(): PromotionRow[] {
   ];
 
   expiredTitles.forEach((title, index) => {
-    const triggerIndex = index === 0 ? 2 : index === 1 ? 3 : 4;
-    const rewardIndex = index < 2 ? 1 : 1;
+    const triggerText =
+      index === 1
+        ? "할로윈 한정판 향수 세트\n(+1 more, Over 50,000 KRW)"
+        : "Purchase Any Product";
 
     rows.push({
       id: 997 - index,
@@ -95,9 +106,13 @@ function generateMockPromotions(): PromotionRow[] {
       corp: "KR",
       title,
       status: index === 0 ? "Draft" : "Expired",
-      triggerChannels: [CHANNEL_NAMES[0], "(+3 more)"],
-      trigger: TRIGGER_TYPES[triggerIndex],
-      reward: REWARD_TYPES[rewardIndex],
+      triggerType:
+        index === 1
+          ? "Purchase Specific Product Over Amount Threshold"
+          : "Purchase Any Product",
+      triggerChannels: [...CHANNELS_EXPIRED],
+      trigger: triggerText,
+      reward: "할로윈 한정판 파우치 * 1\n(per order)",
       startDate: "2025.02.10 00:00:00",
       endDate: "2025.02.10 00:00:00",
       createdBy: "tam35",

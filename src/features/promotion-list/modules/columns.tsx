@@ -1,6 +1,7 @@
-import { Chip } from "@mui/material";
+import { Chip, Tooltip } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-pro";
 import Link from "next/link";
+import { useState } from "react";
 
 const renderStatusCell = (params: GridRenderCellParams) => {
   const statusColorMap: Record<
@@ -30,20 +31,54 @@ const renderStatusCell = (params: GridRenderCellParams) => {
   );
 };
 
-const renderMultiLineCell = (params: GridRenderCellParams) => {
-  const values = params.value as string[];
-  if (!values || values.length === 0) return "-";
+function ChannelChipsCell({ values }: { values: string[] }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!values || values.length === 0) return <>-</>;
+
+  const MAX_VISIBLE = 3;
+  const visible = expanded ? values : values.slice(0, MAX_VISIBLE);
+  const remaining = values.length - MAX_VISIBLE;
 
   return (
-    <div className="flex flex-col">
-      {values.map((v, i) => (
-        <span key={i} className="text-[13px]">
-          {v}
-        </span>
+    <div className="flex flex-wrap items-center gap-[4px] py-[2px]">
+      {visible.map((v, i) => (
+        <Chip key={i} label={v} size="small" variant="outlined" />
       ))}
+      {!expanded && remaining > 0 && (
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(true);
+          }}
+          style={{
+            color: "#42A5F5",
+            textDecoration: "underline",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+        >
+          +{remaining} more
+        </span>
+      )}
+      {expanded && remaining > 0 && (
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(false);
+          }}
+          style={{
+            color: "#42A5F5",
+            textDecoration: "underline",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+        >
+          Show less
+        </span>
+      )}
     </div>
   );
-};
+}
 
 const renderTriggerCell = (params: GridRenderCellParams) => {
   const value = params.value as string;
@@ -108,11 +143,19 @@ export const COLUMNS_PROMOTION_LIST: GridColDef[] = [
     renderCell: renderStatusCell,
   },
   {
+    field: "triggerType",
+    headerName: "Trigger Type",
+    flex: 1,
+    minWidth: 180,
+  },
+  {
     field: "triggerChannels",
     headerName: "Trigger Channels",
     flex: 1.2,
     minWidth: 180,
-    renderCell: renderMultiLineCell,
+    renderCell: (params: GridRenderCellParams) => (
+      <ChannelChipsCell values={params.value as string[]} />
+    ),
   },
   {
     field: "trigger",

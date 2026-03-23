@@ -50,7 +50,7 @@ const SHOW_TRIGGER_PRODUCT_TYPES = [
 ];
 
 // --- Shared styles ---
-const LABEL_BG = "rgba(66, 165, 245, 0.08)";
+const LABEL_BG = "#e7e7e7";
 const BORDER_COLOR = "#E0E0E0";
 const LABEL_WIDTH = "180px";
 
