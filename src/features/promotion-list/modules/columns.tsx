@@ -9,13 +9,22 @@ const renderStatusCell = (params: GridRenderCellParams) => {
     Active: "success",
     Upcoming: "warning",
     Expired: "default",
+    Draft: "default",
+  };
+
+  const status = params.value as string;
+
+  const customSxMap: Record<string, object> = {
+    Expired: { backgroundColor: "#9E9E9E", color: "#FFFFFF" },
+    Draft: { backgroundColor: "#42A5F5", color: "#FFFFFF" },
   };
 
   return (
     <Chip
       label={params.value}
-      color={statusColorMap[params.value as string] ?? "default"}
+      color={statusColorMap[status] ?? "default"}
       size="small"
+      sx={customSxMap[status]}
     />
   );
 };
@@ -77,6 +86,16 @@ export const COLUMNS_PROMOTION_LIST: GridColDef[] = [
     headerName: "Title",
     flex: 1.2,
     minWidth: 200,
+    renderCell: (params: GridRenderCellParams) => (
+      <span
+        style={{
+          textDecoration: "underline",
+          cursor: "pointer",
+        }}
+      >
+        {params.value}
+      </span>
+    ),
   },
   {
     field: "status",

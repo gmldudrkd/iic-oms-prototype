@@ -25,9 +25,9 @@ export default function PromotionList() {
 
   const defaultValues = useMemo(
     () => ({
-      dateType: "",
+      dateType: "startDate",
       period: [
-        dayjs().tz(timezone).startOf("day"),
+        dayjs().tz(timezone).subtract(3, "month").startOf("day"),
         dayjs().tz(timezone).endOf("day"),
       ],
       status: "",
@@ -129,7 +129,7 @@ export default function PromotionList() {
                 disableColumnFilter
                 disableColumnSorting
                 loading={isFetching}
-                rowHeight={24}
+                rowHeight={26}
                 getRowHeight={() => "auto"}
                 hideFooterSelectedRowCount
               />

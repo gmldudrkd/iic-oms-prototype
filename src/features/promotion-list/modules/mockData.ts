@@ -3,7 +3,7 @@ export interface PromotionRow {
   brand: string;
   corp: string;
   title: string;
-  status: "Active" | "Upcoming" | "Expired";
+  status: "Active" | "Upcoming" | "Expired" | "Draft";
   triggerChannels: string[];
   trigger: string;
   reward: string;
@@ -94,7 +94,7 @@ function generateMockPromotions(): PromotionRow[] {
       brand: "TB",
       corp: "KR",
       title,
-      status: "Expired",
+      status: index === 0 ? "Draft" : "Expired",
       triggerChannels: [CHANNEL_NAMES[0], "(+3 more)"],
       trigger: TRIGGER_TYPES[triggerIndex],
       reward: REWARD_TYPES[rewardIndex],

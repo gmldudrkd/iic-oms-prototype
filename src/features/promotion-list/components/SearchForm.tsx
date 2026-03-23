@@ -28,6 +28,7 @@ import {
   DATE_TYPE_OPTIONS,
   STATUS_OPTIONS,
   SEARCH_KEY_TYPE_OPTIONS,
+  MULTI_SEARCH_KEY_TYPES,
   SHORTCUTS_ITEMS,
 } from "@/features/promotion-list/modules/constants";
 
@@ -41,9 +42,12 @@ interface SearchFormProps {
 }
 
 export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
-  const { control, handleSubmit } = useFormContext();
+  const { control, handleSubmit, watch } = useFormContext();
   const { timezone } = useTimezoneStore();
   const { selectedPermission } = useUserPermissionStore();
+
+  const searchKeyType = watch("searchKeyType");
+  const isMultiSearch = MULTI_SEARCH_KEY_TYPES.includes(searchKeyType);
 
   const channelTypesList = selectedPermission.flatMap((item) => {
     return item.corporations.flatMap((corp) => {
@@ -73,10 +77,7 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                 name="dateType"
                 control={control}
                 render={({ field }) => (
-                  <Select {...field} label="Date Type" displayEmpty notched>
-                    <MenuItem value="">
-                      <em>Select</em>
-                    </MenuItem>
+                  <Select {...field} label="Date Type" notched>
                     {DATE_TYPE_OPTIONS.map((opt) => (
                       <MenuItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -193,7 +194,14 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                     {...field}
                     fullWidth
                     label="Search"
-                    placeholder="Enter a keyword to search"
+                    placeholder={
+                      isMultiSearch
+                        ? "Enter multiple keywords separated by line breaks"
+                        : "Enter a keyword to search"
+                    }
+                    multiline={isMultiSearch}
+                    minRows={isMultiSearch ? 2 : 1}
+                    maxRows={isMultiSearch ? 4 : 1}
                     sx={{
                       "& .MuiInputBase-root": {
                         padding: "12px 14px 12px 8px",
