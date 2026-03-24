@@ -66,6 +66,7 @@ export interface PromotionFormValues {
 
   triggerType: TriggerType | "";
   amount: number | null;
+  amountMax: number | null;
   amountCurrency: string;
   triggerChannels: string[];
   triggerProducts: TriggerProduct[];

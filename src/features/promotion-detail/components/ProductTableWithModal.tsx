@@ -149,7 +149,7 @@ export default function ProductTableWithModal({
             justifyContent: "center",
             py: 0.25,
             backgroundColor: "#FAFAFA",
-            borderBottom: "1px solid #F2F4F7",
+            borderBottom: "1px solid #E0E0E0",
           }}
         >
           <CondBadge type={topCond} />
@@ -167,7 +167,7 @@ export default function ProductTableWithModal({
             px: 1.5,
             py: 1,
             gap: 1,
-            borderBottom: "1px solid #F2F4F7",
+            borderBottom: "1px solid #E0E0E0",
             alignItems: "center",
             backgroundColor: "#fff",
           }}
@@ -265,7 +265,7 @@ export default function ProductTableWithModal({
             display: "grid",
             gridTemplateColumns: "36px 1fr 100px 80px 40px",
             backgroundColor: "#e7e7e7",
-            borderBottom: "1px solid #EAECF0",
+            borderBottom: "1px solid #E0E0E0",
             px: 1.5,
             py: 0.75,
             gap: 1,
@@ -282,7 +282,7 @@ export default function ProductTableWithModal({
         {rows}
 
         {/* Footer */}
-        <Box sx={{ px: 1.5, py: 1, borderTop: "1px solid #F2F4F7", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Box sx={{ px: 1.5, py: 1, borderTop: "1px solid #E0E0E0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Typography sx={{ fontSize: 11, color: "#98A2B3" }}>
             {allIds.length} product{allIds.length > 1 ? "s" : ""} selected
           </Typography>

@@ -15,6 +15,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -190,6 +194,39 @@ function SectionTitle({ title }: { title: string }) {
   );
 }
 
+function ClickableDateTimePicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DateTimePicker
+        value={value ? dayjs(value) : null}
+        onChange={(v) => onChange(v ? v.format("YYYY-MM-DD HH:mm:ss") : "")}
+        disabled={disabled}
+        open={open}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
+        format="YYYY-MM-DD HH:mm:ss"
+        slotProps={{
+          textField: {
+            size: "small",
+            fullWidth: true,
+            placeholder: "YYYY-MM-DD HH:mm:ss",
+            onClick: () => !disabled && setOpen(true),
+          },
+        }}
+      />
+    </LocalizationProvider>
+  );
+}
+
 // --- Main Form ---
 interface PromotionFormProps {
   mode: "add" | "edit";
@@ -228,6 +265,7 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
         reason: initialData.reason,
         triggerType: initialData.triggerType,
         amount: initialData.amount,
+        amountMax: null,
         amountCurrency: initialData.amountCurrency ?? "KRW",
         triggerChannels: initialData.triggerChannels,
         triggerProducts: initialData.triggerProducts,
@@ -238,7 +276,7 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
     }
     return {
       title: "", type: "", brand: "", corp: "", startDate: "", endDate: "", reason: "",
-      triggerType: "", amount: null, amountCurrency: "KRW", triggerChannels: [],
+      triggerType: "", amount: null, amountMax: null, amountCurrency: "KRW", triggerChannels: [],
       triggerProducts: [], exceptionProducts: [], rewardType: "", rewardProducts: [],
     };
   }, [mode, initialData]);
@@ -426,19 +464,13 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
             {
               label: "Start Date", required: true,
               children: <Controller name="startDate" control={control} render={({ field }) => (
-                <TextField {...field} size="small" fullWidth disabled={isFieldDisabled("startDate")} placeholder="YYYY-MM-DD HH:mm:ss"
-                  onFocus={(e) => { e.target.type = "datetime-local"; }}
-                  onBlur={(e) => { if (!e.target.value) e.target.type = "text"; field.onBlur(); }}
-                />
+                <ClickableDateTimePicker value={field.value} onChange={field.onChange} disabled={isFieldDisabled("startDate")} />
               )} />,
             },
             {
               label: "End Date", required: true,
               children: <Controller name="endDate" control={control} render={({ field }) => (
-                <TextField {...field} size="small" fullWidth disabled={false} placeholder="YYYY-MM-DD HH:mm:ss"
-                  onFocus={(e) => { e.target.type = "datetime-local"; }}
-                  onBlur={(e) => { if (!e.target.value) e.target.type = "text"; field.onBlur(); }}
-                />
+                <ClickableDateTimePicker value={field.value} onChange={field.onChange} disabled={false} />
               )} />,
             },
           ]} />
@@ -462,9 +494,19 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
               },
               {
                 label: "Amount", required: true,
-                children: <Controller name="amount" control={control} render={({ field }) => (
-                  <TextField type="number" size="small" fullWidth value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)} disabled={isFieldDisabled("amount")} placeholder="0" inputProps={{ min: 0 }} />
-                )} />,
+                children: (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+                    <Controller name="amount" control={control} render={({ field }) => (
+                      <TextField type="number" size="small" value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)} disabled={isFieldDisabled("amount")} placeholder="Min" inputProps={{ min: 0 }} sx={{ flex: 1 }} />
+                    )} />
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: "rgba(0,0,0,0.6)", whiteSpace: "nowrap" }}>≤</Typography>
+                    <Typography sx={{ fontSize: 13, color: "rgba(0,0,0,0.38)", whiteSpace: "nowrap" }}>value</Typography>
+                    <Typography sx={{ fontSize: 16, fontWeight: 600, color: "rgba(0,0,0,0.6)", whiteSpace: "nowrap" }}>&lt;</Typography>
+                    <Controller name="amountMax" control={control} render={({ field }) => (
+                      <TextField type="number" size="small" value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)} disabled={isFieldDisabled("amount")} placeholder="Max" inputProps={{ min: 0 }} sx={{ flex: 1 }} />
+                    )} />
+                  </Box>
+                ),
               },
             ]} />
           ) : (
@@ -540,25 +582,25 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
               ) : (
                 <Box sx={{ border: `1px solid ${BORDER_COLOR}`, borderRadius: 1, backgroundColor: "#FAFAFA", overflow: "hidden" }}>
                   {/* Header */}
-                  <Box sx={{ display: "grid", gridTemplateColumns: "36px 1fr 90px 180px 36px", backgroundColor: "#e7e7e7", borderBottom: "1px solid #EAECF0", px: 1.5, py: 0.75, gap: 1, alignItems: "center" }}>
+                  <Box sx={{ display: "grid", gridTemplateColumns: "36px 1fr 90px 180px 36px", backgroundColor: "#e7e7e7", borderBottom: `1px solid ${BORDER_COLOR}`, px: 1.5, py: 0.75, gap: 1, alignItems: "center" }}>
                     <Box />
                     <Typography sx={{ fontSize: 14, fontWeight: 600, color: "rgba(0,0,0,0.87)" }}>Product</Typography>
-                    <Typography sx={{ fontSize: 11, fontWeight: 600, color: "#1570EF", textTransform: "uppercase", letterSpacing: "0.04em" }}>Reward Qty</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: "rgba(0,0,0,0.87)" }}>Reward Qty</Typography>
                     <Typography sx={{ fontSize: 14, fontWeight: 600, color: "rgba(0,0,0,0.87)" }}>Stock Use Qty</Typography>
                     <Box />
                   </Box>
                   {/* Sub-header for stock columns */}
-                  <Box sx={{ display: "grid", gridTemplateColumns: "36px 1fr 90px 90px 90px 36px", backgroundColor: "#e7e7e7", borderBottom: "1px solid #EAECF0", px: 1.5, py: 0, gap: 1, alignItems: "center" }}>
+                  <Box sx={{ display: "grid", gridTemplateColumns: "36px 1fr 90px 90px 90px 36px", backgroundColor: "#e7e7e7", borderBottom: `1px solid ${BORDER_COLOR}`, px: 1.5, py: 0, gap: 1, alignItems: "center" }}>
                     <Box />
                     <Box />
                     <Box />
-                    <Typography sx={{ fontSize: 10, fontWeight: 600, color: "#099250", textTransform: "uppercase", letterSpacing: "0.04em" }}>Dedicated</Typography>
-                    <Typography sx={{ fontSize: 10, fontWeight: 600, color: "#F97316", textTransform: "uppercase", letterSpacing: "0.04em" }}>Alert</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "rgba(0,0,0,0.87)" }}>Dedicated</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: "rgba(0,0,0,0.87)" }}>Alert</Typography>
                     <Box />
                   </Box>
                   {/* Rows */}
                   {rewardProducts.map((product, idx) => (
-                    <Box key={product.skuCode + idx} sx={{ display: "grid", gridTemplateColumns: "36px 1fr 90px 90px 90px 36px", px: 1.5, py: 1, gap: 1, borderBottom: "1px solid #F2F4F7", alignItems: "center", backgroundColor: "#fff" }}>
+                    <Box key={product.skuCode + idx} sx={{ display: "grid", gridTemplateColumns: "36px 1fr 90px 90px 90px 36px", px: 1.5, py: 1, gap: 1, borderBottom: `1px solid ${BORDER_COLOR}`, alignItems: "center", backgroundColor: "#fff" }}>
                       <Box sx={{ fontSize: 18, textAlign: "center" }}>🎁</Box>
                       <Box sx={{ minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 500, color: "rgba(0,0,0,0.87)", fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{product.productName}</Typography>
@@ -586,7 +628,7 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
                     </Box>
                   ))}
                   {/* Footer */}
-                  <Box sx={{ px: 1.5, py: 1, borderTop: "1px solid #F2F4F7", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <Box sx={{ px: 1.5, py: 1, borderTop: `1px solid ${BORDER_COLOR}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <Typography sx={{ fontSize: 11, color: "#98A2B3" }}>{rewardProducts.length} product{rewardProducts.length > 1 ? "s" : ""} selected</Typography>
                     {allEditable && (
                       <Box sx={{ display: "flex", gap: 1 }}>
