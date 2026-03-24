@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@mui/material";
+import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import PromotionList from "@/features/promotion-list";
@@ -8,9 +9,11 @@ import PromotionList from "@/features/promotion-list";
 import Title from "@/shared/components/text/Title";
 
 export default function PromotionListPage() {
+  const router = useRouter();
+
   const handleAddPromotion = useCallback(() => {
-    // TODO: 프로모션 추가 페이지로 이동
-  }, []);
+    router.push("/promotion/promotion-list/add");
+  }, [router]);
 
   return (
     <>

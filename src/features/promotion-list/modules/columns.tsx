@@ -40,7 +40,7 @@ function ChannelChipsCell({ values }: { values: string[] }) {
   const remaining = values.length - MAX_VISIBLE;
 
   return (
-    <div className="flex flex-wrap items-center gap-[4px] py-[2px]">
+    <div className="flex flex-wrap items-center gap-[4px] m-[5px] p-[3px]">
       {visible.map((v, i) => (
         <Chip key={i} label={v} size="small" variant="outlined" />
       ))}
@@ -153,6 +153,7 @@ export const COLUMNS_PROMOTION_LIST: GridColDef[] = [
     headerName: "Trigger Channels",
     flex: 1.2,
     minWidth: 180,
+    cellClassName: "!py-[5px]",
     renderCell: (params: GridRenderCellParams) => (
       <ChannelChipsCell values={params.value as string[]} />
     ),

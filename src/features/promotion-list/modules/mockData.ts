@@ -55,10 +55,10 @@ function generateMockPromotions(): PromotionRow[] {
     triggerChannels: [...CHANNELS_999],
     trigger: "SHRY 240ml BLACK RIBBON_23년\n(+1 more specific products)",
     reward: REWARD_TYPES[0],
-    startDate: "2025.02.10 00:00:00",
-    endDate: "2025.02.10 00:00:00",
+    startDate: "2026.01.10 00:00:00",
+    endDate: "2026.03.10 00:00:00",
     createdBy: "tam881",
-    createdAt: "2025.02.10 00:00:00",
+    createdAt: "2026.01.05 00:00:00",
   });
 
   // Upcoming row
@@ -72,10 +72,10 @@ function generateMockPromotions(): PromotionRow[] {
     triggerChannels: [...CHANNELS_998],
     trigger: "Purchase Over 100,000 KRW",
     reward: REWARD_TYPES[1],
-    startDate: "2025.02.10 00:00:00",
-    endDate: "2025.02.10 00:00:00",
+    startDate: "2026.01.10 00:00:00",
+    endDate: "2026.03.10 00:00:00",
     createdBy: "tam1218",
-    createdAt: "2025.02.10 00:00:00",
+    createdAt: "2026.01.05 00:00:00",
   });
 
   // Expired rows
@@ -113,10 +113,10 @@ function generateMockPromotions(): PromotionRow[] {
       triggerChannels: [...CHANNELS_EXPIRED],
       trigger: triggerText,
       reward: "할로윈 한정판 파우치 * 1\n(per order)",
-      startDate: "2025.02.10 00:00:00",
-      endDate: "2025.02.10 00:00:00",
+      startDate: "2026.01.10 00:00:00",
+      endDate: "2026.03.10 00:00:00",
       createdBy: "tam35",
-      createdAt: "2025.02.10 00:00:00",
+      createdAt: "2026.01.05 00:00:00",
     });
   });
 

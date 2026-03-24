@@ -11,7 +11,7 @@ import SearchForm from "@/features/promotion-list/components/SearchForm";
 import { COLUMNS_PROMOTION_LIST } from "@/features/promotion-list/modules/columns";
 import {
   MOCK_PROMOTIONS,
-  MOCK_TOTAL_COUNT,
+  PromotionRow,
 } from "@/features/promotion-list/modules/mockData";
 
 import TotalResult from "@/shared/components/text/TotalResult";
@@ -47,6 +47,7 @@ export default function PromotionList() {
 
   // Mock: 실제로는 API에서 isFetching, isSuccess를 받아옴
   const [isFetching] = useState(false);
+  const [filteredData, setFilteredData] = useState<PromotionRow[]>(MOCK_PROMOTIONS);
 
   const { currentTime } = useCurrentTime({
     isFetching: false,
@@ -54,19 +55,87 @@ export default function PromotionList() {
   });
 
   const rows = useMemo(() => {
-    return MOCK_PROMOTIONS.map((row, index) => ({
+    return filteredData.map((row, index) => ({
       ...row,
       _id: `${row.id}-${index}`,
     }));
-  }, []);
+  }, [filteredData]);
 
   const handleSearch = useCallback(() => {
-    // Mock: 실제로는 API 호출
+    const values = methods.getValues();
+    const { dateType, period, status, channel, searchKeyType, searchKeyword } =
+      values;
+
+    let result = [...MOCK_PROMOTIONS];
+
+    // Status 필터
+    if (status) {
+      result = result.filter(
+        (row) => row.status.toUpperCase() === String(status).toUpperCase(),
+      );
+    }
+
+    // Channel 필터
+    if (channel) {
+      result = result.filter((row) =>
+        row.triggerChannels.some((ch) =>
+          ch.toLowerCase().includes(String(channel).toLowerCase()),
+        ),
+      );
+    }
+
+    // Date 필터 - period 값이 둘 다 있을 때만 적용
+    if (period?.[0] && period?.[1]) {
+      const startDate = dayjs(period[0]);
+      const endDate = dayjs(period[1]);
+      if (startDate.isValid() && endDate.isValid()) {
+        result = result.filter((row) => {
+          const dateField =
+            dateType === "endDate" ? row.endDate : row.startDate;
+          const normalized = dateField.replace(/\./g, "-");
+          const rowDate = dayjs(normalized);
+          if (!rowDate.isValid()) return true;
+          return (
+            rowDate.isAfter(startDate.subtract(1, "day")) &&
+            rowDate.isBefore(endDate.add(1, "day"))
+          );
+        });
+      }
+    }
+
+    // Keyword 검색
+    const keyword = String(searchKeyword ?? "").trim();
+    if (keyword) {
+      const keywords = keyword
+        .split("\n")
+        .map((k) => k.trim().toLowerCase())
+        .filter(Boolean);
+
+      if (keywords.length > 0) {
+        result = result.filter((row) => {
+          const fieldMap: Record<string, string> = {
+            title: row.title,
+            createdBy: row.createdBy,
+            gwpName: row.reward,
+            gwpSapCode: row.reward,
+            targetProductName: row.trigger,
+            targetSapCode: row.trigger,
+          };
+          const fieldValue = (
+            fieldMap[String(searchKeyType)] ?? ""
+          ).toLowerCase();
+          return keywords.some((kw) => fieldValue.includes(kw));
+        });
+      }
+    }
+
+    setFilteredData(result);
     setPaginationModel((prev) => ({ ...prev, page: 0 }));
-  }, []);
+  }, [methods]);
 
   const handleReset = useCallback(() => {
     methods.reset();
+    setFilteredData(MOCK_PROMOTIONS);
   }, [methods]);
 
   const handleRefresh = useCallback(() => {
@@ -95,7 +164,7 @@ export default function PromotionList() {
           {/* DataGrid */}
           <div className="border-[1px] border-solid border-[#E0E0E0] bg-white p-[24px]">
             <div className="mb-[8px] flex items-center justify-between">
-              <TotalResult totalResult={MOCK_TOTAL_COUNT} classNames="!mb-0" />
+              <TotalResult totalResult={filteredData.length} classNames="!mb-0" />
 
               <div className="flex items-center gap-[8px]">
                 <p className="text-[14px] text-black">
@@ -122,8 +191,7 @@ export default function PromotionList() {
                 paginationModel={paginationModel}
                 onPaginationModelChange={handlePaginationModelChange}
                 pageSizeOptions={COMMON_TABLE_PAGE_SIZE_OPTIONS}
-                rowCount={MOCK_TOTAL_COUNT}
-                paginationMode="server"
+                paginationMode="client"
                 disableColumnMenu
                 disableRowSelectionOnClick
                 disableColumnFilter

@@ -10,8 +10,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   Typography,
 } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
+
+import AlertDialog from "@/shared/components/dialog/AlertDialog";
 
 import { getMockPromotionDetail } from "./modules/mockData";
 import { PromotionDetail as PromotionDetailType } from "./modules/types";
@@ -178,8 +183,21 @@ interface PromotionDetailProps {
 export default function PromotionDetail({
   promotionId,
 }: PromotionDetailProps) {
+  const router = useRouter();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const detail: PromotionDetailType | undefined =
     getMockPromotionDetail(promotionId);
+
+  const canDelete =
+    detail?.status === "Draft" || detail?.status === "Upcoming";
+
+  const handleDelete = useCallback(() => {
+    // Mock: 실제로는 API 호출
+    setDeleteDialogOpen(false);
+    setDeleteConfirmText("");
+    router.push("/promotion/promotion-list");
+  }, [router]);
 
   if (!detail) {
     return (
@@ -221,9 +239,28 @@ export default function PromotionDetail({
             sx={statusSxMap[detail.status]}
           />
         </Box>
-        <Button variant="contained" color="primary">
-          Edit
-        </Button>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() =>
+              router.push(
+                `/promotion/promotion-list/edit/${detail.promotionNo}`,
+              )
+            }
+          >
+            Edit
+          </Button>
+          {canDelete && (
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              Delete
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {/* General */}
@@ -502,6 +539,39 @@ export default function PromotionDetail({
           />
         </Box>
       </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={deleteDialogOpen}
+        setOpen={(open) => {
+          setDeleteDialogOpen(open);
+          if (!open) setDeleteConfirmText("");
+        }}
+        isButton={false}
+        dialogTitle="Delete Promotion"
+        dialogContent={
+          <Box sx={{ pt: 1 }}>
+            <Typography sx={{ fontSize: 14, mb: 2 }}>
+              Delete this promotion? This action is permanent and cannot be
+              undone. All related settings and data will be removed. Type{" "}
+              <strong>delete</strong> to confirm.
+            </Typography>
+            <TextField
+              size="small"
+              fullWidth
+              placeholder="Type delete to confirm"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+            />
+          </Box>
+        }
+        dialogCloseLabel="Cancel"
+        dialogConfirmLabel="Delete"
+        handlePost={handleDelete}
+        postButtonProps={{
+          disabled: deleteConfirmText !== "delete",
+        }}
+      />
     </Box>
   );
 }

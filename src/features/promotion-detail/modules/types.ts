@@ -1,3 +1,5 @@
+export type PromotionType = "GWP" | "Packaging Benefit";
+
 export type TriggerType =
   | "Purchase Over Amount Threshold"
   | "Purchase Specific Product or Label"
@@ -5,6 +7,8 @@ export type TriggerType =
   | "Purchase Any Product";
 
 export type RewardType = "Order Level" | "Product Level";
+
+export type PromotionStatus = "Active" | "Upcoming" | "Expired" | "Draft";
 
 export interface TriggerProduct {
   no: number;
@@ -27,7 +31,7 @@ export interface RewardProduct {
 export interface PromotionDetail {
   promotionNo: number;
   title: string;
-  status: "Active" | "Upcoming" | "Expired" | "Draft";
+  status: PromotionStatus;
 
   // General
   type: string;
@@ -44,8 +48,29 @@ export interface PromotionDetail {
   amountCurrency: string | null;
   triggerChannels: string[];
   triggerProducts: TriggerProduct[];
+  exceptionProducts?: TriggerProduct[];
 
   // Reward Detail
   rewardType: RewardType;
+  rewardProducts: RewardProduct[];
+}
+
+export interface PromotionFormValues {
+  title: string;
+  type: PromotionType | "";
+  brand: string;
+  corp: string;
+  startDate: string;
+  endDate: string;
+  reason: string;
+
+  triggerType: TriggerType | "";
+  amount: number | null;
+  amountCurrency: string;
+  triggerChannels: string[];
+  triggerProducts: TriggerProduct[];
+  exceptionProducts: TriggerProduct[];
+
+  rewardType: RewardType | "";
   rewardProducts: RewardProduct[];
 }
