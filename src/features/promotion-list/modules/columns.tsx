@@ -138,15 +138,15 @@ export const COLUMNS_PROMOTION_LIST: GridColDef[] = [
   {
     field: "status",
     headerName: "Status",
-    flex: 0.7,
-    minWidth: 100,
+    flex: 0.4,
+    minWidth: 85,
     renderCell: renderStatusCell,
   },
   {
     field: "triggerType",
     headerName: "Trigger Type",
-    flex: 1,
-    minWidth: 180,
+    flex: 1.8,
+    minWidth: 295,
   },
   {
     field: "triggerChannels",
@@ -157,20 +157,6 @@ export const COLUMNS_PROMOTION_LIST: GridColDef[] = [
     renderCell: (params: GridRenderCellParams) => (
       <ChannelChipsCell values={params.value as string[]} />
     ),
-  },
-  {
-    field: "trigger",
-    headerName: "Trigger",
-    flex: 1.5,
-    minWidth: 250,
-    renderCell: renderTriggerCell,
-  },
-  {
-    field: "reward",
-    headerName: "Reward",
-    flex: 1.5,
-    minWidth: 250,
-    renderCell: renderRewardCell,
   },
   {
     field: "startDate",

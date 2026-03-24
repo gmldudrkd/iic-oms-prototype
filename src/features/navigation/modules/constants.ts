@@ -75,6 +75,7 @@ export const MENU = [
       {
         segment: "promotion-list",
         title: "List",
+        pattern: "promotion-list{/detail/:promotionId}*{/edit/:promotionId}*{/add}*",
       },
     ],
   },
