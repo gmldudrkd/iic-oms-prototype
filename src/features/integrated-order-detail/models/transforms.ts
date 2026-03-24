@@ -1021,6 +1021,7 @@ export const transformReturnDetail = (
     returnId: returnData.returnId,
     registeredBy: returnData.claimCreatedBy,
     returnReason: returnData.claimReason,
+    returnMethod: Math.random() > 0.5 ? "IN_STORE" : "DELIVERY",
     returnStatus: snakeToTitleCase(returnData.status.name),
     returnUpdatedDate: getLocalTime(returnData.updatedAt, timezone),
     recipientName: returnData.recipient?.fullName || "-",
