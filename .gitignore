@@ -12,6 +12,13 @@ dist/
 out/
 .eslintcache
 
+# Environment
+.env
+.env.development.target
+.env.localhost.target
+.env.production.target
+.env.prototype
+
 # Compiled Java class files
 *.class
 
