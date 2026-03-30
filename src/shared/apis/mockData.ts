@@ -33,7 +33,7 @@ const mockOrderList = {
           trackingNo: "1Z999AA10123456784",
         },
       ],
-      status: { name: "CANCELED", description: "Canceled" },
+      status: { name: "COMPLETED", description: "Completed" },
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
@@ -70,7 +70,13 @@ const mockOrderList = {
       originOrderNo: "GM-2025020103",
       recipientName: "Alex Kim",
       recipientPhone: "+1-555-0103",
-      shipments: [],
+      shipments: [
+        {
+          shipmentId: "SHP-003",
+          shipmentNo: "SHIP-20250201-003",
+          status: { name: "PICKUP_REQUESTED", description: "Pickup Requested" },
+        },
+      ],
       status: { name: "PENDING", description: "Pending" },
     },
     {
@@ -79,6 +85,8 @@ const mockOrderList = {
       corporation: "US",
       orderId: "ORD-20250201-004",
       orderType: { name: "NORMAL", description: "Normal" },
+      tags: "Pre-order",
+      receiveMethod: "Store Pickup",
       orderedAt: twoDaysAgo,
       ordererEmail: "sarah.lee@example.com",
       ordererName: "Sarah Lee",
@@ -90,11 +98,11 @@ const mockOrderList = {
         {
           shipmentId: "SHP-004",
           shipmentNo: "SHIP-20250201-004",
-          status: { name: "DELIVERED", description: "Delivered" },
+          status: { name: "COMPLETED", description: "Completed" },
           trackingNo: "1Z999AA10123456785",
         },
       ],
-      status: { name: "CANCELED", description: "Canceled" },
+      status: { name: "COMPLETED", description: "Completed" },
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
@@ -131,8 +139,14 @@ const mockOrderList = {
       originOrderNo: "AT-2025020106",
       recipientName: "Emily Chen",
       recipientPhone: "+1-555-0106",
-      shipments: [],
-      status: { name: "CANCELED", description: "Canceled" },
+      shipments: [
+        {
+          shipmentId: "SHP-006",
+          shipmentNo: "SHIP-20250201-006",
+          status: { name: "PREPARED", description: "Prepared" },
+        },
+      ],
+      status: { name: "PENDING", description: "Pending" },
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
@@ -154,7 +168,7 @@ const mockOrderList = {
           status: { name: "PICKED", description: "Picked" },
         },
       ],
-      status: { name: "PARTLY_CONFIRMED", description: "Partly Confirmed" },
+      status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
@@ -1469,6 +1483,24 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
 
   // Order detail: /orders/{orderId} (단일 주문 상세)
   if (path.match(/\/orders\/[^/]+$/)) {
+    const orderId = path.split("/").pop();
+    const listRow = (mockOrderList.content ?? mockOrderList.data)?.find((r: { orderId: string }) => r.orderId.toLowerCase() === orderId?.toLowerCase());
+    if (listRow) {
+      return {
+        ...mockOrderDetail,
+        orderId: listRow.orderId,
+        originOrderNo: listRow.originOrderNo,
+        status: listRow.status,
+        orderType: listRow.orderType,
+        brand: listRow.brand,
+        channelType: listRow.channelType,
+        corporation: listRow.corporation,
+        orderedAt: listRow.orderedAt,
+        orderer: { ...mockOrderDetail.orderer, fullName: listRow.ordererName, email: listRow.ordererEmail, phone: listRow.ordererPhone.replace(/^\+\d+-/, "") },
+        recipient: { ...mockOrderDetail.recipient, fullName: listRow.recipientName, phone: listRow.recipientPhone.replace(/^\+\d+-/, "") },
+        shipments: listRow.shipments,
+      };
+    }
     return mockOrderDetail;
   }
 

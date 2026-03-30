@@ -1,3 +1,5 @@
+const isGithubPages = process.env.GITHUB_PAGES === "true";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
@@ -13,7 +15,12 @@ const nextConfig = {
     compiler: {
       removeConsole: process.env.NEXT_PUBLIC_HOST_URL === "https://oms.systemiic.com",
     },
-    output: "standalone",
+    output: isGithubPages ? "export" : "standalone",
+    ...(isGithubPages && {
+      basePath: "/iic-oms-prototype",
+      assetPrefix: "/iic-oms-prototype/",
+      trailingSlash: true,
+    }),
     webpack(config, { dev }) {
       if (dev) {
         config.devtool = 'cheap-module-source-map'; // 디버깅을 위한 소스 맵 설정

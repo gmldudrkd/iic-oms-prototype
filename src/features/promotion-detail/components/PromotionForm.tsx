@@ -38,6 +38,7 @@ import {
   TITLE_MAX_LENGTH,
   TRIGGER_TYPE_OPTIONS,
 } from "../modules/constants";
+import { getMockPromotionDetail, getMockPromotionList } from "../modules/mockData";
 import {
   PromotionDetail,
   PromotionFormValues,
@@ -239,6 +240,13 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
   const [reviewOpen, setReviewOpen] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
+  // Copy/New mode (only for add mode)
+  const [addMode, setAddMode] = useState<"new" | "copy">("new");
+  const [switchModeDialogOpen, setSwitchModeDialogOpen] = useState(false);
+  const [pendingAddMode, setPendingAddMode] = useState<"new" | "copy" | null>(null);
+  const [selectedCopyId, setSelectedCopyId] = useState<string>("");
+  const promotionList = useMemo(() => getMockPromotionList(), []);
+
   // Product modal items state
   const [triggerModalItems, setTriggerModalItems] = useState<ModalItem[]>([]);
   const [triggerTopCond, setTriggerTopCond] = useState<ConditionType>("OR");
@@ -254,7 +262,7 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
   const allEditable = isAdd || isDraft;
 
   const defaultValues: PromotionFormValues = useMemo(() => {
-    if (mode === "edit" && initialData) {
+    if (initialData) {
       return {
         title: initialData.title,
         type: initialData.type as PromotionFormValues["type"],
@@ -342,6 +350,108 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
     setValue("rewardProducts", []);
   }, [setValue]);
 
+  const resetAllFormData = useCallback(() => {
+    setValue("title", "");
+    setValue("type", "" as PromotionFormValues["type"]);
+    setValue("brand", "");
+    setValue("corp", "");
+    setValue("startDate", "");
+    setValue("endDate", "");
+    setValue("reason", "");
+    setValue("triggerType", "");
+    setValue("amount", null);
+    setValue("amountMax", null);
+    setValue("amountCurrency", "KRW");
+    setValue("triggerChannels", []);
+    setValue("triggerProducts", []);
+    setValue("exceptionProducts", []);
+    setValue("rewardType", "" as PromotionFormValues["rewardType"]);
+    setValue("rewardProducts", []);
+    setTriggerModalItems([]);
+    setTriggerTopCond("OR");
+    setExceptionModalItems([]);
+    setExceptionTopCond("OR");
+    setRewardSelectedItems([]);
+    setIsRandomReward(false);
+    setSelectedCopyId("");
+    setIsDirty(false);
+  }, [setValue]);
+
+  const loadCopyData = useCallback((promotionId: string) => {
+    const data = getMockPromotionDetail(promotionId);
+    if (!data) return;
+    setValue("title", data.title);
+    setValue("type", data.type as PromotionFormValues["type"]);
+    setValue("brand", data.brand);
+    setValue("corp", data.corp);
+    setValue("startDate", data.startDate);
+    setValue("endDate", data.endDate);
+    setValue("reason", data.reason);
+    setValue("triggerType", data.triggerType);
+    setValue("amount", data.amount);
+    setValue("amountMax", null);
+    setValue("amountCurrency", data.amountCurrency ?? "KRW");
+    setValue("triggerChannels", data.triggerChannels);
+    setValue("triggerProducts", data.triggerProducts);
+    setValue("exceptionProducts", data.exceptionProducts ?? []);
+    setValue("rewardType", data.rewardType);
+    setValue("rewardProducts", data.rewardProducts);
+    // Reward selected items sync
+    setRewardSelectedItems(
+      data.rewardProducts.map((p, idx) => ({
+        uid: idx + 1,
+        id: p.skuCode,
+        sap: "",
+        label: "",
+        name: p.productName,
+        category: "",
+        img: "🎁",
+      })),
+    );
+    setIsRandomReward(false);
+    setIsDirty(false);
+  }, [setValue]);
+
+  const hasAnyData = useCallback(() => {
+    const v = getValues();
+    return !!(
+      v.title || v.type || v.brand || v.corp ||
+      v.startDate || v.endDate || v.reason || v.triggerType ||
+      v.amount || v.triggerChannels.length > 0 ||
+      v.triggerProducts.length > 0 || v.exceptionProducts.length > 0 ||
+      v.rewardType || v.rewardProducts.length > 0 ||
+      triggerModalItems.length > 0 || exceptionModalItems.length > 0 ||
+      rewardSelectedItems.length > 0
+    );
+  }, [getValues, triggerModalItems, exceptionModalItems, rewardSelectedItems]);
+
+  const handleAddModeSwitch = useCallback((newMode: "new" | "copy") => {
+    if (newMode === addMode) return;
+    if (hasAnyData()) {
+      setPendingAddMode(newMode);
+      setSwitchModeDialogOpen(true);
+    } else {
+      setAddMode(newMode);
+      resetAllFormData();
+    }
+  }, [addMode, hasAnyData, resetAllFormData]);
+
+  const handleSwitchModeConfirm = useCallback(() => {
+    setSwitchModeDialogOpen(false);
+    if (pendingAddMode) {
+      setAddMode(pendingAddMode);
+      resetAllFormData();
+      setPendingAddMode(null);
+    }
+  }, [pendingAddMode, resetAllFormData]);
+
+  const handleCopySelect = useCallback((promotionId: string) => {
+    setSelectedCopyId(promotionId);
+    if (promotionId) {
+      loadCopyData(promotionId);
+    }
+  }, [loadCopyData]);
+
   const handleNavigateBack = useCallback(() => {
     if (isDirty) setLeaveDialogOpen(true);
     else router.back();
@@ -405,6 +515,66 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
         </Typography>
       </Box>
 
+      {/* Copy / New Toggle (Add mode only) */}
+      {isAdd && (
+        <Box sx={{ mb: 3, border: `1px solid ${BORDER_COLOR}`, borderRadius: 1, p: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 600, color: "rgba(0,0,0,0.87)", mr: 1 }}>
+              Mode
+            </Typography>
+            <Box sx={{ display: "flex", backgroundColor: "#F2F4F7", borderRadius: 1, p: 0.25 }}>
+              {(["new", "copy"] as const).map((m) => (
+                <Button
+                  key={m}
+                  size="small"
+                  onClick={() => handleAddModeSwitch(m)}
+                  sx={{
+                    textTransform: "capitalize",
+                    px: 2.5,
+                    py: 0.5,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    borderRadius: 0.75,
+                    minWidth: 80,
+                    backgroundColor: addMode === m ? "#fff" : "transparent",
+                    color: addMode === m ? "#101828" : "#667085",
+                    boxShadow: addMode === m ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                    "&:hover": {
+                      backgroundColor: addMode === m ? "#fff" : "rgba(0,0,0,0.04)",
+                    },
+                  }}
+                >
+                  {m === "new" ? "New" : "Copy"}
+                </Button>
+              ))}
+            </Box>
+            {addMode === "copy" && (
+              <Autocomplete
+                size="small"
+                sx={{ minWidth: 400 }}
+                options={promotionList}
+                getOptionLabel={(option) => option.title}
+                value={promotionList.find((p) => p.id === selectedCopyId) ?? null}
+                onChange={(_, newValue) => handleCopySelect(newValue?.id ?? "")}
+                renderInput={(params) => (
+                  <TextField {...params} placeholder="Search promotion to copy..." />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.id}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+                      <Typography sx={{ fontSize: 13, flex: 1 }}>{option.title}</Typography>
+                      <Chip label={option.status} size="small" sx={{ fontSize: 11, height: 20 }} />
+                    </Box>
+                  </li>
+                )}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                noOptionsText="No promotions found"
+              />
+            )}
+          </Box>
+        </Box>
+      )}
+
       {/* General */}
       <Box sx={{ mb: 3 }}>
         <SectionTitle title="General" />
@@ -418,10 +588,10 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
           </FormRow>
           <TwoColumnFormRow items={[
             {
-              label: "Type", required: true,
+              label: "Promotion Type", required: true,
               children: <Controller name="type" control={control} render={({ field }) => (
-                <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("type")}>
-                  <MenuItem value="" disabled>Please Select</MenuItem>
+                <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("type")} renderValue={(v) => v || <span style={{ color: "rgba(0,0,0,0.38)" }}>Please Select</span>}>
+                  <MenuItem value="" disabled sx={{ display: "none" }}>Please Select</MenuItem>
                   {PROMOTION_TYPE_OPTIONS.map((opt) => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
                 </Select></FormControl>
               )} />,
@@ -444,8 +614,8 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
             {
               label: "Brand", required: true,
               children: <Controller name="brand" control={control} render={({ field }) => (
-                <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("brand")}>
-                  <MenuItem value="" disabled>Please Select</MenuItem>
+                <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("brand")} renderValue={(v) => v || <span style={{ color: "rgba(0,0,0,0.38)" }}>Please Select</span>}>
+                  <MenuItem value="" disabled sx={{ display: "none" }}>Please Select</MenuItem>
                   {MOCK_BRAND_OPTIONS.map((opt) => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
                 </Select></FormControl>
               )} />,
@@ -453,8 +623,8 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
             {
               label: "Corp", required: true,
               children: <Controller name="corp" control={control} render={({ field }) => (
-                <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("corp")}>
-                  <MenuItem value="" disabled>Please Select</MenuItem>
+                <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("corp")} renderValue={(v) => v || <span style={{ color: "rgba(0,0,0,0.38)" }}>Please Select</span>}>
+                  <MenuItem value="" disabled sx={{ display: "none" }}>Please Select</MenuItem>
                   {MOCK_CORP_OPTIONS.map((opt) => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
                 </Select></FormControl>
               )} />,
@@ -486,8 +656,8 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
               {
                 label: "Trigger Type", required: true,
                 children: <Controller name="triggerType" control={control} render={({ field }) => (
-                  <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("triggerType")}>
-                    <MenuItem value="" disabled>Please Select</MenuItem>
+                  <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("triggerType")} renderValue={(v) => v || <span style={{ color: "rgba(0,0,0,0.38)" }}>Please Select</span>}>
+                    <MenuItem value="" disabled sx={{ display: "none" }}>Please Select</MenuItem>
                     {TRIGGER_TYPE_OPTIONS.map((opt) => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
                   </Select></FormControl>
                 )} />,
@@ -512,8 +682,8 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
           ) : (
             <FormRow label="Trigger Type" required>
               <Controller name="triggerType" control={control} render={({ field }) => (
-                <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("triggerType")}>
-                  <MenuItem value="" disabled>Please Select</MenuItem>
+                <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("triggerType")} renderValue={(v) => v || <span style={{ color: "rgba(0,0,0,0.38)" }}>Please Select</span>}>
+                  <MenuItem value="" disabled sx={{ display: "none" }}>Please Select</MenuItem>
                   {TRIGGER_TYPE_OPTIONS.map((opt) => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
                 </Select></FormControl>
               )} />
@@ -556,8 +726,8 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
         <Box sx={{ border: `1px solid ${BORDER_COLOR}`, borderTop: "none" }}>
           <FormRow label="Reward Type" required>
             <Controller name="rewardType" control={control} render={({ field }) => (
-              <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("rewardType")}>
-                <MenuItem value="" disabled>Please Select</MenuItem>
+              <FormControl size="small" fullWidth><Select {...field} displayEmpty disabled={isFieldDisabled("rewardType")} renderValue={(v) => v || <span style={{ color: "rgba(0,0,0,0.38)" }}>Please Select</span>}>
+                <MenuItem value="" disabled sx={{ display: "none" }}>Please Select</MenuItem>
                 {REWARD_TYPE_OPTIONS.map((opt) => <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>)}
               </Select></FormControl>
             )} />
@@ -668,6 +838,20 @@ export default function PromotionForm({ mode, initialData }: PromotionFormProps)
       <AlertDialog open={leaveDialogOpen} setOpen={setLeaveDialogOpen} isButton={false}
         dialogContent="The promotion has not been submitted and was not created. Are you sure you want to leave this page?"
         dialogCloseLabel="Cancel" dialogConfirmLabel="Leave" handlePost={handleLeaveConfirm}
+      />
+
+      {/* Switch Mode Dialog */}
+      <AlertDialog
+        open={switchModeDialogOpen}
+        setOpen={(open) => {
+          setSwitchModeDialogOpen(open);
+          if (!open) setPendingAddMode(null);
+        }}
+        isButton={false}
+        dialogContent="Switching mode will reset all entered data. Are you sure you want to continue?"
+        dialogCloseLabel="Cancel"
+        dialogConfirmLabel="Continue"
+        handlePost={handleSwitchModeConfirm}
       />
 
       {/* Review Modal */}

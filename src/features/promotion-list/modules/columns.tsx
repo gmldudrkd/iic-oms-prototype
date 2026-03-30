@@ -1,4 +1,5 @@
-import { Chip, Tooltip } from "@mui/material";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { Chip, IconButton, Tooltip } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-pro";
 import Link from "next/link";
 import { useState } from "react";
@@ -181,5 +182,25 @@ export const COLUMNS_PROMOTION_LIST: GridColDef[] = [
     headerName: "Created At",
     flex: 1,
     minWidth: 170,
+  },
+  {
+    field: "actions",
+    headerName: "",
+    width: 50,
+    sortable: false,
+    renderCell: (params: GridRenderCellParams) => (
+      <Tooltip title="Copy Promotion">
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.location.href = `/promotion/promotion-list/add?copyFrom=${params.row.id}`;
+          }}
+          sx={{ color: "#98A2B3" }}
+        >
+          <ContentCopyIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Tooltip>
+    ),
   },
 ];

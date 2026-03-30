@@ -1,38 +1,24 @@
-"use client";
+import PageClient from "./PageClient";
 
-import { useParams } from "next/navigation";
+export function generateStaticParams() {
+  return [
+    { promotionId: "999" },
+    { promotionId: "998" },
+    { promotionId: "997" },
+    { promotionId: "996" },
+    { promotionId: "995" },
+    { promotionId: "994" },
+    { promotionId: "993" },
+    { promotionId: "992" },
+    { promotionId: "991" },
+    { promotionId: "990" },
+    { promotionId: "989" },
+    { promotionId: "988" },
+    { promotionId: "987" },
+    { promotionId: "986" },
+  ];
+}
 
-import PromotionForm from "@/features/promotion-detail/components/PromotionForm";
-import { getMockPromotionDetail } from "@/features/promotion-detail/modules/mockData";
-
-import BreadcrumbsComponent from "@/shared/components/Breadcrumbs";
-
-export default function PromotionEditPage() {
-  const { promotionId } = useParams<{ promotionId: string }>();
-  const detail = getMockPromotionDetail(promotionId);
-
-  return (
-    <>
-      <div className="flex flex-col">
-        <div className="bg-white px-[24px] pt-[24px] pb-[8px]">
-          <BreadcrumbsComponent
-            items={[
-              {
-                href: "/promotion/promotion-list",
-                label: "Promotion list",
-              },
-              {
-                href: `/promotion/promotion-list/detail/${promotionId}`,
-                label: "Promotion detail",
-              },
-              { href: "", label: "Edit Promotion" },
-            ]}
-          />
-        </div>
-      </div>
-      <div className="bg-white">
-        <PromotionForm mode="edit" initialData={detail} />
-      </div>
-    </>
-  );
+export default function Page() {
+  return <PageClient />;
 }

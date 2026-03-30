@@ -45,9 +45,17 @@ export const transformOrderData = ({
         orderId: row.orderId,
         brand: row.brand.description,
         corp: row.corporation,
-        orderType: row.orderType.description,
         channel: row.channelType.description,
         orderNo: row.originOrderNo,
+        receiveMethod: (row as Record<string, unknown>).receiveMethod
+          ? String((row as Record<string, unknown>).receiveMethod)
+          : (row.orderId.charCodeAt(row.orderId.length - 1) % 3 === 0
+              ? "Store Pickup"
+              : "Delivery"),
+        orderType: row.orderType.description,
+        tags: (row as Record<string, unknown>).tags
+          ? String((row as Record<string, unknown>).tags)
+          : "",
         orderDate: getLocalTime(row.orderedAt, timezone),
         ordererName: row.ordererName || "-",
         ordererEmail: row.ordererEmail,
@@ -60,10 +68,10 @@ export const transformOrderData = ({
               snakeToTitleCase(shipment.status.name),
             )
           : [],
-        shipmentNo: row.shipments.map((shipment) =>
+        fulfillmentNo: row.shipments.map((shipment) =>
           convertShippingText(shipment.shipmentNo),
         ),
-        shipmentStatus: row.shipments.map((shipment) =>
+        fulfillmentStatus: row.shipments.map((shipment) =>
           snakeToTitleCase(shipment.status.name),
         ),
         trackingNo: row.shipments.map((shipment) =>

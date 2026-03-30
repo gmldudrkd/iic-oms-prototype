@@ -26,7 +26,7 @@ export const COLUMNS_ORDER_LIST = [
   },
   {
     field: "channel",
-    headerName: "Channel 2",
+    headerName: "Channel",
     flex: 1,
     minWidth: 170,
   },
@@ -42,17 +42,50 @@ export const COLUMNS_ORDER_LIST = [
       ),
   },
   {
+    field: "receiveMethod",
+    headerName: "Receive Method",
+    flex: 1,
+    minWidth: 140,
+    renderCell: (params: { value: string }) =>
+      params.value
+        ? renderCellForStatus({ value: params.value, color: "receiveMethod" })
+        : <span>-</span>,
+  },
+  {
     field: "orderType",
     headerName: "Type",
     flex: 1,
-    minWidth: 120,
-    renderCell: (params: GridRenderCellParams) => {
-      if (params.value === "Gift") {
-        return renderCellForStatus({ value: "Gift", color: "default" });
-      } else {
-        return null;
-      }
-    },
+    minWidth: 100,
+    renderCell: (params: { value: string }) =>
+      params.value
+        ? renderCellForStatus({ value: params.value, color: "default" })
+        : <span>-</span>,
+  },
+  {
+    field: "tags",
+    headerName: "Tags",
+    flex: 1,
+    minWidth: 100,
+    renderCell: (params: { value: string }) =>
+      params.value
+        ? renderCellForStatus({ value: params.value, color: "default" })
+        : <span>-</span>,
+  },
+  {
+    field: "status",
+    headerName: "Status",
+    flex: 1,
+    minWidth: 220,
+    renderCell: (params: { value: string }) =>
+      renderCellForStatus({ value: params.value, color: "order" }),
+  },
+  {
+    field: "fulfillmentStatus",
+    headerName: "Fulfillment Status",
+    flex: 1,
+    minWidth: 180,
+    cellClassName: "!p-0",
+    renderCell: renderCellForShippingStatus,
   },
   {
     field: "orderDate",
@@ -79,14 +112,6 @@ export const COLUMNS_ORDER_LIST = [
     minWidth: 130,
   },
   {
-    field: "status",
-    headerName: "Status",
-    flex: 1,
-    minWidth: 220,
-    renderCell: (params: { value: string }) =>
-      renderCellForStatus({ value: params.value, color: "order" }),
-  },
-  {
     field: "recipientName",
     headerName: "Recipient Name",
     flex: 1,
@@ -99,20 +124,12 @@ export const COLUMNS_ORDER_LIST = [
     minWidth: 150,
   },
   {
-    field: "shipmentNo",
-    headerName: "Shipment No",
+    field: "fulfillmentNo",
+    headerName: "Fulfillment No",
     flex: 1,
     minWidth: 200,
     cellClassName: "!p-0",
     renderCell: renderCellMultiLine,
-  },
-  {
-    field: "shipmentStatus",
-    headerName: "Shipment Status",
-    flex: 1,
-    minWidth: 180,
-    cellClassName: "!p-0",
-    renderCell: renderCellForShippingStatus,
   },
   {
     field: "trackingNo",

@@ -53,6 +53,9 @@ export interface OrderRow {
   corp: string;
   channel?: string;
   orderNo: string;
+  receiveMethod: string;
+  orderType: string;
+  tags: string;
   orderDate: string;
   ordererName: string;
   ordererEmail: string;
@@ -61,8 +64,8 @@ export interface OrderRow {
   recipientName: string;
   recipientPhone: string;
   shippingStatus: string[];
-  shipmentNo: string[];
-  shipmentStatus: string[];
+  fulfillmentNo: string[];
+  fulfillmentStatus: string[];
   trackingNo: string[];
 }
 

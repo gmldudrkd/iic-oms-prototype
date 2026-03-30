@@ -269,7 +269,7 @@ export default function PromotionDetail({
         <Box sx={{ border: `1px solid ${BORDER_COLOR}`, borderTop: "none" }}>
           <TwoColumnRow
             items={[
-              { label: "Type", value: detail.type },
+              { label: "Promotion Type", value: detail.type },
               {
                 label: "Status",
                 value: (

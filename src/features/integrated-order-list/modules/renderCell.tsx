@@ -5,7 +5,8 @@ export const renderCellForStatus = (params: {
   value: string;
   color?: string;
 }) => {
-  let chipColor: "primary" | "warning" | "success" | "default" = "primary";
+  let chipColor: "primary" | "warning" | "success" | "info" | "default" =
+    "primary";
 
   // 상태 값에 따라 색상 설정
   switch (params.color) {
@@ -18,6 +19,9 @@ export const renderCellForStatus = (params: {
     case "exchange":
       chipColor = "success";
       break;
+    case "receiveMethod":
+      chipColor = "info";
+      break;
     case "default":
       chipColor = "default";
       break;
@@ -26,11 +30,27 @@ export const renderCellForStatus = (params: {
       break;
   }
 
-  return params.value === "" ? (
-    <span>-</span>
-  ) : (
-    <Chip label={params.value} color={chipColor} size="small" />
-  );
+  if (params.value === "") return <span>-</span>;
+
+  // Receive Method: custom colors per value
+  if (params.color === "receiveMethod") {
+    const receiveMethodColors: Record<string, string> = {
+      Delivery: "#DB2777",
+      "Store Pickup": "#9C27B0",
+    };
+    return (
+      <Chip
+        label={params.value}
+        size="small"
+        sx={{
+          backgroundColor: receiveMethodColors[params.value] ?? "#9C27B0",
+          color: "#fff",
+        }}
+      />
+    );
+  }
+
+  return <Chip label={params.value} color={chipColor} size="small" />;
 };
 
 export const renderCellForShippingStatus = (params: { value: string[] }) => {

@@ -42,6 +42,24 @@ export function getMockPromotionDetail(
   return undefined;
 }
 
+export interface PromotionListItem {
+  id: string;
+  title: string;
+  status: string;
+  type: string;
+  brand: string;
+  corp: string;
+}
+
+export function getMockPromotionList(): PromotionListItem[] {
+  return [
+    { id: "999", title: "#999 2026 크리스마스 이벤트 🎅", status: "Active", type: "GWP", brand: "GM", corp: "KR" },
+    { id: "998", title: "#998 2026 크리스마스 이브 이벤트...", status: "Upcoming", type: "GWP", brand: "GM", corp: "KR" },
+    { id: "997", title: "#997 2026 할로윈 이벤트 🎃", status: "Draft", type: "GWP", brand: "TB", corp: "KR" },
+    { id: "996", title: "#996 2026 할로윈 이벤트 🎃", status: "Expired", type: "GWP", brand: "TB", corp: "KR" },
+  ];
+}
+
 export const MOCK_PROMOTION_DETAIL: Record<string, PromotionDetail> = {
   "999": {
     promotionNo: 999,
