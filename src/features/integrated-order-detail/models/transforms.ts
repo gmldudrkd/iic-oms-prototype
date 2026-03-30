@@ -993,6 +993,8 @@ export const transformReturnDetail = (
     returnId: returnData.returnId,
     registeredBy: returnData.claimCreatedBy,
     returnReason: returnData.claimReason,
+    returnMethod:
+      ((returnData as Record<string, unknown>).returnMethod as string) ?? "-",
     returnStatus: snakeToTitleCase(returnData.status.name),
     returnUpdatedDate: getLocalTime(returnData.updatedAt, timezone),
     recipientName: returnData.recipient?.fullName || "-",

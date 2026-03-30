@@ -186,12 +186,16 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
               <Cell>{returnDetail.claimFault}</Cell>
             </div>
           </DetailGrid>
-          <DetailGridSingle>
+          <DetailGrid>
             <div>
               <h3>Return reason</h3>
               <Cell>{returnDetail.returnReason}</Cell>
             </div>
-          </DetailGridSingle>
+            <div>
+              <h3>Return Method</h3>
+              <Cell>{returnDetail.returnMethod}</Cell>
+            </div>
+          </DetailGrid>
           <DetailGridSingle>
             <div>
               <h3>Status</h3>
