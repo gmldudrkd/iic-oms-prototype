@@ -1,7 +1,9 @@
-"use client";
+import PageClient from "@/app/(auth)/product/product-list/detail/product-master/[sku]/PageClient";
 
-import ProductMasterDetail from "@/features/product-detail/components/ProductMasterDetail";
+export function generateStaticParams() {
+  return [{ sku: "GM-KUK-001-BLK" }, { sku: "AT-LPM-001-RSE" }];
+}
 
-export default function ProductMasterPage() {
-  return <ProductMasterDetail />;
+export default function Page() {
+  return <PageClient />;
 }

@@ -21,6 +21,7 @@ upstream(bitbucket iic-oms-frontend)의 최신 코드를 origin(github prototype
 - `src/shared/provider/NextAuthProvider.tsx` — mock 세션 주입
 - `src/shared/hooks/useCustomMutation.ts` — mutation no-op
 - `src/features/navigation/modules/constants.ts` — 프로모션 메뉴 포함
+- `src/app/(unauth)/sign-in/page.tsx` — 프로토타입 모드 분기 (headers() 우회)
 - `package.json` — prototype 스크립트, gh-pages 등 포함
 - `next.config.mjs` — GitHub Pages 빌드 설정 포함
 - `.env` — PROTOTYPE_MODE 설정
@@ -41,8 +42,14 @@ upstream(bitbucket iic-oms-frontend)의 최신 코드를 origin(github prototype
 - `src/shared/generated/**` — API 스펙에서 자동 생성된 타입, upstream이 최신
 - 그 외 대부분의 feature/component 파일 — upstream이 최신
 
+### GitHub Pages 정적 빌드 주의사항
+- 동적 라우트(`[param]`) 페이지는 `page.tsx`(서버) + `PageClient.tsx`(클라이언트) 분리 필수
+- `page.tsx`에 `"use client"`와 `generateStaticParams()` 공존 불가
+- upstream에서 새 동적 라우트가 추가되면 같은 패턴으로 분리 + `generateStaticParams` 추가 필요
+
 ### 병합 후 확인사항
 - `npm run dev`로 로컬 실행 확인
 - `/sign-in`으로 리다이렉트 안 되는지 확인 (프로토타입 모드)
 - Overview 대시보드 탭/색상 정상 표시 확인
 - Order list → detail 진입 시 에러 없는지 확인
+- `npm run deploy`로 GitHub Pages 배포 확인

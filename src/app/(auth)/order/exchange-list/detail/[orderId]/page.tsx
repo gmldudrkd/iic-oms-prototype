@@ -1,54 +1,18 @@
-"use client";
+import PageClient from "@/app/(auth)/order/exchange-list/detail/[orderId]/PageClient";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+export function generateStaticParams() {
+  return [
+    { orderId: "ord-20250201-001" },
+    { orderId: "ord-20250201-002" },
+    { orderId: "ord-20250201-003" },
+    { orderId: "ord-20250201-004" },
+    { orderId: "ord-20250201-005" },
+    { orderId: "ord-20250201-006" },
+    { orderId: "ord-20250201-007" },
+    { orderId: "ord-20250201-008" },
+  ];
+}
 
-import OrderDetail from "@/features/integrated-order-detail";
-
-import BreadcrumbsComponent from "@/shared/components/Breadcrumbs";
-import HeaderChip from "@/shared/components/HeaderChip";
-import Title from "@/shared/components/text/Title";
-import { OrderDetailResponse } from "@/shared/generated/oms/types/Order";
-import { queryKeys } from "@/shared/queryKeys";
-import { useOrderNoStore } from "@/shared/stores/useOrderNoStore";
-
-export default function ExchangeListDetailPage() {
-  const { orderInfo } = useOrderNoStore((state) => state);
-  const [activeType, setActiveType] = useState<
-    "order" | "return" | "exchange" | "log-history"
-  >("exchange");
-
-  const { orderId } = useParams<{ orderId: string }>();
-  const queryClient = useQueryClient();
-  const data = queryClient.getQueryData<OrderDetailResponse>(
-    queryKeys.orderDetail(orderId),
-  );
-
-  return (
-    <>
-      <div className="flex flex-col">
-        <div className="bg-white px-[24px] pt-[24px]">
-          <BreadcrumbsComponent
-            items={[
-              {
-                href: "/order/exchange-list",
-                label: "Exchange List",
-              },
-              { href: "", label: "Exchange detail" },
-            ]}
-          />
-          {/* store로 데이터 가져오기 */}
-          <Title
-            text={`Order #${orderInfo.orderNo}`}
-            classNames="flex-row items-center gap-2"
-          >
-            {data?.orderType.name === "GIFT" && <HeaderChip type="gift" />}
-          </Title>
-        </div>
-      </div>
-
-      <OrderDetail activeType={activeType} setActiveType={setActiveType} />
-    </>
-  );
+export default function Page() {
+  return <PageClient />;
 }
