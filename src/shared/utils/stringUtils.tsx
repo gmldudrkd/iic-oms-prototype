@@ -28,6 +28,22 @@ export const snakeToTitleCase = (str: string) => {
 };
 
 /**
+ * 카멜 케이스를 타이틀 케이스로 변환
+ * 예) shipmentRequested -> Shipment Requested
+ * @param str 문자열
+ * @returns 타이틀 케이스로 변환된 문자열
+ */
+export const camelToTitleCase = (str: string) => {
+  return str
+    .replace(/([A-Z])/g, " $1")
+    .trim()
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+/**
  * 텍스트 조건에 맞춰 비활성화 색상 변경
  * @param text 텍스트
  * @param matchText 조건
@@ -165,7 +181,7 @@ export const fillEmptyWithDash = <
  */
 export const convertToPrice = (
   value: number | null,
-  currency: string | undefined,
+  currency: string | undefined = "KRW",
   isNumberFirst: boolean = false,
 ) => {
   return (

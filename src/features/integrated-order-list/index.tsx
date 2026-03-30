@@ -10,21 +10,20 @@ import { useGetIntegratedOrderList } from "@/features/integrated-order-list/hook
 import { COMMON_TABLE_PAGE_SIZE_OPTIONS } from "@/shared/constants";
 import { ExchangeSearchRequest } from "@/shared/generated/oms/types/Exchange";
 import { OrderSearchRequest } from "@/shared/generated/oms/types/Order";
+import { ReshipmentSearchRequest } from "@/shared/generated/oms/types/Reshipment";
 import { ReturnSearchRequest } from "@/shared/generated/oms/types/Return";
 import { useTimezoneStore } from "@/shared/stores/useTimezoneStore";
 import { useUserPermissionStore } from "@/shared/stores/useUserPermissionStore";
 import { MUIDataGridTheme } from "@/shared/styles/theme";
 
 interface IntegratedOrderListProps {
-  group: "order" | "return" | "exchange";
+  group: "order" | "return" | "exchange" | "reshipment";
 }
 
 export default function IntegratedOrderList({
   group,
 }: IntegratedOrderListProps) {
   const { timezone } = useTimezoneStore();
-  //   const [alertMessage, setAlertMessage] = useState({ content: "" });
-
   const { selectedPermission } = useUserPermissionStore();
   const channelTypes = useMemo(
     () =>
@@ -53,26 +52,32 @@ export default function IntegratedOrderList({
         dayjs().tz(timezone).startOf("day"),
         dayjs().tz(timezone).endOf("day"),
       ],
+
+      orderAttributeFilter: {
+        receiveMethods: [],
+        types: [],
+        tags: [],
+      },
     }),
     [timezone],
   );
 
   // 각 타입별 초기 파라미터 정의 - 타입 안정성 보장
   const getInitialParams = (
-    group: "order" | "return" | "exchange",
-  ): OrderSearchRequest | ReturnSearchRequest | ExchangeSearchRequest => {
+    group: "order" | "return" | "exchange" | "reshipment",
+  ) => {
     const common = {
       page: 0,
       size: COMMON_TABLE_PAGE_SIZE_OPTIONS[0],
       from: defaultValues.period[0].toISOString(),
       to: defaultValues.period[1].toISOString(),
       channelTypes: defaultValues.channelTypes,
+      originOrderNos: [],
     };
 
     if (group === "order") {
       return {
         ...common,
-        originOrderNos: [],
         shipmentNos: [],
         skus: [],
         orderStatuses: [],
@@ -82,28 +87,30 @@ export default function IntegratedOrderList({
     if (group === "return") {
       return {
         ...common,
-        channelTypes: [],
-        originOrderNos: [],
-        shipmentNos: [],
-        skus: [],
         returnStatuses: [],
         returnNos: [],
+      };
+    }
+    if (group === "reshipment") {
+      return {
+        ...common,
+        reshipmentStatuses: [],
+        reshipmentNos: [],
       };
     }
     // exchange
     return {
       ...common,
-      channelTypes: [],
-      originOrderNos: [],
-      shipmentNos: [],
-      skus: [],
       exchangeStatuses: [],
       exchangeNos: [],
     };
   };
 
   const [params, setParams] = useState<
-    OrderSearchRequest | ReturnSearchRequest | ExchangeSearchRequest
+    | OrderSearchRequest
+    | ReturnSearchRequest
+    | ExchangeSearchRequest
+    | ReshipmentSearchRequest
   >(() => getInitialParams(group));
 
   // useForm 초기화
@@ -111,8 +118,8 @@ export default function IntegratedOrderList({
 
   // 📍 대시보드 데이터 그리드 리스트 API
   const { data, isSuccess, isFetching, refetch } = useGetIntegratedOrderList(
-    group as "order" | "return" | "exchange",
-    params as OrderSearchRequest | ReturnSearchRequest | ExchangeSearchRequest,
+    group,
+    params,
   );
 
   // period 변경 시 검색 폼 업데이트

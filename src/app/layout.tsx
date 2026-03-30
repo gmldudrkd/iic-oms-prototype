@@ -2,7 +2,6 @@
 
 import { ReactNode, useEffect } from "react";
 
-import { Agentation } from "agentation";
 import MuiThemeProvider from "@/shared/provider/MuiThemeProvider";
 import NextAuthProvider from "@/shared/provider/NextAuthProvider";
 import SnackBarProvider from "@/shared/provider/SnackBarProvider";
@@ -28,9 +27,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </MuiThemeProvider>
           </TanstackQueryProvider>
         </NextAuthProvider>
-        {process.env.NODE_ENV === "development" && (
-          <Agentation endpoint="http://localhost:4747" />
-        )}
       </body>
     </html>
   );

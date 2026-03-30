@@ -92,10 +92,12 @@ export default function InfoLogHistory() {
                     <TableCell>{row.timeStamp}</TableCell>
                     <SapIfCell sapIf={row.sapIf} />
                     <TableCell>
-                      <Chip
-                        label={row.updatedStatus.status}
-                        color={chipColor(row.updatedStatus.groupStatus)}
-                      />
+                      {row.updatedStatus.status && (
+                        <Chip
+                          label={row.updatedStatus.status}
+                          color={chipColor(row.updatedStatus.groupStatus)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -144,10 +146,12 @@ export default function InfoLogHistory() {
                     <TableCell>{row.timeStamp}</TableCell>
                     <SapIfCell sapIf={row.sapIf} />
                     <TableCell>
-                      <Chip
-                        label={row.updatedStatus.status}
-                        color={chipColor(row.updatedStatus.groupStatus)}
-                      />
+                      {row.updatedStatus.status && (
+                        <Chip
+                          label={row.updatedStatus.status}
+                          color={chipColor(row.updatedStatus.groupStatus)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -196,10 +200,12 @@ export default function InfoLogHistory() {
                     <TableCell>{row.timeStamp}</TableCell>
                     <SapIfCell sapIf={row.sapIf} />
                     <TableCell>
-                      <Chip
-                        label={row.updatedStatus.status}
-                        color={chipColor(row.updatedStatus.groupStatus)}
-                      />
+                      {row.updatedStatus.status && (
+                        <Chip
+                          label={row.updatedStatus.status}
+                          color={chipColor(row.updatedStatus.groupStatus)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

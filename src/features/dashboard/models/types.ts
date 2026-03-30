@@ -1,10 +1,11 @@
-export type GroupType = "order" | "return" | "exchange";
-export type CategoryType =
-  | "awaiting"
-  | "inProgress"
-  | "shipping"
-  | "shippingClosed"
-  | "finalized";
+export type GroupType =
+  | "order"
+  | "shipment"
+  | "storePickup"
+  | "return"
+  | "exchange"
+  | "reshipment";
+export type CategoryType = "awaiting" | "inProgress" | "finalized";
 
 // 대시보드 아이템
 export interface DashboardItem {
@@ -20,21 +21,22 @@ export interface DashboardSection {
 
 // 기본 그룹 구조
 export interface BaseDashboardGroup {
-  awaiting: DashboardSection;
   inProgress: DashboardSection;
   finalized: DashboardSection;
 }
 
 // Order 그룹만 shipping 관련 카테고리 추가
-export interface OrderDashboardGroup extends BaseDashboardGroup {
-  shipping: DashboardSection;
-  shippingClosed: DashboardSection;
+export interface AddAwaitDashboardGroup extends BaseDashboardGroup {
+  awaiting: DashboardSection;
 }
 
 export interface DashboardState {
-  order: OrderDashboardGroup;
-  return: BaseDashboardGroup;
-  exchange: BaseDashboardGroup;
+  order: AddAwaitDashboardGroup;
+  shipment: BaseDashboardGroup;
+  storePickup: BaseDashboardGroup;
+  return: AddAwaitDashboardGroup;
+  exchange: AddAwaitDashboardGroup;
+  reshipment: BaseDashboardGroup;
 }
 
 export interface DashboardStatus {
@@ -42,10 +44,6 @@ export interface DashboardStatus {
   category: CategoryType;
   status: string[];
 }
-
-// 타입 가드로 단순화
-export const isOrderGroup = (group: GroupType): group is "order" =>
-  group === "order";
 
 // 대시보드 상태 카드 데이터 조회 함수
 export const getDashboardSection = (
@@ -55,16 +53,6 @@ export const getDashboardSection = (
 ): DashboardSection | undefined => {
   if (!data) return undefined;
 
-  const groupData = data[group];
-
-  if (isOrderGroup(group)) {
-    // Order 그룹은 모든 카테고리를 가짐
-    return (groupData as OrderDashboardGroup)[category];
-  } else {
-    // Return/Exchange 그룹은 shipping 관련 카테고리 제외
-    if (category === "shipping" || category === "shippingClosed") {
-      return undefined;
-    }
-    return groupData[category as keyof BaseDashboardGroup] as DashboardSection;
-  }
+  const groupData = data[group as keyof DashboardState];
+  return groupData[category as keyof typeof groupData];
 };

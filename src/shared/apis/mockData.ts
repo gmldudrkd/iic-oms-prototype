@@ -13,10 +13,14 @@ const mockOrderList = {
   data: [
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+      channelType: {
+        name: "NUFLAAT_OFFICIAL",
+        description: "Nuflaat Official",
+      },
       corporation: "US",
       orderId: "ORD-20250201-001",
       orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
       orderedAt: yesterday,
       ordererEmail: "john.doe@example.com",
       ordererName: "John Doe",
@@ -37,10 +41,14 @@ const mockOrderList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "ATIISSU_OFFICIAL", description: "Atiissu Official" },
+      channelType: {
+        name: "ATIISSU_OFFICIAL",
+        description: "Atiissu Official",
+      },
       corporation: "US",
       orderId: "ORD-20250201-002",
       orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
       orderedAt: yesterday,
       ordererEmail: "jane.smith@example.com",
       ordererName: "Jane Smith",
@@ -52,17 +60,24 @@ const mockOrderList = {
         {
           shipmentId: "SHP-002",
           shipmentNo: "SHIP-20250201-002",
-          status: { name: "PICKING_REQUESTED", description: "Picking Requested" },
+          status: {
+            name: "PICKING_REQUESTED",
+            description: "Picking Requested",
+          },
         },
       ],
       status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "GENTLE_MONSTER_OFFICIAL_US", description: "GM Official US" },
+      channelType: {
+        name: "GENTLE_MONSTER_OFFICIAL_US",
+        description: "GM Official US",
+      },
       corporation: "US",
       orderId: "ORD-20250201-003",
       orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
       orderedAt: twoDaysAgo,
       ordererEmail: "alex.kim@example.com",
       ordererName: "Alex Kim",
@@ -81,7 +96,10 @@ const mockOrderList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+      channelType: {
+        name: "NUFLAAT_OFFICIAL",
+        description: "Nuflaat Official",
+      },
       corporation: "US",
       orderId: "ORD-20250201-004",
       orderType: { name: "NORMAL", description: "Normal" },
@@ -106,10 +124,14 @@ const mockOrderList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "GENTLE_MONSTER_OFFICIAL_CA", description: "GM Official CA" },
+      channelType: {
+        name: "GENTLE_MONSTER_OFFICIAL_CA",
+        description: "GM Official CA",
+      },
       corporation: "CA",
       orderId: "ORD-20250201-005",
       orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
       orderedAt: threeDaysAgo,
       ordererEmail: "mike.park@example.com",
       ordererName: "Mike Park",
@@ -128,10 +150,14 @@ const mockOrderList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "ATIISSU_OFFICIAL", description: "Atiissu Official" },
+      channelType: {
+        name: "ATIISSU_OFFICIAL",
+        description: "Atiissu Official",
+      },
       corporation: "US",
       orderId: "ORD-20250201-006",
       orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
       orderedAt: threeDaysAgo,
       ordererEmail: "emily.chen@example.com",
       ordererName: "Emily Chen",
@@ -150,10 +176,14 @@ const mockOrderList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+      channelType: {
+        name: "NUFLAAT_OFFICIAL",
+        description: "Nuflaat Official",
+      },
       corporation: "US",
       orderId: "ORD-20250201-007",
       orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Store Pickup",
       orderedAt: now,
       ordererEmail: "david.wang@example.com",
       ordererName: "David Wang",
@@ -172,10 +202,14 @@ const mockOrderList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "GENTLE_MONSTER_OFFICIAL_US", description: "GM Official US" },
+      channelType: {
+        name: "GENTLE_MONSTER_OFFICIAL_US",
+        description: "GM Official US",
+      },
       corporation: "US",
       orderId: "ORD-20250201-008",
       orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
       orderedAt: now,
       ordererEmail: "lisa.jung@example.com",
       ordererName: "Lisa Jung",
@@ -207,7 +241,10 @@ const mockReturnList = {
   data: [
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+      channelType: {
+        name: "NUFLAAT_OFFICIAL",
+        description: "Nuflaat Official",
+      },
       corporation: "US",
       claimId: "CLM-RTN-001",
       orderId: "ORD-20250201-001",
@@ -227,7 +264,10 @@ const mockReturnList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "ATIISSU_OFFICIAL", description: "Atiissu Official" },
+      channelType: {
+        name: "ATIISSU_OFFICIAL",
+        description: "Atiissu Official",
+      },
       corporation: "US",
       claimId: "CLM-RTN-002",
       orderId: "ORD-20250201-002",
@@ -246,7 +286,10 @@ const mockReturnList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "GENTLE_MONSTER_OFFICIAL_US", description: "GM Official US" },
+      channelType: {
+        name: "GENTLE_MONSTER_OFFICIAL_US",
+        description: "GM Official US",
+      },
       corporation: "US",
       claimId: "CLM-RTN-003",
       orderId: "ORD-20250201-004",
@@ -264,8 +307,11 @@ const mockReturnList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
-      corporation: "US",
+      channelType: {
+        name: "GENTLE_MONSTER_OFFICIAL_CA",
+        description: "GM Official CA",
+      },
+      corporation: "CA",
       claimId: "CLM-RTN-004",
       orderId: "ORD-20250201-008",
       returnId: "RTN-004",
@@ -283,7 +329,10 @@ const mockReturnList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "GENTLE_MONSTER_OFFICIAL_CA", description: "GM Official CA" },
+      channelType: {
+        name: "GENTLE_MONSTER_OFFICIAL_CA",
+        description: "GM Official CA",
+      },
       corporation: "CA",
       claimId: "CLM-RTN-005",
       orderId: "ORD-20250201-005",
@@ -302,7 +351,10 @@ const mockReturnList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "ATIISSU_OFFICIAL", description: "Atiissu Official" },
+      channelType: {
+        name: "ATIISSU_OFFICIAL",
+        description: "Atiissu Official",
+      },
       corporation: "US",
       claimId: "CLM-RTN-006",
       orderId: "ORD-20250201-006",
@@ -332,7 +384,10 @@ const mockExchangeList = {
   data: [
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+      channelType: {
+        name: "NUFLAAT_OFFICIAL",
+        description: "Nuflaat Official",
+      },
       corporation: "US",
       claimId: "CLM-EXC-001",
       orderId: "ORD-20250201-001",
@@ -352,7 +407,10 @@ const mockExchangeList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "GENTLE_MONSTER_OFFICIAL_US", description: "GM Official US" },
+      channelType: {
+        name: "GENTLE_MONSTER_OFFICIAL_US",
+        description: "GM Official US",
+      },
       corporation: "US",
       claimId: "CLM-EXC-002",
       orderId: "ORD-20250201-003",
@@ -371,7 +429,10 @@ const mockExchangeList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "ATIISSU_OFFICIAL", description: "Atiissu Official" },
+      channelType: {
+        name: "ATIISSU_OFFICIAL",
+        description: "Atiissu Official",
+      },
       corporation: "US",
       claimId: "CLM-EXC-003",
       orderId: "ORD-20250201-007",
@@ -389,7 +450,10 @@ const mockExchangeList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+      channelType: {
+        name: "NUFLAAT_OFFICIAL",
+        description: "Nuflaat Official",
+      },
       corporation: "US",
       claimId: "CLM-EXC-004",
       orderId: "ORD-20250201-004",
@@ -408,7 +472,10 @@ const mockExchangeList = {
     },
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      channelType: { name: "GENTLE_MONSTER_OFFICIAL_CA", description: "GM Official CA" },
+      channelType: {
+        name: "GENTLE_MONSTER_OFFICIAL_CA",
+        description: "GM Official CA",
+      },
       corporation: "CA",
       claimId: "CLM-EXC-005",
       orderId: "ORD-20250201-005",
@@ -443,8 +510,17 @@ const mockDashboardSummary = {
     ],
     awaitingTotalCount: 5,
     inProgressCounts: [
-      { count: 4, status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" } },
-      { count: 1, status: { name: "PARTLY_CONFIRMED", description: "Partly Confirmed" } },
+      {
+        count: 4,
+        status: {
+          name: "SHIPMENT_REQUESTED",
+          description: "Shipment Requested",
+        },
+      },
+      {
+        count: 1,
+        status: { name: "PARTLY_CONFIRMED", description: "Partly Confirmed" },
+      },
     ],
     inProgressTotalCount: 5,
     finalizedCounts: [
@@ -455,7 +531,10 @@ const mockDashboardSummary = {
   },
   shipmentSummaries: {
     awaitingCounts: [
-      { count: 3, status: { name: "PICKING_REQUESTED", description: "Picking Requested" } },
+      {
+        count: 3,
+        status: { name: "PICKING_REQUESTED", description: "Picking Requested" },
+      },
     ],
     awaitingTotalCount: 3,
     inProgressCounts: [
@@ -494,6 +573,34 @@ const mockDashboardSummary = {
       { count: 2, status: { name: "COMPLETED", description: "Completed" } },
     ],
     finalizedTotalCount: 2,
+  },
+  storePickupSummaries: {
+    inProgressCounts: [
+      { count: 3, status: { name: "READY", description: "Ready" } },
+      { count: 1, status: { name: "NOTIFIED", description: "Notified" } },
+    ],
+    inProgressTotalCount: 4,
+    finalizedCounts: [
+      { count: 5, status: { name: "PICKED_UP", description: "Picked Up" } },
+    ],
+    finalizedTotalCount: 5,
+  },
+  reshipmentSummaries: {
+    inProgressCounts: [
+      {
+        count: 2,
+        status: {
+          name: "SHIPMENT_REQUESTED",
+          description: "Shipment Requested",
+        },
+      },
+      { count: 1, status: { name: "SHIPPED", description: "Shipped" } },
+    ],
+    inProgressTotalCount: 3,
+    finalizedCounts: [
+      { count: 4, status: { name: "DELIVERED", description: "Delivered" } },
+    ],
+    finalizedTotalCount: 4,
   },
 };
 
@@ -571,7 +678,10 @@ const mockStockDashboard = {
           channelStocks: [
             {
               availableQuantity: 45,
-              channel: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+              channel: {
+                name: "NUFLAAT_OFFICIAL",
+                description: "Nuflaat Official",
+              },
               channelSendStatus: "ON",
               distributedQuantity: 50,
               preorderQuantity: 0,
@@ -581,7 +691,10 @@ const mockStockDashboard = {
             },
             {
               availableQuantity: 30,
-              channel: { name: "GENTLE_MONSTER_OFFICIAL_US", description: "GM Official US" },
+              channel: {
+                name: "GENTLE_MONSTER_OFFICIAL_US",
+                description: "GM Official US",
+              },
               channelSendStatus: "ON",
               distributedQuantity: 35,
               preorderQuantity: 0,
@@ -611,7 +724,10 @@ const mockStockDashboard = {
           channelStocks: [
             {
               availableQuantity: 20,
-              channel: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+              channel: {
+                name: "NUFLAAT_OFFICIAL",
+                description: "Nuflaat Official",
+              },
               channelSendStatus: "ON",
               distributedQuantity: 25,
               preorderQuantity: 0,
@@ -641,7 +757,10 @@ const mockStockDashboard = {
           channelStocks: [
             {
               availableQuantity: 80,
-              channel: { name: "ATIISSU_OFFICIAL", description: "Atiissu Official" },
+              channel: {
+                name: "ATIISSU_OFFICIAL",
+                description: "Atiissu Official",
+              },
               channelSendStatus: "ON",
               distributedQuantity: 90,
               preorderQuantity: 10,
@@ -671,7 +790,10 @@ const mockStockDashboard = {
           channelStocks: [
             {
               availableQuantity: 10,
-              channel: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+              channel: {
+                name: "NUFLAAT_OFFICIAL",
+                description: "Nuflaat Official",
+              },
               channelSendStatus: "ON",
               distributedQuantity: 15,
               preorderQuantity: 0,
@@ -712,7 +834,10 @@ const mockDistributionSetting = [
     id: 1,
   },
   {
-    channelType: { name: "GENTLE_MONSTER_OFFICIAL_US", description: "GM Official US" },
+    channelType: {
+      name: "GENTLE_MONSTER_OFFICIAL_US",
+      description: "GM Official US",
+    },
     distributionPriority: 2,
     distributionRate: 30,
     id: 2,
@@ -734,7 +859,10 @@ const mockUserPermissions = {
         {
           name: "US",
           channels: [
-            { name: "GENTLE_MONSTER_OFFICIAL_US", description: "GM Official US" },
+            {
+              name: "GENTLE_MONSTER_OFFICIAL_US",
+              description: "GM Official US",
+            },
             { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
             { name: "ATIISSU_OFFICIAL", description: "Atiissu Official" },
             { name: "ATIISSU_TEST", description: "Atiissu Test" },
@@ -743,7 +871,10 @@ const mockUserPermissions = {
         {
           name: "CA",
           channels: [
-            { name: "GENTLE_MONSTER_OFFICIAL_CA", description: "GM Official CA" },
+            {
+              name: "GENTLE_MONSTER_OFFICIAL_CA",
+              description: "GM Official CA",
+            },
           ],
         },
       ],
@@ -847,7 +978,10 @@ const mockStockHistory = {
       channelStocks: [
         {
           availableQuantity: 40 + i * 2,
-          channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
+          channelType: {
+            name: "NUFLAAT_OFFICIAL",
+            description: "Nuflaat Official",
+          },
           distributedQuantity: 50 + i,
           preorderQuantity: 0,
           shippedQuantity: 10 - i,
@@ -931,7 +1065,14 @@ const mockOrderDetail = {
       subTotal: 320,
       components: [],
       products: [
-        { sku: "GM-KUK-001-BLK", productCode: "SAP-GM-001", productName: "Jennie - Kuku 01 Black", category: "Eyewear", price: 320, quantity: 1 },
+        {
+          sku: "GM-KUK-001-BLK",
+          productCode: "SAP-GM-001",
+          productName: "Jennie - Kuku 01 Black",
+          category: "Eyewear",
+          price: 320,
+          quantity: 1,
+        },
       ],
     },
     {
@@ -954,12 +1095,28 @@ const mockOrderDetail = {
       subTotal: 90,
       components: [],
       products: [
-        { sku: "AT-LPM-001-RSE", productCode: "SAP-AT-001", productName: "Lip Mousse - Rose", category: "Beauty", price: 45, quantity: 2 },
+        {
+          sku: "AT-LPM-001-RSE",
+          productCode: "SAP-AT-001",
+          productName: "Lip Mousse - Rose",
+          category: "Beauty",
+          price: 45,
+          quantity: 2,
+        },
       ],
     },
   ],
   payments: [
-    { currency: "USD", method: "CREDIT_CARD", paidAmount: 410, paidAt: yesterday, shippingFee: 0, taxAmount: 0, dutyAmount: 0, transactionNo: "TXN-20250201-001" },
+    {
+      currency: "USD",
+      method: "CREDIT_CARD",
+      paidAmount: 410,
+      paidAt: yesterday,
+      shippingFee: 0,
+      taxAmount: 0,
+      dutyAmount: 0,
+      transactionNo: "TXN-20250201-001",
+    },
   ],
   shipments: [
     {
@@ -973,23 +1130,79 @@ const mockOrderDetail = {
       trackingUrl: "",
       cancelReason: "",
       recipient: {
-        fullName: "John Doe", firstName: "John", lastName: "Doe", phone: "555-0101", phoneCountryNo: "+1",
-        address: { line1: "123 Main Street", line2: "Apt 4B", city: "New York", state: "NY", postalCode: "10001", countryType: "US" },
+        fullName: "John Doe",
+        firstName: "John",
+        lastName: "Doe",
+        phone: "555-0101",
+        phoneCountryNo: "+1",
+        address: {
+          line1: "123 Main Street",
+          line2: "Apt 4B",
+          city: "New York",
+          state: "NY",
+          postalCode: "10001",
+          countryType: "US",
+        },
       },
-      delivery: { carrierCode: "UPS", trackingNo: "1Z999AA10123456784", deliveryType: "STANDARD" },
-      deliveries: [{ trackingNo: "1Z999AA10123456784", trackingUrl: "https://www.ups.com/track?tracknum=1Z999AA10123456784" }],
+      delivery: {
+        carrierCode: "UPS",
+        trackingNo: "1Z999AA10123456784",
+        deliveryType: "STANDARD",
+      },
+      deliveries: [
+        {
+          trackingNo: "1Z999AA10123456784",
+          trackingUrl: "https://www.ups.com/track?tracknum=1Z999AA10123456784",
+        },
+      ],
       items: [
         {
-          shipmentItemId: "SI-001", orderItemId: "OI-001", originItemId: "ORIG-001", sku: "GM-KUK-001-BLK",
-          productCode: "SAP-GM-001", productName: "Jennie - Kuku 01", thumbnailUrl: "", sequence: 1,
-          shipmentQuantity: 1, shippedQuantity: 1, canceledQuantity: 0, components: [],
-          products: [{ sku: "GM-KUK-001-BLK", productCode: "SAP-GM-001", productName: "Jennie - Kuku 01 Black", category: "Eyewear", price: 320, quantity: 1 }],
+          shipmentItemId: "SI-001",
+          orderItemId: "OI-001",
+          originItemId: "ORIG-001",
+          sku: "GM-KUK-001-BLK",
+          productCode: "SAP-GM-001",
+          productName: "Jennie - Kuku 01",
+          thumbnailUrl: "",
+          sequence: 1,
+          shipmentQuantity: 1,
+          shippedQuantity: 1,
+          canceledQuantity: 0,
+          components: [],
+          products: [
+            {
+              sku: "GM-KUK-001-BLK",
+              productCode: "SAP-GM-001",
+              productName: "Jennie - Kuku 01 Black",
+              category: "Eyewear",
+              price: 320,
+              quantity: 1,
+            },
+          ],
         },
         {
-          shipmentItemId: "SI-002", orderItemId: "OI-002", originItemId: "ORIG-002", sku: "AT-LPM-001-RSE",
-          productCode: "SAP-AT-001", productName: "Lip Mousse - Rose", thumbnailUrl: "", sequence: 2,
-          shipmentQuantity: 2, shippedQuantity: 2, canceledQuantity: 0, components: [],
-          products: [{ sku: "AT-LPM-001-RSE", productCode: "SAP-AT-001", productName: "Lip Mousse - Rose", category: "Beauty", price: 45, quantity: 2 }],
+          shipmentItemId: "SI-002",
+          orderItemId: "OI-002",
+          originItemId: "ORIG-002",
+          sku: "AT-LPM-001-RSE",
+          productCode: "SAP-AT-001",
+          productName: "Lip Mousse - Rose",
+          thumbnailUrl: "",
+          sequence: 2,
+          shipmentQuantity: 2,
+          shippedQuantity: 2,
+          canceledQuantity: 0,
+          components: [],
+          products: [
+            {
+              sku: "AT-LPM-001-RSE",
+              productCode: "SAP-AT-001",
+              productName: "Lip Mousse - Rose",
+              category: "Beauty",
+              price: 45,
+              quantity: 2,
+            },
+          ],
         },
       ],
     },
@@ -1000,9 +1213,10 @@ const mockOrderDetail = {
 // --- Return Detail Mock (ReturnDetailResponse[]) ---
 const mockReturnDetail = [
   {
-    returnId: "RTN-20250201-001",
+    returnId: "RTN-001",
     returnNo: "RTN-NO-20250201-001",
     claimId: "CLM-RTN-001",
+    orderId: "ORD-20250201-001",
     originOrderNo: "NF-2025020101",
     status: { name: "PENDING", description: "Pending" },
     claimFault: "CUSTOMER",
@@ -1068,15 +1282,16 @@ const mockReturnDetail = [
     ],
   },
   {
-    returnId: "RTN-20250201-002",
+    returnId: "RTN-002",
     returnNo: "RTN-NO-20250201-002",
     claimId: "CLM-RTN-002",
-    originOrderNo: "NF-2025020101",
-    status: { name: "PICKUP_ONGOING", description: "Pickup Ongoing" },
+    orderId: "ORD-20250201-002",
+    originOrderNo: "AT-2025020102",
+    status: { name: "PICKUP_REQUESTED", description: "Pickup Requested" },
     claimFault: "OPERATION",
-    claimReason: "Received wrong item",
+    claimReason: "Product defect",
     claimRequesterType: "CS_OPERATOR",
-    claimCreatedBy: "cs.operator@systemiic.com",
+    claimCreatedBy: "jane.smith@example.com",
     createdAt: twoDaysAgo,
     updatedAt: yesterday,
     recipient: {
@@ -1136,15 +1351,16 @@ const mockReturnDetail = [
     ],
   },
   {
-    returnId: "RTN-20250201-003",
+    returnId: "RTN-003",
     returnNo: "RTN-NO-20250201-003",
     claimId: "CLM-RTN-003",
-    originOrderNo: "NF-2025020101",
-    status: { name: "RECEIVED", description: "Received" },
+    orderId: "ORD-20250201-004",
+    originOrderNo: "NF-2025020104",
+    status: { name: "PICKUP_ONGOING", description: "Pickup Ongoing" },
     claimFault: "CUSTOMER",
     claimReason: "Changed my mind",
     claimRequesterType: "CUSTOMER",
-    claimCreatedBy: "john.doe@example.com",
+    claimCreatedBy: "sarah.lee@example.com",
     createdAt: twoDaysAgo,
     updatedAt: yesterday,
     recipient: {
@@ -1233,14 +1449,85 @@ const mockReturnDetail = [
       },
     ],
   },
+  {
+    returnId: "RTN-004",
+    returnNo: "RTN-NO-20250201-004",
+    claimId: "CLM-RTN-004",
+    orderId: "ORD-20250201-008",
+    originOrderNo: "GM-2025020108",
+    status: { name: "RECEIVED", description: "Received" },
+    claimFault: "OPERATION",
+    claimReason: "Received wrong item",
+    claimRequesterType: "CUSTOMER",
+    claimCreatedBy: "lisa.jung@example.com",
+    createdAt: threeDaysAgo,
+    updatedAt: yesterday,
+    recipient: {
+      fullName: "Lisa Jung",
+      firstName: "Lisa",
+      lastName: "Jung",
+      phone: "555-0108",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "456 Oak Avenue",
+        line2: "",
+        city: "Toronto",
+        state: "ON",
+        postalCode: "M5V 2H1",
+        countryType: "CA",
+      },
+    },
+    delivery: {
+      carrierCode: "CANADA_POST",
+      trackingNo: "1Z999AA10123456792",
+      deliveryType: "RETURN",
+    },
+    trackingUrl:
+      "https://www.canadapost-postescanada.ca/track-reperer/en#/details/1Z999AA10123456792",
+    items: [
+      {
+        productCode: "SAP-GM-001",
+        productName: "Jennie - Kuku 01",
+        sku: "GM-KUK-001-BLK",
+        quantity: 1,
+        thumbnailUrl: "",
+        upcCode: "8809123456001",
+        gradeSummaries: {},
+      },
+    ],
+    claimItems: [
+      {
+        id: "CI-RTN-004",
+        orderItemId: "OI-001",
+        sku: "GM-KUK-001-BLK",
+        productCode: "SAP-GM-001",
+        productName: "Jennie - Kuku 01",
+        thumbnailUrl: "",
+        quantity: 1,
+        cancelQuantity: 0,
+        components: [],
+        products: [
+          {
+            sku: "GM-KUK-001-BLK",
+            productCode: "SAP-GM-001",
+            productName: "Jennie - Kuku 01 Black",
+            category: "Eyewear",
+            price: 320,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 // --- Exchange Detail Mock (ExchangeDetailResponse[]) ---
 const mockExchangeDetail = [
   {
-    exchangeId: "EXC-20250201-001",
+    exchangeId: "EXC-001",
     exchangeNo: "EXC-NO-20250201-001",
     claimId: "CLM-EXC-001",
+    orderId: "ORD-20250201-001",
     originOrderNo: "NF-2025020101",
     wmsNo: "WMS-EXC-001",
     status: { name: "PENDING", description: "Pending" },
@@ -1285,8 +1572,7 @@ const mockExchangeDetail = [
       trackingNo: "1Z999AA10123456795",
       deliveryType: "RETURN",
     },
-    pickupTrackingUrl:
-      "https://www.ups.com/track?tracknum=1Z999AA10123456795",
+    pickupTrackingUrl: "https://www.ups.com/track?tracknum=1Z999AA10123456795",
     items: [
       {
         productCode: "SAP-GM-001",
@@ -1344,10 +1630,11 @@ const mockExchangeDetail = [
     ],
   },
   {
-    exchangeId: "EXC-20250201-002",
+    exchangeId: "EXC-002",
     exchangeNo: "EXC-NO-20250201-002",
     claimId: "CLM-EXC-002",
-    originOrderNo: "NF-2025020101",
+    orderId: "ORD-20250201-003",
+    originOrderNo: "GM-2025020103",
     wmsNo: "WMS-EXC-002",
     status: { name: "PICKUP_REQUESTED", description: "Pickup Requested" },
     claimFault: "OPERATION",
@@ -1428,14 +1715,428 @@ const mockExchangeDetail = [
     ],
     shipments: [],
   },
+  {
+    exchangeId: "EXC-003",
+    exchangeNo: "EXC-NO-20250201-003",
+    claimId: "CLM-EXC-003",
+    orderId: "ORD-20250201-007",
+    originOrderNo: "NF-2025020107",
+    wmsNo: "WMS-EXC-003",
+    status: { name: "RECEIVED", description: "Received" },
+    claimFault: "CUSTOMER",
+    claimReason: "Wrong size ordered",
+    claimRequesterType: "CUSTOMER",
+    claimCreatedBy: "david.wang@example.com",
+    createdAt: twoDaysAgo,
+    updatedAt: yesterday,
+    pickupRecipient: {
+      fullName: "David Wang",
+      firstName: "David",
+      lastName: "Wang",
+      phone: "555-0107",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "789 Pine Road",
+        line2: "",
+        city: "Los Angeles",
+        state: "CA",
+        postalCode: "90001",
+        countryType: "US",
+      },
+    },
+    shipmentRecipient: {
+      fullName: "David Wang",
+      firstName: "David",
+      lastName: "Wang",
+      phone: "555-0107",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "789 Pine Road",
+        line2: "",
+        city: "Los Angeles",
+        state: "CA",
+        postalCode: "90001",
+        countryType: "US",
+      },
+    },
+    pickupDelivery: {
+      carrierCode: "UPS",
+      trackingNo: "1Z999AA10123456800",
+      deliveryType: "RETURN",
+    },
+    pickupTrackingUrl: "https://www.ups.com/track?tracknum=1Z999AA10123456800",
+    items: [
+      {
+        productCode: "SAP-GM-001",
+        productName: "Jennie - Kuku 01",
+        sku: "GM-KUK-001-BLK",
+        quantity: 1,
+        thumbnailUrl: "",
+        upcCode: "8809123456001",
+        gradeSummaries: {},
+      },
+    ],
+    claimItems: [
+      {
+        id: "CI-EXC-003",
+        orderItemId: "OI-001",
+        sku: "GM-KUK-001-BLK",
+        productCode: "SAP-GM-001",
+        productName: "Jennie - Kuku 01",
+        thumbnailUrl: "",
+        quantity: 1,
+        cancelQuantity: 0,
+        components: [],
+        products: [
+          {
+            sku: "GM-KUK-001-BLK",
+            productCode: "SAP-GM-001",
+            productName: "Jennie - Kuku 01 Black",
+            category: "Eyewear",
+            price: 320,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
+    shipments: [],
+  },
+  {
+    exchangeId: "EXC-004",
+    exchangeNo: "EXC-NO-20250201-004",
+    claimId: "CLM-EXC-004",
+    orderId: "ORD-20250201-004",
+    originOrderNo: "NF-2025020104",
+    wmsNo: "WMS-EXC-004",
+    status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
+    claimFault: "OPERATION",
+    claimReason: "Color mismatch",
+    claimRequesterType: "CS_OPERATOR",
+    claimCreatedBy: "cs.operator@systemiic.com",
+    createdAt: threeDaysAgo,
+    updatedAt: yesterday,
+    pickupRecipient: {
+      fullName: "Sarah Lee",
+      firstName: "Sarah",
+      lastName: "Lee",
+      phone: "555-0104",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "321 Elm Street",
+        line2: "Suite 100",
+        city: "San Francisco",
+        state: "CA",
+        postalCode: "94102",
+        countryType: "US",
+      },
+    },
+    shipmentRecipient: {
+      fullName: "Sarah Lee",
+      firstName: "Sarah",
+      lastName: "Lee",
+      phone: "555-0104",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "321 Elm Street",
+        line2: "Suite 100",
+        city: "San Francisco",
+        state: "CA",
+        postalCode: "94102",
+        countryType: "US",
+      },
+    },
+    pickupDelivery: {
+      carrierCode: "FEDEX",
+      trackingNo: "794644790160",
+      deliveryType: "RETURN",
+    },
+    pickupTrackingUrl: "https://www.fedex.com/fedextrack/?trknbr=794644790160",
+    items: [
+      {
+        productCode: "SAP-AT-001",
+        productName: "Lip Mousse - Rose",
+        sku: "AT-LPM-001-RSE",
+        quantity: 2,
+        thumbnailUrl: "",
+        upcCode: "8809123456003",
+        gradeSummaries: {},
+      },
+    ],
+    claimItems: [
+      {
+        id: "CI-EXC-004",
+        orderItemId: "OI-002",
+        sku: "AT-LPM-001-RSE",
+        productCode: "SAP-AT-001",
+        productName: "Lip Mousse - Rose",
+        thumbnailUrl: "",
+        quantity: 2,
+        cancelQuantity: 0,
+        components: [],
+        products: [
+          {
+            sku: "AT-LPM-001-RSE",
+            productCode: "SAP-AT-001",
+            productName: "Lip Mousse - Rose",
+            category: "Beauty",
+            price: 45,
+            quantity: 2,
+          },
+        ],
+      },
+    ],
+    shipments: [
+      {
+        id: "ESHIP-002",
+        shipmentNo: "ESHIP-NO-002",
+        wmsNo: "WMS-ESHIP-002",
+        status: { name: "PICKING_REQUESTED", description: "Picking Requested" },
+        event: "EXCHANGE_SHIP",
+        shippedAt: "",
+        updatedAt: yesterday,
+        trackingUrl: "",
+        cancelReason: "",
+        recipient: {
+          fullName: "Sarah Lee",
+          firstName: "Sarah",
+          lastName: "Lee",
+          phone: "555-0104",
+          phoneCountryNo: "+1",
+          address: {
+            line1: "321 Elm Street",
+            line2: "Suite 100",
+            city: "San Francisco",
+            state: "CA",
+            postalCode: "94102",
+            countryType: "US",
+          },
+        },
+        delivery: {
+          carrierCode: "FEDEX",
+          trackingNo: "",
+          deliveryType: "STANDARD",
+        },
+        deliveries: [],
+        items: [
+          {
+            shipmentItemId: "ESI-004",
+            orderItemId: "OI-002",
+            originItemId: "ORIG-002",
+            sku: "AT-LPM-001-RSE",
+            productCode: "SAP-AT-001",
+            productName: "Lip Mousse - Rose",
+            thumbnailUrl: "",
+            sequence: 1,
+            shipmentQuantity: 2,
+            shippedQuantity: 0,
+            canceledQuantity: 0,
+            components: [],
+            products: [
+              {
+                sku: "AT-LPM-001-RSE",
+                productCode: "SAP-AT-001",
+                productName: "Lip Mousse - Rose",
+                category: "Beauty",
+                price: 45,
+                quantity: 2,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    exchangeId: "EXC-005",
+    exchangeNo: "EXC-NO-20250201-005",
+    claimId: "CLM-EXC-005",
+    orderId: "ORD-20250201-005",
+    originOrderNo: "GM-2025020105",
+    wmsNo: "WMS-EXC-005",
+    status: { name: "EXCHANGED", description: "Exchanged" },
+    claimFault: "CUSTOMER",
+    claimReason: "Frame does not fit",
+    claimRequesterType: "CUSTOMER",
+    claimCreatedBy: "mike.park@example.com",
+    createdAt: threeDaysAgo,
+    updatedAt: now,
+    pickupRecipient: {
+      fullName: "Mike Park",
+      firstName: "Mike",
+      lastName: "Park",
+      phone: "555-0105",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "100 Queen Street",
+        line2: "",
+        city: "Toronto",
+        state: "ON",
+        postalCode: "M5V 3L9",
+        countryType: "CA",
+      },
+    },
+    shipmentRecipient: {
+      fullName: "Mike Park",
+      firstName: "Mike",
+      lastName: "Park",
+      phone: "555-0105",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "100 Queen Street",
+        line2: "",
+        city: "Toronto",
+        state: "ON",
+        postalCode: "M5V 3L9",
+        countryType: "CA",
+      },
+    },
+    pickupDelivery: {
+      carrierCode: "CANADA_POST",
+      trackingNo: "794644790170",
+      deliveryType: "RETURN",
+    },
+    pickupTrackingUrl:
+      "https://www.canadapost-postescanada.ca/track-reperer/en#/details/794644790170",
+    items: [
+      {
+        productCode: "SAP-GM-001",
+        productName: "Jennie - Kuku 01",
+        sku: "GM-KUK-001-BLK",
+        quantity: 1,
+        thumbnailUrl: "",
+        upcCode: "8809123456001",
+        gradeSummaries: { A: 1 },
+      },
+    ],
+    claimItems: [
+      {
+        id: "CI-EXC-005",
+        orderItemId: "OI-001",
+        sku: "GM-KUK-001-BLK",
+        productCode: "SAP-GM-001",
+        productName: "Jennie - Kuku 01",
+        thumbnailUrl: "",
+        quantity: 1,
+        cancelQuantity: 0,
+        components: [],
+        products: [
+          {
+            sku: "GM-KUK-001-BLK",
+            productCode: "SAP-GM-001",
+            productName: "Jennie - Kuku 01 Black",
+            category: "Eyewear",
+            price: 320,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
+    shipments: [
+      {
+        id: "ESHIP-003",
+        shipmentNo: "ESHIP-NO-003",
+        wmsNo: "WMS-ESHIP-003",
+        status: { name: "DELIVERED", description: "Delivered" },
+        event: "EXCHANGE_SHIP",
+        shippedAt: yesterday,
+        updatedAt: now,
+        trackingUrl:
+          "https://www.canadapost-postescanada.ca/track-reperer/en#/details/1Z999AA10123456810",
+        cancelReason: "",
+        recipient: {
+          fullName: "Mike Park",
+          firstName: "Mike",
+          lastName: "Park",
+          phone: "555-0105",
+          phoneCountryNo: "+1",
+          address: {
+            line1: "100 Queen Street",
+            line2: "",
+            city: "Toronto",
+            state: "ON",
+            postalCode: "M5V 3L9",
+            countryType: "CA",
+          },
+        },
+        delivery: {
+          carrierCode: "CANADA_POST",
+          trackingNo: "1Z999AA10123456810",
+          deliveryType: "STANDARD",
+        },
+        deliveries: [
+          {
+            trackingNo: "1Z999AA10123456810",
+            trackingUrl:
+              "https://www.canadapost-postescanada.ca/track-reperer/en#/details/1Z999AA10123456810",
+          },
+        ],
+        items: [
+          {
+            shipmentItemId: "ESI-005",
+            orderItemId: "OI-001",
+            originItemId: "ORIG-001",
+            sku: "GM-KUK-001-BLK",
+            productCode: "SAP-GM-001",
+            productName: "Jennie - Kuku 01",
+            thumbnailUrl: "",
+            sequence: 1,
+            shipmentQuantity: 1,
+            shippedQuantity: 1,
+            canceledQuantity: 0,
+            components: [],
+            products: [
+              {
+                sku: "GM-KUK-001-BLK",
+                productCode: "SAP-GM-001",
+                productName: "Jennie - Kuku 01 Black",
+                category: "Eyewear",
+                price: 320,
+                quantity: 1,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 // --- Order History Mock (OrderHistoryResponse) ---
 const mockOrderHistory = {
   orderHistories: [
-    { orderId: "ORD-20250201-001", originOrderNo: "NF-2025020101", sequence: 1, status: { name: "PENDING", description: "Pending" }, updatedAt: threeDaysAgo, sapResults: [] },
-    { orderId: "ORD-20250201-001", originOrderNo: "NF-2025020101", sequence: 2, status: { name: "COLLECTED", description: "Collected" }, shipmentId: "SHP-001", shipmentNo: "SHIP-20250201-001", shipmentStatus: { name: "PICKING_REQUESTED", description: "Picking Requested" }, updatedAt: twoDaysAgo, sapResults: [] },
-    { orderId: "ORD-20250201-001", originOrderNo: "NF-2025020101", sequence: 3, status: { name: "COMPLETED", description: "Completed" }, shipmentId: "SHP-001", shipmentNo: "SHIP-20250201-001", shipmentStatus: { name: "SHIPPED", description: "Shipped" }, updatedAt: yesterday, sapResults: [{ result: "SUCCESS", resultAt: yesterday }] },
+    {
+      orderId: "ORD-20250201-001",
+      originOrderNo: "NF-2025020101",
+      sequence: 1,
+      status: { name: "PENDING", description: "Pending" },
+      updatedAt: threeDaysAgo,
+      sapResults: [],
+    },
+    {
+      orderId: "ORD-20250201-001",
+      originOrderNo: "NF-2025020101",
+      sequence: 2,
+      status: { name: "COLLECTED", description: "Collected" },
+      shipmentId: "SHP-001",
+      shipmentNo: "SHIP-20250201-001",
+      shipmentStatus: {
+        name: "PICKING_REQUESTED",
+        description: "Picking Requested",
+      },
+      updatedAt: twoDaysAgo,
+      sapResults: [],
+    },
+    {
+      orderId: "ORD-20250201-001",
+      originOrderNo: "NF-2025020101",
+      sequence: 3,
+      status: { name: "COMPLETED", description: "Completed" },
+      shipmentId: "SHP-001",
+      shipmentNo: "SHIP-20250201-001",
+      shipmentStatus: { name: "SHIPPED", description: "Shipped" },
+      updatedAt: yesterday,
+      sapResults: [{ result: "SUCCESS", resultAt: yesterday }],
+    },
   ],
   returnHistories: [],
   exchangeHistories: [],
@@ -1456,7 +2157,36 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
       return mockProductList;
     }
     if (path.includes("/estimate-refund-fee")) {
-      return { estimateRefundPayment: { totalAmount: 0, subtotal: 0, shippingFee: 0, taxAmount: 0, dutyAmount: 0 }, netPayment: { totalAmount: 0, subtotal: 0, shippingFee: 0, taxAmount: 0, dutyAmount: 0 }, orderPayment: { totalAmount: 410, subtotal: 410, shippingFee: 0, taxAmount: 0, dutyAmount: 0 }, refundPayment: { totalAmount: 0, subtotal: 0, shippingFee: 0, taxAmount: 0, dutyAmount: 0 } };
+      return {
+        estimateRefundPayment: {
+          totalAmount: 0,
+          subtotal: 0,
+          shippingFee: 0,
+          taxAmount: 0,
+          dutyAmount: 0,
+        },
+        netPayment: {
+          totalAmount: 0,
+          subtotal: 0,
+          shippingFee: 0,
+          taxAmount: 0,
+          dutyAmount: 0,
+        },
+        orderPayment: {
+          totalAmount: 410,
+          subtotal: 410,
+          shippingFee: 0,
+          taxAmount: 0,
+          dutyAmount: 0,
+        },
+        refundPayment: {
+          totalAmount: 0,
+          subtotal: 0,
+          shippingFee: 0,
+          taxAmount: 0,
+          dutyAmount: 0,
+        },
+      };
     }
     return successResponse;
   }
@@ -1472,33 +2202,70 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
   }
 
   // Return detail: /returns/orders/{orderId} or /returns/{returnId}
-  if (path.match(/\/returns\/orders\/[^/]+$/) || path.match(/\/returns\/[^/]+$/)) {
-    return mockReturnDetail;
+  if (path.match(/\/returns\/orders\/[^/]+$/)) {
+    const orderId = path.split("/").pop()?.toUpperCase();
+    const filtered = mockReturnDetail.filter(
+      (r: { orderId?: string }) => r.orderId?.toUpperCase() === orderId,
+    );
+    return filtered.length > 0 ? filtered : mockReturnDetail;
+  }
+  if (path.match(/\/returns\/[^/]+$/)) {
+    const returnId = path.split("/").pop();
+    const filtered = mockReturnDetail.filter(
+      (r: { returnId: string }) => r.returnId === returnId,
+    );
+    return filtered.length > 0 ? filtered : mockReturnDetail;
   }
 
   // Exchange detail: /exchanges/orders/{orderId} or /exchanges/{exchangeId}
-  if (path.match(/\/exchanges\/orders\/[^/]+$/) || path.match(/\/exchanges\/[^/]+$/)) {
-    return mockExchangeDetail;
+  if (path.match(/\/exchanges\/orders\/[^/]+$/)) {
+    const orderId = path.split("/").pop()?.toUpperCase();
+    const filtered = mockExchangeDetail.filter(
+      (e: { orderId?: string }) => e.orderId?.toUpperCase() === orderId,
+    );
+    return filtered.length > 0 ? filtered : mockExchangeDetail;
+  }
+  if (path.match(/\/exchanges\/[^/]+$/)) {
+    const exchangeId = path.split("/").pop()?.toUpperCase();
+    const found = mockExchangeDetail.find(
+      (e: { exchangeId: string }) => e.exchangeId?.toUpperCase() === exchangeId,
+    );
+    return found ? [found] : mockExchangeDetail;
   }
 
   // Order detail: /orders/{orderId} (단일 주문 상세)
   if (path.match(/\/orders\/[^/]+$/)) {
     const orderId = path.split("/").pop();
-    const listRow = (mockOrderList.content ?? mockOrderList.data)?.find((r: { orderId: string }) => r.orderId.toLowerCase() === orderId?.toLowerCase());
+    const listRow = (mockOrderList.content ?? mockOrderList.data)?.find(
+      (r: { orderId: string }) =>
+        r.orderId.toLowerCase() === orderId?.toLowerCase(),
+    );
     if (listRow) {
+      const lr = listRow as Record<string, unknown>;
       return {
         ...mockOrderDetail,
         orderId: listRow.orderId,
         originOrderNo: listRow.originOrderNo,
+        purchaseNo: lr.purchaseNo ?? mockOrderDetail.purchaseNo,
         status: listRow.status,
         orderType: listRow.orderType,
         brand: listRow.brand,
         channelType: listRow.channelType,
         corporation: listRow.corporation,
         orderedAt: listRow.orderedAt,
-        orderer: { ...mockOrderDetail.orderer, fullName: listRow.ordererName, email: listRow.ordererEmail, phone: listRow.ordererPhone.replace(/^\+\d+-/, "") },
-        recipient: { ...mockOrderDetail.recipient, fullName: listRow.recipientName, phone: listRow.recipientPhone.replace(/^\+\d+-/, "") },
-        shipments: listRow.shipments,
+        receiveMethod: lr.receiveMethod ?? "Delivery",
+        tags: lr.tags ?? "",
+        orderer: {
+          ...mockOrderDetail.orderer,
+          fullName: listRow.ordererName,
+          email: listRow.ordererEmail,
+          phone: listRow.ordererPhone.replace(/^\+\d+-/, ""),
+        },
+        recipient: {
+          ...mockOrderDetail.recipient,
+          fullName: listRow.recipientName,
+          phone: listRow.recipientPhone.replace(/^\+\d+-/, ""),
+        },
       };
     }
     return mockOrderDetail;
@@ -1530,7 +2297,8 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
   // Stock
   if (path.includes("/stock") || path.includes("/stocks")) {
     if (path.includes("/history")) return mockStockHistory;
-    if (path.includes("/distribution") || path.includes("/setting")) return mockDistributionSetting;
+    if (path.includes("/distribution") || path.includes("/setting"))
+      return mockDistributionSetting;
     return mockStockDashboard;
   }
 
@@ -1543,7 +2311,12 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
   }
 
   // User / Auth permissions
-  if (path.includes("/users") || path.includes("/user") || path.includes("/permissions") || path.includes("/auth")) {
+  if (
+    path.includes("/users") ||
+    path.includes("/user") ||
+    path.includes("/permissions") ||
+    path.includes("/auth")
+  ) {
     return mockUserPermissions;
   }
 

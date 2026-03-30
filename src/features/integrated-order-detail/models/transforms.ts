@@ -50,6 +50,10 @@ export const transformOrderDetailData = ({
       phoneCountryNo: data?.orderer?.phoneCountryNo || "",
       ordererPhone: data?.orderer?.phone,
       ordererEmail: data?.orderer?.email ?? "-",
+      receiveMethod:
+        ((data as Record<string, unknown>)?.receiveMethod as string) ??
+        "Delivery",
+      orderType: data?.orderType?.description ?? "-",
     },
     recipientInfo: {
       orderStatus: snakeToTitleCase(data?.status.name ?? "-"),
@@ -626,8 +630,6 @@ export const transformRowsCancelOrderShipment = (
       });
     }
 
-    console.log(data);
-
     return rowsToAdd;
   });
 };
@@ -676,75 +678,6 @@ export const transformRowsCancelShipment = (
       isActive: availableQuantity > 0,
       currency,
     };
-  });
-};
-
-/**
- * [claim order] rows 데이터 변환
- * @param data OrderDetailResponse
- * @returns rows: GridRowModel[]
- */
-export const transformRowsClaimOrder = (
-  data: OrderDetailResponse | undefined,
-) => {
-  if (!data) return [];
-
-  let globalIndex = 1; // 부분 배송 대응을 위해 sequence 대신 index 사용
-
-  return data.items.flatMap((item, itemIndex): GridRowModel[] => {
-    const itemId = item.orderItemId;
-
-    // 환불 가능한 실제 수량 계산
-    const actualAvailableQuantity = Math.max(
-      (Number(item.shipmentQuantity) || 0) +
-        (Number(item.reshippedQuantity) || 0) -
-        (Number(item.returnedQuantity) || 0),
-    );
-
-    const isActive = actualAvailableQuantity > 0;
-    const rowsToAdd: GridRowModel[] = [];
-
-    // 활성 행 (취소 가능한 수량)
-    if (actualAvailableQuantity > 0 && item.shippedQuantity > 0) {
-      rowsToAdd.push({
-        no: globalIndex++,
-        id: `${itemId}-active-${itemIndex}`,
-        orderItemId: item.orderItemId,
-        originItemId: item.originItemId,
-        skuCode: item.sku,
-        products: item.products,
-        components: item.components,
-        sapCode: item.productCode,
-        productName: item.productName,
-        cellQuantity: actualAvailableQuantity,
-        cancelPrice: item.price,
-        initialAvailableQuantity: actualAvailableQuantity,
-        isActive,
-      });
-    }
-
-    // 비활성 행 (이미 반품된 수량이거나 배송된 수량이 없는 경우)
-    if (item.returnedQuantity > 0 || item.shippedQuantity === 0) {
-      rowsToAdd.push({
-        no: "-",
-        id: `${itemId}-inActive-${itemIndex}`,
-        orderItemId: item.orderItemId,
-        originItemId: item.originItemId,
-        skuCode: item.sku,
-        products: item.products,
-        components: item.components,
-        sapCode: item.productCode,
-        productName: item.productName,
-        cellQuantity:
-          item.returnedQuantity > item.orderedQuantity
-            ? item.orderedQuantity
-            : item.returnedQuantity,
-        cancelPrice: item.price,
-        isActive: false,
-      });
-    }
-
-    return rowsToAdd;
   });
 };
 
@@ -887,12 +820,14 @@ interface TransformClaimCreateRequestProps {
   reason: string;
   fault: string;
   recipientInfo: {
-    pickupRecipient: TAddressForm;
-    shipmentRecipient: TAddressForm;
+    pickupRecipient?: TAddressForm;
+    shipmentRecipient?: TAddressForm;
   };
   selectedRows: GridRowModelPro[];
   carrierCode?: string;
   trackingNo?: string;
+  pickupOption?: boolean;
+  modalType?: "DEFAULT" | "LOST";
 }
 
 /**
@@ -908,10 +843,12 @@ export const transformClaimCreateRequest = ({
   selectedRows,
   carrierCode,
   trackingNo,
+  pickupOption,
+  modalType = "DEFAULT",
 }: TransformClaimCreateRequestProps) => {
   const items = selectedRows.map((row) => ({
     orderItemId: row.orderItemId,
-    quantity: row.cellQuantity,
+    quantity: modalType === "LOST" ? row.refundQty : row.cellQuantity,
   }));
 
   if (claimType === "RETURN") {
@@ -919,23 +856,26 @@ export const transformClaimCreateRequest = ({
       type: "RETURN" as ClaimCreateRequestTypeEnum,
       reason,
       fault,
-      pickupRecipient: {
-        fullName:
-          recipientInfo.pickupRecipient.recipientLastName +
-          recipientInfo.pickupRecipient.recipientFirstName,
-        firstName: recipientInfo.pickupRecipient.recipientFirstName,
-        lastName: recipientInfo.pickupRecipient.recipientLastName,
-        phone: recipientInfo.pickupRecipient.recipientPhone,
-        phoneCountryNo: recipientInfo.pickupRecipient.phoneCountryNo,
-        address: {
-          countryType: recipientInfo.pickupRecipient.countryRegion,
-          postalCode: recipientInfo.pickupRecipient.postcode,
-          state: recipientInfo.pickupRecipient.stateProvince,
-          city: recipientInfo.pickupRecipient.city,
-          line1: `${recipientInfo.pickupRecipient.stateProvince} ${recipientInfo.pickupRecipient.city} ${recipientInfo.pickupRecipient.address1}`,
-          line2: recipientInfo.pickupRecipient.address2,
-        },
-      },
+      ...(pickupOption &&
+        recipientInfo.pickupRecipient && {
+          pickupRecipient: {
+            fullName:
+              recipientInfo.pickupRecipient.recipientLastName +
+              recipientInfo.pickupRecipient.recipientFirstName,
+            firstName: recipientInfo.pickupRecipient.recipientFirstName,
+            lastName: recipientInfo.pickupRecipient.recipientLastName,
+            phone: recipientInfo.pickupRecipient.recipientPhone,
+            phoneCountryNo: recipientInfo.pickupRecipient.phoneCountryNo,
+            address: {
+              countryType: recipientInfo.pickupRecipient.countryRegion,
+              postalCode: recipientInfo.pickupRecipient.postcode,
+              state: recipientInfo.pickupRecipient.stateProvince,
+              city: recipientInfo.pickupRecipient.city,
+              line1: `${recipientInfo.pickupRecipient.stateProvince} ${recipientInfo.pickupRecipient.city} ${recipientInfo.pickupRecipient.address1}`,
+              line2: recipientInfo.pickupRecipient.address2,
+            },
+          },
+        }),
       items,
       ...(carrierCode &&
         trackingNo && {
@@ -959,44 +899,76 @@ export const transformClaimCreateRequest = ({
       type: "EXCHANGE" as ClaimCreateRequestTypeEnum,
       reason,
       fault,
-      pickupRecipient: {
-        fullName:
-          `${recipientInfo.pickupRecipient.recipientLastName || ""}${recipientInfo.pickupRecipient.recipientFirstName || ""}`.trim(),
-        firstName: recipientInfo.pickupRecipient.recipientFirstName,
-        lastName: recipientInfo.pickupRecipient.recipientLastName,
-        phone: recipientInfo.pickupRecipient.recipientPhone,
-        phoneCountryNo: recipientInfo.pickupRecipient.phoneCountryNo,
-        address: {
-          countryType: recipientInfo.pickupRecipient.countryRegion,
-          postalCode: recipientInfo.pickupRecipient.postcode,
-          state: recipientInfo.pickupRecipient.stateProvince,
-          city: recipientInfo.pickupRecipient.city,
-          line1: `${recipientInfo.pickupRecipient.stateProvince} ${recipientInfo.pickupRecipient.city} ${recipientInfo.pickupRecipient.address1}`,
-          line2: recipientInfo.pickupRecipient.address2,
+      ...(pickupOption &&
+        recipientInfo.pickupRecipient && {
+          pickupRecipient: {
+            fullName:
+              `${recipientInfo.pickupRecipient.recipientLastName || ""}${recipientInfo.pickupRecipient.recipientFirstName || ""}`.trim(),
+            firstName: recipientInfo.pickupRecipient.recipientFirstName,
+            lastName: recipientInfo.pickupRecipient.recipientLastName,
+            phone: recipientInfo.pickupRecipient.recipientPhone,
+            phoneCountryNo: recipientInfo.pickupRecipient.phoneCountryNo,
+            address: {
+              countryType: recipientInfo.pickupRecipient.countryRegion,
+              postalCode: recipientInfo.pickupRecipient.postcode,
+              state: recipientInfo.pickupRecipient.stateProvince,
+              city: recipientInfo.pickupRecipient.city,
+              line1: `${recipientInfo.pickupRecipient.stateProvince} ${recipientInfo.pickupRecipient.city} ${recipientInfo.pickupRecipient.address1}`,
+              line2: recipientInfo.pickupRecipient.address2,
+            },
+          },
+        }),
+      ...(recipientInfo.shipmentRecipient && {
+        shipmentRecipient: {
+          fullName:
+            `${recipientInfo.shipmentRecipient.recipientLastName || ""}${recipientInfo.shipmentRecipient.recipientFirstName || ""}`.trim(),
+          firstName: recipientInfo.shipmentRecipient.recipientFirstName,
+          lastName: recipientInfo.shipmentRecipient.recipientLastName,
+          phone: recipientInfo.shipmentRecipient.recipientPhone,
+          phoneCountryNo: recipientInfo.shipmentRecipient.phoneCountryNo,
+          address: {
+            countryType: recipientInfo.shipmentRecipient.countryRegion,
+            postalCode: recipientInfo.shipmentRecipient.postcode,
+            state: recipientInfo.shipmentRecipient.stateProvince,
+            city: recipientInfo.shipmentRecipient.city,
+            line1: `${recipientInfo.shipmentRecipient.stateProvince} ${recipientInfo.shipmentRecipient.city} ${recipientInfo.shipmentRecipient.address1}`,
+            line2: recipientInfo.shipmentRecipient.address2,
+          },
         },
-      },
-      shipmentRecipient: {
-        fullName:
-          `${recipientInfo.shipmentRecipient.recipientLastName || ""}${recipientInfo.shipmentRecipient.recipientFirstName || ""}`.trim(),
-        firstName: recipientInfo.shipmentRecipient.recipientFirstName,
-        lastName: recipientInfo.shipmentRecipient.recipientLastName,
-        phone: recipientInfo.shipmentRecipient.recipientPhone,
-        phoneCountryNo: recipientInfo.shipmentRecipient.phoneCountryNo,
-        address: {
-          countryType: recipientInfo.shipmentRecipient.countryRegion,
-          postalCode: recipientInfo.shipmentRecipient.postcode,
-          state: recipientInfo.shipmentRecipient.stateProvince,
-          city: recipientInfo.shipmentRecipient.city,
-          line1: `${recipientInfo.shipmentRecipient.stateProvince} ${recipientInfo.shipmentRecipient.city} ${recipientInfo.shipmentRecipient.address1}`,
-          line2: recipientInfo.shipmentRecipient.address2,
-        },
-      },
+      }),
       items,
       ...(carrierCode &&
         trackingNo && {
           carrierCode,
           trackingNo,
         }),
+    };
+  }
+
+  if (claimType === "RESHIPMENT") {
+    return {
+      type: "RESHIPMENT" as ClaimCreateRequestTypeEnum,
+      reason,
+      fault,
+      ...(recipientInfo.shipmentRecipient && {
+        shipmentRecipient: {
+          fullName:
+            `${recipientInfo.shipmentRecipient.recipientLastName || ""}${recipientInfo.shipmentRecipient.recipientFirstName || ""}`.trim(),
+          firstName: recipientInfo.shipmentRecipient.recipientFirstName,
+          lastName: recipientInfo.shipmentRecipient.recipientLastName,
+          phone: recipientInfo.shipmentRecipient.recipientPhone,
+          phoneCountryNo: recipientInfo.shipmentRecipient.phoneCountryNo,
+          address: {
+            countryType: recipientInfo.shipmentRecipient.countryRegion,
+            postalCode: recipientInfo.shipmentRecipient.postcode,
+            state: recipientInfo.shipmentRecipient.stateProvince,
+            city: recipientInfo.shipmentRecipient.city,
+            line1: `${recipientInfo.shipmentRecipient.stateProvince} ${recipientInfo.shipmentRecipient.city} ${recipientInfo.shipmentRecipient.address1}`,
+            line2: recipientInfo.shipmentRecipient.address2,
+          },
+        },
+      }),
+      items,
     };
   }
 
@@ -1021,7 +993,6 @@ export const transformReturnDetail = (
     returnId: returnData.returnId,
     registeredBy: returnData.claimCreatedBy,
     returnReason: returnData.claimReason,
-    returnMethod: Math.random() > 0.5 ? "IN_STORE" : "DELIVERY",
     returnStatus: snakeToTitleCase(returnData.status.name),
     returnUpdatedDate: getLocalTime(returnData.updatedAt, timezone),
     recipientName: returnData.recipient?.fullName || "-",
@@ -1134,12 +1105,15 @@ export const transformExchangeDetail = (
       return [];
     }
 
+    // TODO: updatedAt 추가예정
     return shipments.map(
-      ({ status, wmsNo, shipmentNo, delivery, deliveries }) => {
+      ({ status, updatedAt, wmsNo, shipmentNo, delivery, deliveries }) => {
         const isCanceled = status.name === CANCELED;
 
         return {
+          status: snakeToTitleCase(status.name),
           shipmentNo: shipmentNo,
+          updatedAt: getLocalTime(updatedAt, timezone),
           resendWMSNo: isCanceled ? CANCELED : wmsNo,
           resendSAPDeliveryID: isCanceled ? CANCELED : shipmentNo,
           resendShipCo: isCanceled

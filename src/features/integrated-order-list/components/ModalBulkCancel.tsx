@@ -8,6 +8,7 @@ import { useFormContext } from "react-hook-form";
 
 import { getClaimReasonList } from "@/features/integrated-order-detail/modules/utils";
 import usePostBulkCancel from "@/features/integrated-order-list/hooks/usePostBulkCancel";
+import { OrderGroup } from "@/features/integrated-order-list/models/types";
 import { DATA_GRID_STYLES } from "@/features/integrated-order-list/modules/styles";
 
 import CustomSelect from "@/shared/components/form-elements/CustomSelect";
@@ -16,7 +17,7 @@ import useSnackbarStore from "@/shared/stores/useSnackbarStore";
 import { ApiError } from "@/shared/types";
 
 interface ModalBulkCancelProps {
-  group: string;
+  group: OrderGroup;
   selectedRows: GridRowModel[];
   columns: GridColDef[];
   openBulkCancel: boolean;

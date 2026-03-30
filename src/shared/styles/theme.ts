@@ -7,21 +7,6 @@ import {
   TypeText,
 } from "@mui/material/styles";
 
-declare module "@mui/material/styles" {
-  interface Palette {
-    confirm: Palette["primary"];
-    cancel: Palette["primary"];
-    text: TypeText;
-  }
-
-  interface PaletteOptions {
-    confirm?: PaletteOptions["primary"];
-    cancel?: PaletteOptions["primary"];
-    text?: Partial<TypeText>;
-  }
-}
-
-declare module "@mui/material/Button" {}
 // 기본 테마 설정
 const defaultOptions: ThemeOptions = {
   palette: {
@@ -51,6 +36,14 @@ const defaultOptions: ThemeOptions = {
     },
     text: {
       secondary: "rgba(0, 0, 0, 0.60)",
+    },
+    shipment: {
+      main: "rgba(219, 39, 119, 1)",
+      contrastText: "#fff",
+    },
+    storePickup: {
+      main: "rgba(156, 39, 176, 1)",
+      contrastText: "#fff",
     },
   },
   typography: {
@@ -102,8 +95,6 @@ const defaultOptions: ThemeOptions = {
     },
   },
 };
-
-//
 
 // 기본 테마 생성
 export const theme = createTheme(defaultOptions as ThemeOptions);

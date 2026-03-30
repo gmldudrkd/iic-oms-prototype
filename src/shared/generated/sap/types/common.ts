@@ -11,9 +11,3 @@ export interface Item {
   ZDOCNO?: string;
   ZFROM?: string;
 }
-
-export interface Result {
-  ERRSYS?: string;
-  MSG?: string;
-  MTY?: string;
-}

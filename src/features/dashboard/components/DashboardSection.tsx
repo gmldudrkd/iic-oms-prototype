@@ -18,8 +18,7 @@ import {
 interface DashboardSectionProps {
   section: {
     group: GroupType;
-    color: string;
-    icon: React.ReactNode;
+    icon: JSX.Element;
   };
   data: DashboardState | undefined;
   isMore: boolean;
@@ -38,14 +37,14 @@ export const DashboardSection = ({
     <Grid key={section.group} size={4} className="divide-y divide-[#E0E0E0]">
       <DashboardTitle
         title={section.group}
-        color={section.color}
+        color={section.group}
         icon={section.icon}
       />
 
       {CATEGORY_DATA[section.group].map((category) => {
-        if (!isMore && category === "shippingClosed") {
-          return null;
-        }
+        // if (!isMore && category === "finalized") {
+        //   return null;
+        // }
 
         return (
           <Stack key={category} className="p-[16px]">
@@ -55,7 +54,7 @@ export const DashboardSection = ({
                   category as keyof typeof CATEGORY_LABEL_DATA
                 ]
               }
-              color={section.color}
+              color={section.group}
               count={
                 getDashboardSection(data, section.group, category)?.totalCount
               }

@@ -23,8 +23,8 @@ import { DATA_GRID_STYLES_PRODUCT_INSPECTION } from "@/features/integrated-order
 import { getRecipientPhone } from "@/features/integrated-order-detail/modules/utils";
 import { DATA_GRID_STYLES } from "@/features/integrated-order-list/modules/styles";
 
+import ContentDialog from "@/shared/components/dialog/ContentDialog";
 import ModalBump from "@/shared/components/modal/ModalBump";
-import ModalOrder from "@/shared/components/ModalOrder";
 import {
   DetailGrid,
   DetailGridSingle,
@@ -41,9 +41,10 @@ import IconArrowDropDownFilled from "@/assets/icons/IconArrowDropDownFilled";
 
 interface Props {
   returnData: ReturnDetailResponse;
+  corporation?: string;
 }
 
-export default function ReturnDetailInfo({ returnData }: Props) {
+export default function ReturnDetailInfo({ returnData, corporation }: Props) {
   const { timezone } = useTimezoneStore();
   const { orderId } = useParams<{ orderId: string }>();
   const queryClient = useQueryClient();
@@ -51,6 +52,36 @@ export default function ReturnDetailInfo({ returnData }: Props) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
   const [grades, setGrades] = useState<Record<string, string>>({});
+
+  const handleGradeChange = useCallback((key: string, value: string) => {
+    setGrades((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleSelectAllGrade = useCallback(
+    (grade: string) => {
+      const newGrades: Record<string, string> = {};
+      returnData.items.forEach((item) => {
+        Array.from({ length: item.quantity }, (_, i) => {
+          newGrades[`${item.productCode}-${i}`] = grade;
+        });
+      });
+      setGrades(newGrades);
+    },
+    [returnData.items],
+  );
+
+  const handleResetGrades = useCallback(() => {
+    setGrades({});
+  }, []);
+
+  const allGraded = useMemo(() => {
+    const totalUnits = returnData.items.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
+    const gradedCount = Object.values(grades).filter((g) => g !== "").length;
+    return totalUnits > 0 && gradedCount === totalUnits;
+  }, [grades, returnData.items]);
 
   const { mutate: mutateRequestPickup } = usePatchReturnRequestPickup({
     onSuccess: async () => {
@@ -84,35 +115,9 @@ export default function ReturnDetailInfo({ returnData }: Props) {
       changeToCancel:
         returnData.status.name === "PENDING" ||
         returnData.status.name === "PICKUP_ONGOING",
-      refund: returnData.status.name === "RECEIVED",
+      refund: returnData.status.name === "RECEIVED" && corporation === "CA",
     };
-  }, [returnData]);
-
-  const allGraded = useMemo(() => {
-    const totalUnits = returnData.items.reduce(
-      (sum, item) => sum + item.quantity,
-      0,
-    );
-    const gradedUnits = Object.values(grades).filter((g) => g !== "").length;
-    return totalUnits > 0 && gradedUnits === totalUnits;
-  }, [grades, returnData.items]);
-
-  const handleSelectAllGrade = useCallback(
-    (grade: string) => {
-      const newGrades: Record<string, string> = {};
-      returnData.items.forEach((item) => {
-        Array.from({ length: item.quantity }, (_, unitIndex) => {
-          newGrades[`${item.productCode}-${unitIndex}`] = grade;
-        });
-      });
-      setGrades(newGrades);
-    },
-    [returnData.items],
-  );
-
-  const handleResetGrades = useCallback(() => {
-    setGrades({});
-  }, []);
+  }, [returnData, corporation]);
 
   return (
     <div className="mx-[24px] rounded-[5px] border border-outlined bg-white">
@@ -181,16 +186,12 @@ export default function ReturnDetailInfo({ returnData }: Props) {
               <Cell>{returnDetail.claimFault}</Cell>
             </div>
           </DetailGrid>
-          <DetailGrid>
+          <DetailGridSingle>
             <div>
               <h3>Return reason</h3>
               <Cell>{returnDetail.returnReason}</Cell>
             </div>
-            <div>
-              <h3>Return Method</h3>
-              <Cell>{returnDetail.returnMethod}</Cell>
-            </div>
-          </DetailGrid>
+          </DetailGridSingle>
           <DetailGridSingle>
             <div>
               <h3>Status</h3>
@@ -259,49 +260,33 @@ export default function ReturnDetailInfo({ returnData }: Props) {
                       <Button
                         color="primary"
                         size="small"
-                        onClick={() => setOpen("REFUND_GRADING")}
+                        onClick={() => {
+                          handleResetGrades();
+                          setOpen("REFUND");
+                        }}
                       >
                         Refund
                       </Button>
-                      <ModalOrder
-                        open={open === "REFUND_GRADING"}
-                        setOpen={(isOpen) =>
-                          setOpen(isOpen ? "REFUND_GRADING" : null)
-                        }
+                      <ContentDialog
+                        open={open === "REFUND"}
+                        setOpen={(isOpen) => setOpen(isOpen ? "REFUND" : null)}
                         dialogTitle="반품 Grading"
-                        dialogConfirmLabel="Confirm"
-                        handlePost={() => setOpen("REFUND_CONFIRM")}
-                        handleClose={() => {
-                          setOpen(null);
-                          setGrades({});
-                        }}
-                        buttonDisable={!allGraded}
-                        content={
+                        maxWidth="sm"
+                        dialogContent={
                           <RefundGradingContent
                             items={returnData.items}
                             grades={grades}
-                            onGradeChange={(key, value) =>
-                              setGrades((prev) => ({ ...prev, [key]: value }))
-                            }
+                            onGradeChange={handleGradeChange}
                             onSelectAllGrade={handleSelectAllGrade}
                             onReset={handleResetGrades}
                           />
                         }
-                      />
-                      <ModalBump
-                        open={open === "REFUND_CONFIRM"}
-                        setOpen={(isOpen) =>
-                          setOpen(isOpen ? "REFUND_CONFIRM" : null)
-                        }
-                        text="반품확정하시겠습니까?"
                         dialogCloseLabel="Cancel"
                         dialogConfirmLabel="Confirm"
-                        handleClose={() => setOpen("REFUND_GRADING")}
-                        handlePost={() => {
-                          setOpen(null);
-                          setGrades({});
-                        }}
-                        closeButtonClassNames="!text-default"
+                        handleClose={() => setOpen(null)}
+                        handlePost={() => setOpen(null)}
+                        buttonDisable={!allGraded}
+                        variant="outlined"
                       />
                     </>
                   )}

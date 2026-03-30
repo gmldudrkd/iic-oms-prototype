@@ -221,14 +221,6 @@ export interface EnumResponse {
   name: string;
 }
 
-export interface Delivery {
-  carrierCode?: string;
-  /** @format date-time */
-  deliveredAt?: string;
-  deliveryType?: string;
-  trackingNo?: string;
-}
-
 export interface OrderItemComponent {
   category?: string;
   price: number;
@@ -247,6 +239,23 @@ export interface OrderItemProduct {
   /** @format int32 */
   quantity: number;
   sku: string;
+}
+
+export interface Item {
+  /** @format int64 */
+  orderItemId: number;
+  productCode?: string;
+  /** @format int32 */
+  quantity: number;
+  sku: string;
+}
+
+export interface Delivery {
+  carrierCode?: string;
+  /** @format date-time */
+  deliveredAt?: string;
+  deliveryType?: string;
+  trackingNo?: string;
 }
 
 export interface DeliveryTracking {

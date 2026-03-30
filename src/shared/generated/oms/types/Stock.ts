@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { EnumResponse } from "./common";
+import { EnumResponse, Item } from "./common";
 
 export interface OnlineStockSafetyQuantityUpdateRequest {
   brand: OnlineStockSafetyQuantityUpdateRequestBrandEnum;
@@ -363,12 +363,6 @@ export enum UndistributedQuantityRequestBrandEnum {
 
 export interface UndistributedQuantityResponse {
   results: Item[];
-}
-
-export interface Item {
-  sku: string;
-  /** @format int32 */
-  undistributedQuantity: number;
 }
 
 export interface StockDashboardRequest {

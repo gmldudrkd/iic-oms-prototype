@@ -6,7 +6,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import CopyTextButton from "@/features/integrated-order-detail/components/CopyTextButton";
+import ExchangeActionButton from "@/features/integrated-order-detail/components/ExchangeDetail/ExchangeActionButton";
+import { MODAL_TEXT } from "@/features/integrated-order-detail/components/ExchangeDetail/modules/constants";
 import usePatchExchangeCancel from "@/features/integrated-order-detail/hooks/usePatchExchangeCancel";
+import usePatchExchangeRequestShipment from "@/features/integrated-order-detail/hooks/usePatchExchangeRequestShipment";
 import {
   transformExchangeDetail,
   transformRowsExchangeDetail,
@@ -20,7 +24,6 @@ import { DATA_GRID_STYLES_PRODUCT_INSPECTION } from "@/features/integrated-order
 import { getRecipientPhone } from "@/features/integrated-order-detail/modules/utils";
 import { DATA_GRID_STYLES } from "@/features/integrated-order-list/modules/styles";
 
-import ModalBump from "@/shared/components/modal/ModalBump";
 import {
   DetailGrid,
   DetailGridSingle,
@@ -59,6 +62,15 @@ export default function ExchangeDetailInfo({ exchangeData }: Props) {
     },
   });
 
+  const { mutate: mutateRequestShipment } = usePatchExchangeRequestShipment({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.exchangeDetail(orderId),
+      });
+      setOpen(null);
+    },
+  });
+
   const exchangeDetail = useMemo(
     () => transformExchangeDetail(exchangeData, timezone),
     [exchangeData, timezone],
@@ -70,10 +82,15 @@ export default function ExchangeDetailInfo({ exchangeData }: Props) {
 
   const buttonConditions = useMemo(() => {
     return {
-      changeToCancel:
-        exchangeData.status.name === "PENDING" ||
+      cancelExchange:
         exchangeData.status.name === "PICKUP_REQUESTED" ||
-        exchangeData.status.name === "PICKUP_ONGOING",
+        exchangeData.status.name === "PICKUP_ONGOING" ||
+        exchangeData.status.name === "RECEIVED",
+      requestShipment:
+        exchangeData.status.name === "PICKUP_REQUESTED" ||
+        exchangeData.status.name === "PICKUP_ONGOING" ||
+        exchangeData.status.name === "RECEIVED" ||
+        exchangeData.status.name === "INSPECTED",
     };
   }, [exchangeData]);
 
@@ -146,7 +163,7 @@ export default function ExchangeDetailInfo({ exchangeData }: Props) {
           </DetailGrid>
           <DetailGridSingle>
             <div>
-              <h3>Exchange status</h3>
+              <h3>Status</h3>
               <Cell>
                 <Chip label={exchangeDetail.exchangeStatus} color="success" />
                 <span className="ml-[17px] text-[13px] font-medium text-[rgba(0,0,0,0.38)]">
@@ -154,31 +171,41 @@ export default function ExchangeDetailInfo({ exchangeData }: Props) {
                 </span>
 
                 <div className="ml-auto flex gap-[8px]">
-                  {buttonConditions.changeToCancel && (
-                    <>
-                      <ModalBump
-                        open={open === "CHANGE_TO_CANCEL"}
-                        setOpen={(open) =>
-                          setOpen(open ? "CHANGE_TO_CANCEL" : null)
-                        }
-                        text="Are you sure you want to cancel this exchange?
-                    Even though you cancel, the pickup process cannot be stopped, and the item will still be collected."
-                        dialogCloseLabel="Keep Exchange"
-                        dialogConfirmLabel="Cancel Exchange"
-                        handleClose={() => setOpen(null)}
-                        handlePost={() =>
-                          mutateCancelExchange(exchangeData.exchangeId)
-                        }
-                        closeButtonClassNames="!text-default"
-                        postButtonClassNames="!text-error"
-                      />
-                      <Button
-                        size="small"
-                        onClick={() => setOpen("CHANGE_TO_CANCEL")}
-                      >
-                        Cancel Exchange
-                      </Button>
-                    </>
+                  {buttonConditions.requestShipment && (
+                    <ExchangeActionButton
+                      modalKey="REQUEST_SHIPMENT"
+                      open={open}
+                      setOpen={setOpen}
+                      text={
+                        exchangeDetail.exchangeStatus !== "Inspected"
+                          ? MODAL_TEXT.REQUEST_SHIPMENT_TEXT_BEFORE_INSPECTION
+                          : MODAL_TEXT.REQUEST_SHIPMENT_TEXT_AFTER_INSPECTION
+                      }
+                      dialogCloseLabel="Cancel"
+                      dialogConfirmLabel="Confirm"
+                      onConfirm={() =>
+                        mutateRequestShipment(exchangeData.exchangeId)
+                      }
+                      buttonLabel="Request Shipment"
+                      closeButtonClassNames="!text-error"
+                    />
+                  )}
+
+                  {buttonConditions.cancelExchange && (
+                    <ExchangeActionButton
+                      modalKey="CHANGE_TO_CANCEL"
+                      open={open}
+                      setOpen={setOpen}
+                      text={MODAL_TEXT.CANCEL_EXCHANGE_TEXT}
+                      dialogCloseLabel="Keep Exchange"
+                      dialogConfirmLabel="Cancel Exchange"
+                      onConfirm={() =>
+                        mutateCancelExchange(exchangeData.exchangeId)
+                      }
+                      buttonLabel="Cancel Exchange"
+                      closeButtonClassNames="!text-default"
+                      postButtonClassNames="!text-error"
+                    />
                   )}
                 </div>
               </Cell>
@@ -265,11 +292,44 @@ export default function ExchangeDetailInfo({ exchangeData }: Props) {
               key={index}
               className="m-[16px] rounded-[5px] border border-solid border-[#E0E0E0]"
             >
-              <h3 className="p-[16px] text-[16px] font-bold">
-                Re-Shipment #{resend.shipmentNo}
+              <h3 className="flex items-center gap-[6px] p-[16px] text-[16px] font-bold">
+                Shipment #{resend.shipmentNo}
+                <CopyTextButton text={resend.shipmentNo} />
               </h3>
 
               <DetailGridSingle className="border-t border-solid border-[#E0E0E0]">
+                <div>
+                  <h3>Status</h3>
+                  <Cell>
+                    <Chip label={resend.status} />
+                    <span className="ml-[17px] text-[13px] font-medium text-[rgba(0,0,0,0.38)]">
+                      {resend.updatedAt}
+                    </span>
+
+                    <div className="ml-auto flex gap-[8px]">
+                      {resend.status === "Picking Rejected" && (
+                        <ExchangeActionButton
+                          modalKey="REQUEST_SHIPMENT"
+                          open={open}
+                          setOpen={setOpen}
+                          text={
+                            MODAL_TEXT.REQUEST_SHIPMENT_TEXT_PICKING_REJECTED
+                          }
+                          dialogCloseLabel="Cancel"
+                          dialogConfirmLabel="Confirm"
+                          onConfirm={() =>
+                            mutateRequestShipment(exchangeData.exchangeId)
+                          }
+                          buttonLabel="Request Shipment"
+                          closeButtonClassNames="!text-error"
+                        />
+                      )}
+                    </div>
+                  </Cell>
+                </div>
+              </DetailGridSingle>
+
+              <DetailGridSingle>
                 <div>
                   <h3>Pickup Address</h3>
                   <Cell>
@@ -286,20 +346,7 @@ export default function ExchangeDetailInfo({ exchangeData }: Props) {
               </DetailGridSingle>
 
               <div key={index}>
-                <DetailGridSingle>
-                  <div>
-                    <h3>Exchange Shipment No</h3>
-                    <Cell>
-                      <span
-                        className={`${getDisabledText(resend.resendWMSNo, NOT_STARTED)} ${getDisabledText(resend.resendWMSNo, CANCELED)}`}
-                      >
-                        {resend.resendWMSNo}
-                      </span>
-                    </Cell>
-                  </div>
-                </DetailGridSingle>
-
-                <DetailGridSingle>
+                <DetailGrid>
                   <div>
                     <h3>Carrier</h3>
                     <Cell>
@@ -311,34 +358,41 @@ export default function ExchangeDetailInfo({ exchangeData }: Props) {
                     </Cell>
                   </div>
 
-                  {resend.resendDeliveries.map((delivery) => (
-                    <div key={delivery.trackingNo}>
-                      <h3>Tracking No</h3>
-                      <Cell>
-                        <span
-                          className={`${getDisabledText(delivery.trackingNo, NOT_STARTED)} ${getDisabledText(delivery.trackingNo, CANCELED)}`}
-                        >
-                          {delivery.trackingNo}
-                        </span>
-                        <div className="ml-auto">
-                          <Button
-                            color="primary"
-                            size="small"
-                            className="!ml-auto"
-                            disabled={!delivery.trackingUrl}
-                            onClick={() => {
-                              if (delivery.trackingUrl) {
-                                window.open(delivery.trackingUrl, "_blank");
-                              }
-                            }}
+                  <div>
+                    <h3>Tracking No</h3>
+                    <Cell>
+                      <div className="flex w-full flex-col gap-[12px]">
+                        {resend.resendDeliveries.map((delivery) => (
+                          <div
+                            key={delivery.trackingNo}
+                            className="flex w-full items-center justify-between"
                           >
-                            Track shipping
-                          </Button>
-                        </div>
-                      </Cell>
-                    </div>
-                  ))}
-                </DetailGridSingle>
+                            <span
+                              className={`${getDisabledText(delivery.trackingNo, NOT_STARTED)} ${getDisabledText(delivery.trackingNo, CANCELED)}`}
+                            >
+                              {delivery.trackingNo}
+                            </span>
+                            <div className="ml-auto">
+                              <Button
+                                color="primary"
+                                size="small"
+                                className="!ml-auto"
+                                disabled={!delivery.trackingUrl}
+                                onClick={() => {
+                                  if (delivery.trackingUrl) {
+                                    window.open(delivery.trackingUrl, "_blank");
+                                  }
+                                }}
+                              >
+                                Track shipping
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </Cell>
+                  </div>
+                </DetailGrid>
               </div>
             </div>
           ))}

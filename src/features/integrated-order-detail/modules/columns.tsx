@@ -1,6 +1,11 @@
-import { Tooltip } from "@mui/material";
-import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-pro";
+import { Chip, Tooltip } from "@mui/material";
+import {
+  GridColDef,
+  GridRenderCellParams,
+  GridRowModel,
+} from "@mui/x-data-grid-pro";
 
+import { OrderItemComponent } from "@/shared/generated/oms/types/common";
 import { OrderDetailOrderItemResponse } from "@/shared/generated/oms/types/Order";
 import {
   renderCellImage,
@@ -633,5 +638,201 @@ export const LIST_COLUMNS_RETURN_CANCEL_PARTIAL = [
     headerName: "Cancel Available Qty",
     flex: 1,
     minWidth: 100,
+  },
+];
+
+export const LIST_COLUMNS_CANCEL: GridColDef[] = [
+  {
+    field: "no",
+    headerName: "No",
+    flex: 0.25,
+    minWidth: 25,
+    cellClassName: "custom-cell-claim",
+    renderCell: (params) => (
+      <div className="ml-4 flex h-full items-center">{params.row.no}</div>
+    ),
+  },
+  {
+    field: "skuCode",
+    headerName: "SKU Code",
+    flex: 1,
+    minWidth: 100,
+    cellClassName: "custom-cell-claim",
+    renderCell: (params) => {
+      return (
+        <div className="flex h-full flex-col justify-center overflow-visible whitespace-normal break-words">
+          {/* bundle product */}
+          {params.row.products.length > 0 && (
+            <div
+              key={params.value}
+              className={`order-t border-gray-30 flex h-full min-h-[40px] items-center px-2 py-4`}
+            >
+              {params.value || "-"}
+            </div>
+          )}
+          {/* option product */}
+          {params.row.components?.map(
+            (component: OrderDetailOrderItemResponse) => (
+              <div
+                key={component.productCode}
+                className={`flex h-full min-h-[40px] items-center border-t border-gray-300 px-2 py-4`}
+              >
+                {component.sku || "-"}
+              </div>
+            ),
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    field: "productName",
+    headerName: "Product Name",
+    flex: 1,
+    minWidth: 100,
+    cellClassName: "custom-cell-claim",
+    renderCell: (params) => {
+      return (
+        <div className="flex h-full flex-col justify-center overflow-visible whitespace-normal break-words">
+          {/* bundle product */}
+          {params.row.products.length > 0 && (
+            <div
+              key={params.value}
+              className={`order-t border-gray-30 flex h-full min-h-[40px] items-center px-2 py-4`}
+            >
+              {params.value || "-"}
+            </div>
+          )}
+          {/* option product */}
+          {params.row.components?.map(
+            (component: OrderDetailOrderItemResponse) => (
+              <div
+                key={component.productCode}
+                className={`flex h-full min-h-[40px] items-center border-t border-gray-300 px-2 py-4`}
+              >
+                {component.productName || "-"}
+              </div>
+            ),
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    field: "cancelPrice",
+    headerName: "Cancel Price",
+    flex: 1,
+    minWidth: 100,
+    cellClassName: "custom-cell-center",
+    valueGetter: (value: unknown, row: GridRowModel) => {
+      const quantity = Number(row.cellQuantity ?? 0);
+      const unitPrice = Number(row.cancelPrice ?? 0);
+      return quantity * unitPrice;
+    },
+    renderCell: (params) => convertToPrice(params.value, params.row.currency),
+    align: "right",
+  },
+];
+
+export const _LIST_COLUMNS_REGISTER: GridColDef[] = [
+  {
+    field: "no",
+    headerName: "No",
+    flex: 0.25,
+    minWidth: 25,
+    cellClassName: "custom-cell-claim",
+    renderCell: (params) => (
+      <div className="flex h-full items-center">{params.row.no}</div>
+    ),
+  },
+  {
+    field: "skuCode",
+    headerName: "SKU Code",
+    flex: 1,
+    minWidth: 100,
+    cellClassName: "custom-cell-claim",
+    renderCell: (params) => {
+      return (
+        <div className="flex h-full flex-col justify-center overflow-visible whitespace-normal break-words">
+          {/* bundle product */}
+          {params.row.products.length > 0 && (
+            <div
+              key={params.value}
+              className={`order-t border-gray-30 flex h-full min-h-[40px] items-center px-2 py-4`}
+            >
+              {params.value || "-"}
+            </div>
+          )}
+          {/* option product */}
+          {params.row.components?.map((component: OrderItemComponent) => (
+            <div
+              key={component.productCode}
+              className={`flex h-full min-h-[40px] items-center border-t border-gray-300 px-2 py-4`}
+            >
+              {component.sku || "-"}
+            </div>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
+    field: "category",
+    headerName: "Category",
+    flex: 1,
+    cellClassName: "custom-cell-claim",
+    renderCell: (params) => {
+      return (
+        <div className="flex h-full flex-col justify-center overflow-visible whitespace-normal break-words">
+          {/* bundle product */}
+          {params.row.products.length > 0 && (
+            <div
+              key={params.value}
+              className={`order-t border-gray-30 flex h-full min-h-[40px] items-center px-2 py-4`}
+            />
+          )}
+          {/* option product */}
+          {params.row.components?.map((component: OrderItemComponent) => (
+            <div
+              key={component.productCode}
+              className={`flex h-full min-h-[40px] items-center border-t border-gray-300 px-2 py-4`}
+            >
+              <Chip label={component.category} />
+            </div>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
+    field: "productName",
+    headerName: "Product Name",
+    flex: 1,
+    minWidth: 100,
+    cellClassName: "custom-cell-claim",
+    renderCell: (params) => {
+      return (
+        <div className="flex h-full flex-col justify-center overflow-visible whitespace-normal break-words">
+          {/* bundle product */}
+          {params.row.products.length > 0 && (
+            <div
+              key={params.value}
+              className={`order-t border-gray-30 flex h-full min-h-[40px] items-center px-2 py-4`}
+            >
+              {params.value || "-"}
+            </div>
+          )}
+          {/* option product */}
+          {params.row.components?.map((component: OrderItemComponent) => (
+            <div
+              key={component.productCode}
+              className={`flex h-full min-h-[40px] items-center border-t border-gray-300 px-2 py-4`}
+            >
+              {component.productName || "-"}
+            </div>
+          ))}
+        </div>
+      );
+    },
   },
 ];

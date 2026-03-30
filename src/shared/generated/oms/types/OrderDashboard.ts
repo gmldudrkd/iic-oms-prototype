@@ -17,8 +17,10 @@ export enum OrderSummaryRequestChannelTypesEnum {
 export interface DashboardSummaryResponse {
   exchangeSummaries: StatusSummary;
   orderSummaries: StatusSummary;
+  reshipmentSummaries: StatusSummary;
   returnSummaries: StatusSummary;
   shipmentSummaries: StatusSummary;
+  storePickupSummaries: StatusSummary;
 }
 
 export interface StatusSummary {

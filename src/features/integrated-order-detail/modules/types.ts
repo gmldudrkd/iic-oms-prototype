@@ -7,6 +7,8 @@ import {
   OpenCageResponse,
 } from "@/features/integrated-order-detail/models/types";
 
+export type ClaimModalType = "DEFAULT" | "LOST";
+
 export interface TAddressForm {
   // recipientName: string;
   recipientFirstName: string;

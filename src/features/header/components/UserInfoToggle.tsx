@@ -1,19 +1,17 @@
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import PersonIcon from "@mui/icons-material/Person";
-import { Divider, Menu, MenuItem } from "@mui/material";
+import { Menu, MenuItem } from "@mui/material";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import PopupState, { bindMenu, bindTrigger } from "material-ui-popup-state";
 import { usePopupState } from "material-ui-popup-state/hooks";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import usePostLogout from "@/features/sign-in/hooks/usePostLogout";
 
 export default function UserInfoToggle() {
   const { data: session } = useSession();
-  const router = useRouter();
 
   const userId = session?.user.id;
 
@@ -26,12 +24,6 @@ export default function UserInfoToggle() {
 
   const handleLogout = async () => {
     logout(session?.accessToken as string);
-    popupState.close();
-  };
-
-  const handleMyInfo = () => {
-    const email = session?.user?.email || userId || "";
-    router.push(`/user/${encodeURIComponent(email)}`);
     popupState.close();
   };
 
@@ -57,10 +49,6 @@ export default function UserInfoToggle() {
                   />
                 </IconButton>
                 <Menu {...bindMenu(popupState)} sx={{ top: "6px" }}>
-                  <MenuItem onClick={handleMyInfo} sx={{ width: "165px" }}>
-                    My Info
-                  </MenuItem>
-                  <Divider />
                   <MenuItem onClick={handleLogout} sx={{ width: "165px" }}>
                     Log out
                   </MenuItem>

@@ -7,6 +7,10 @@ import {
   PageResponseOrderResponse,
 } from "@/shared/generated/oms/types/Order";
 import {
+  PageResponseReshipmentResponse,
+  ReshipmentSearchRequest,
+} from "@/shared/generated/oms/types/Reshipment";
+import {
   PageResponseReturnResponse,
   ReturnSearchRequest,
 } from "@/shared/generated/oms/types/Return";
@@ -15,16 +19,24 @@ import {
 export type IntegratedOrderRequest =
   | OrderSearchRequest
   | ReturnSearchRequest
-  | ExchangeSearchRequest;
+  | ExchangeSearchRequest
+  | ReshipmentSearchRequest;
 
 // 공통 응답 타입 정의
 export type IntegratedOrderResponse =
   | PageResponseOrderResponse
   | PageResponseReturnResponse
-  | PageResponseExchangeResponse;
+  | PageResponseExchangeResponse
+  | PageResponseReshipmentResponse;
 
 // 그룹 타입 정의
-export type OrderGroup = "order" | "return" | "exchange";
+export type OrderGroup =
+  | "order"
+  | "return"
+  | "exchange"
+  | "reshipment"
+  | "storePickup"
+  | "shipment";
 
 // 타입 가드 함수들
 // export const isOrderSearchRequest = (
@@ -53,9 +65,6 @@ export interface OrderRow {
   corp: string;
   channel?: string;
   orderNo: string;
-  receiveMethod: string;
-  orderType: string;
-  tags: string;
   orderDate: string;
   ordererName: string;
   ordererEmail: string;
@@ -64,8 +73,8 @@ export interface OrderRow {
   recipientName: string;
   recipientPhone: string;
   shippingStatus: string[];
-  fulfillmentNo: string[];
-  fulfillmentStatus: string[];
+  shipmentNo: string[];
+  shipmentStatus: string[];
   trackingNo: string[];
 }
 
@@ -100,4 +109,20 @@ export interface ExchangeRow {
   exchangeNo: string;
   trackingNo: string;
   resendNo: string[];
+}
+
+export interface ReshipmentRow {
+  id: string;
+  orderId: string;
+  channel: string;
+  orderNo: string;
+  createdAt: string;
+  ordererName: string;
+  ordererEmail: string;
+  ordererPhone: string;
+  status: string;
+  recipientName: string;
+  recipientPhone: string;
+  reshipmentNo: string;
+  trackingNo: string;
 }

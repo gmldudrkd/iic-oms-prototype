@@ -4,6 +4,7 @@ import { isEqual } from "lodash";
 import { Dispatch, SetStateAction } from "react";
 import { FieldValues, SubmitHandler, useFormContext } from "react-hook-form";
 
+import OrderAttributeField from "@/features/integrated-order-list/components/OrderAttributeField";
 import { PeriodPickerField } from "@/features/integrated-order-list/components/PeriodPickerField";
 import { SelectCheckboxField } from "@/features/integrated-order-list/components/SelectCheckboxField";
 import {
@@ -11,9 +12,11 @@ import {
   GROUPED_STATUS_FILTER_SHIPPING,
   GROUPED_STATUS_FILTER_RETURN,
   GROUPED_STATUS_FILTER_EXCHANGE,
+  GROUPED_STATUS_FILTER_RESHIPMENT,
   SEARCH_KEY_TYPE_ORDER,
   SEARCH_KEY_TYPE_RETURN,
   SEARCH_KEY_TYPE_EXCHANGE,
+  SEARCH_KEY_TYPE_RESHIPMENT,
 } from "@/features/integrated-order-list/modules/constants";
 
 import FormActions from "@/shared/components/form-elements/FormActions";
@@ -27,6 +30,10 @@ import {
   OrderSearchRequestChannelTypesEnum,
 } from "@/shared/generated/oms/types/Order";
 import {
+  ReshipmentSearchRequest,
+  ReshipmentSearchRequestChannelTypesEnum,
+} from "@/shared/generated/oms/types/Reshipment";
+import {
   ReturnSearchRequest,
   ReturnSearchRequestChannelTypesEnum,
 } from "@/shared/generated/oms/types/Return";
@@ -35,11 +42,18 @@ import { useUserPermissionStore } from "@/shared/stores/useUserPermissionStore";
 import { convertToArray } from "@/shared/utils/stringUtils";
 
 interface SearchFormProps {
-  group: "order" | "return" | "exchange";
-  params: OrderSearchRequest | ReturnSearchRequest | ExchangeSearchRequest;
+  group: "order" | "return" | "exchange" | "reshipment";
+  params:
+    | OrderSearchRequest
+    | ReturnSearchRequest
+    | ExchangeSearchRequest
+    | ReshipmentSearchRequest;
   setParams: Dispatch<
     SetStateAction<
-      OrderSearchRequest | ReturnSearchRequest | ExchangeSearchRequest
+      | OrderSearchRequest
+      | ReturnSearchRequest
+      | ExchangeSearchRequest
+      | ReshipmentSearchRequest
     >
   >;
   refetch: () => void;
@@ -62,7 +76,8 @@ export default function SearchForm({
     currentSearchKeyType === "shipmentNos" ||
     currentSearchKeyType === "skus" ||
     currentSearchKeyType === "returnNos" ||
-    currentSearchKeyType === "exchangeNos";
+    currentSearchKeyType === "exchangeNos" ||
+    currentSearchKeyType === "reshipmentNos";
 
   const getStatusFilter = () => {
     switch (group) {
@@ -72,6 +87,8 @@ export default function SearchForm({
         return [GROUPED_STATUS_FILTER_RETURN];
       case "exchange":
         return [GROUPED_STATUS_FILTER_EXCHANGE];
+      case "reshipment":
+        return [GROUPED_STATUS_FILTER_RESHIPMENT];
       default:
         return [GROUPED_STATUS_FILTER_ORDER, GROUPED_STATUS_FILTER_SHIPPING];
     }
@@ -84,6 +101,8 @@ export default function SearchForm({
         return SEARCH_KEY_TYPE_RETURN;
       case "exchange":
         return SEARCH_KEY_TYPE_EXCHANGE;
+      case "reshipment":
+        return SEARCH_KEY_TYPE_RESHIPMENT;
     }
   };
 
@@ -103,14 +122,7 @@ export default function SearchForm({
   });
 
   // 검색 폼 제출 이벤트 핸들러 수정
-  const onSubmit = (data: {
-    searchKeyType: string;
-    searchKeyword: string;
-    statusFilter: string[];
-    shippingStatusFilter: string[];
-    channelTypes: string[];
-    period: [Date, Date];
-  }) => {
+  const onSubmit = (data: FieldValues) => {
     const searchData = data;
     const {
       searchKeyType,
@@ -119,6 +131,7 @@ export default function SearchForm({
       shippingStatusFilter,
       channelTypes,
       period,
+      orderAttributeFilter,
     } = searchData;
 
     let newParams = {};
@@ -126,7 +139,8 @@ export default function SearchForm({
     const allChannelTypes = channelTypesList.map((channel) => channel.value) as
       | OrderSearchRequestChannelTypesEnum[]
       | ReturnSearchRequestChannelTypesEnum[]
-      | ExchangeSearchRequestChannelTypesEnum[];
+      | ExchangeSearchRequestChannelTypesEnum[]
+      | ReshipmentSearchRequestChannelTypesEnum[];
 
     if (group === "order") {
       newParams = {
@@ -135,6 +149,9 @@ export default function SearchForm({
         to: dayjs(period?.[1]).tz(timezone).toISOString(),
         orderStatuses: statusFilter,
         shipmentStatuses: shippingStatusFilter,
+        receiveMethods: orderAttributeFilter.receiveMethods,
+        types: orderAttributeFilter.types,
+        tags: orderAttributeFilter.tags,
         ordererEmail:
           searchKeyType === "ordererEmail" ? searchKeyword : undefined,
         ordererName:
@@ -178,6 +195,7 @@ export default function SearchForm({
             ? convertToArray(searchKeyword)
             : undefined,
         purchaseNo: searchKeyType === "purchaseNo" ? searchKeyword : undefined,
+        trackingNo: searchKeyType === "trackingNo" ? searchKeyword : undefined,
         page: 0,
         size: params.size,
       };
@@ -204,6 +222,33 @@ export default function SearchForm({
             ? convertToArray(searchKeyword)
             : undefined,
         purchaseNo: searchKeyType === "purchaseNo" ? searchKeyword : undefined,
+        trackingNo: searchKeyType === "trackingNo" ? searchKeyword : undefined,
+        page: 0,
+        size: params.size,
+      };
+    }
+
+    if (group === "reshipment") {
+      newParams = {
+        channelTypes: channelTypes.length > 0 ? channelTypes : allChannelTypes,
+        from: dayjs(period?.[0]).tz(timezone).toISOString(),
+        to: dayjs(period?.[1]).tz(timezone).toISOString(),
+        reshipmentStatuses: statusFilter,
+        ordererEmail:
+          searchKeyType === "ordererEmail" ? searchKeyword : undefined,
+        ordererName:
+          searchKeyType === "ordererName" ? searchKeyword : undefined,
+        ordererPhone:
+          searchKeyType === "ordererPhone" ? searchKeyword : undefined,
+        originOrderNos:
+          searchKeyType === "originOrderNos"
+            ? convertToArray(searchKeyword)
+            : undefined,
+        reshipmentNos:
+          searchKeyType === "reshipmentNos"
+            ? convertToArray(searchKeyword)
+            : undefined,
+        trackingNo: searchKeyType === "trackingNo" ? searchKeyword : undefined,
         page: 0,
         size: params.size,
       };
@@ -216,7 +261,8 @@ export default function SearchForm({
         newParams as
           | OrderSearchRequest
           | ReturnSearchRequest
-          | ExchangeSearchRequest,
+          | ExchangeSearchRequest
+          | ReshipmentSearchRequest,
       );
     }
   };
@@ -279,8 +325,17 @@ export default function SearchForm({
             </FormControl>
           </div>
 
+          {/* Order Attribute Filter */}
+          {group === "order" && (
+            <div className="flex w-[330px] items-center gap-[8px]">
+              <FormControl fullWidth>
+                <OrderAttributeField />
+              </FormControl>
+            </div>
+          )}
+
           {/* 검색 타입 검색 */}
-          <div className="flex flex-1 items-center gap-[8px]">
+          <div className="flex items-center gap-[8px]">
             <FormControl fullWidth>
               <SelectTextField
                 name="searchKeyword"

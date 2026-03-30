@@ -48,7 +48,13 @@ export default function InfoReturn() {
 
   if (data) {
     return data.map((item) => {
-      return <ReturnDetailInfo key={item.returnId} returnData={item} />;
+      return (
+        <ReturnDetailInfo
+          key={item.returnId}
+          returnData={item}
+          corporation={orderData?.corporation}
+        />
+      );
     });
   }
 

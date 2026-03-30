@@ -246,7 +246,7 @@ export default function AddressForm({
   );
 
   return (
-    <>
+    <div>
       {title && (
         <h2 className="flex items-center justify-between px-[16px] text-[14px] font-medium leading-[48px] text-text-secondary">
           <span>{title}</span>
@@ -363,7 +363,7 @@ export default function AddressForm({
         {/* 나머지 필드들 */}
         {addressFields.slice(4).map(renderTextField)}
       </div>
-    </>
+    </div>
   );
 }
 

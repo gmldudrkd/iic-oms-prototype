@@ -33,10 +33,16 @@
   --color-text-disabled: rgba(0, 0, 0, 0.38);
   --color-order: rgba(33, 150, 243, 1);
   --color-order-opacity: rgba(33, 150, 243, 0.08);
+  --color-shipment: rgba(219, 39, 119, 1);
+  --color-shipment-opacity: rgba(219, 39, 119, 0.08);
+  --color-storePickup: rgba(156, 39, 176, 1);
+  --color-storePickup-opacity: rgba(156, 39, 176, 0.08);
   --color-return: rgba(239, 108, 0, 1);
   --color-return-opacity: rgba(239, 108, 0, 0.08);
   --color-exchange: rgba(46, 125, 50, 1);
   --color-exchange-opacity: rgba(46, 125, 50, 0.08);
+  --color-reshipment: rgba(219, 39, 119, 1);
+  --color-reshipment-opacity: rgba(219, 39, 119, 0.08);
   --color-outlined: rgba(224, 224, 224, 1);
 }
 .height100vh {

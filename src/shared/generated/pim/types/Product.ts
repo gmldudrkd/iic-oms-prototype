@@ -117,11 +117,13 @@ export interface AdminProductSearchPageRequestDTO {
   bundleCodes?: string[];
   channels?: string[];
   companies?: string[];
+  /** configurable 상품 코드 목록 */
+  configurableProductCode?: string[];
   /**
    * sap 자재 마스터 필수 속성 싱크 여부
    * @example "선글라스"
    */
-  masterSyncStatus?: string;
+  masterSyncStatus?: string[];
   /**
    * 모델 코드 목록
    * @example ["66000000","66000001"]
@@ -170,8 +172,10 @@ export interface AdminProductSearchPageRequestDTO {
 
 export enum AdminProductSearchPageRequestDtoProductTypeEnum {
   ALL = "ALL",
-  SINGLE = "SINGLE",
+  SIMPLE = "SIMPLE",
   BUNDLE = "BUNDLE",
+  PACKAGE = "PACKAGE",
+  CONFIGURABLE = "CONFIGURABLE",
 }
 
 /** V3 어드민 상품 검색 결과 (목록용) */
@@ -435,12 +439,6 @@ export interface OmsProductSearchResponseDTO {
 export interface OmsProductResponseDTO {
   /** 카테고리1 */
   categoryCode1?: string;
-  /** 카테고리2 */
-  categoryCode2?: string;
-  /** 카테고리3 */
-  categoryCode3?: string;
-  /** 카테고리 이름1 */
-  categoryName1?: string;
   /** 카테고리 이름2 */
   categoryName2?: string;
   /** 카테고리 이름3 */
@@ -465,6 +463,11 @@ export interface OmsProductResponseDTO {
   careInstructionsEn?: string;
   /** 케어 정보 한국어 */
   careInstructionsKo?: string;
+  /**
+   * 콜라보 유무
+   * @example "N"
+   */
+  collaborationYn?: string;
   /** 컬렉션 이름 */
   collectionName?: string;
   /** 색상 */
@@ -488,6 +491,8 @@ export interface OmsProductResponseDTO {
    * @example []
    */
   images: string[];
+  /** 수입사 */
+  importer?: string;
   /**
    * 번들 상품 여부
    * @example false
@@ -504,6 +509,8 @@ export interface OmsProductResponseDTO {
   liningEn?: string;
   /** 안감 한국어 */
   liningKo?: string;
+  /** 제조사 */
+  manufacturer?: string;
   /** 밀리미터 사이즈 */
   mmSize?: MmSizeDTO;
   /** 모델 코드 */
@@ -880,6 +887,74 @@ export enum OmsChannelProductSearchRequestDtoChannelActiveEnum {
  * @example "NEXT"
  */
 
+export interface AdminProductExcelExportRequestDTO {
+  /**
+   * 브랜드ID(GM, TB, AT)
+   * @example "AT"
+   */
+  brandId: string;
+  /**
+   * 번들 코드 이름
+   * @example "선글라스"
+   */
+  bundleCodes?: string[];
+  channels?: string[];
+  companies?: string[];
+  /** sap 자재 마스터 필수 속성 싱크 여부 */
+  masterSyncStatus?: string;
+  /**
+   * 모델 코드 목록
+   * @example ["66000000","66000001"]
+   */
+  modelCodes?: string[];
+  /**
+   * 상품 정보 상태
+   * @example "ALL"
+   */
+  productInfoStatus?: AdminProductExcelExportRequestDtoProductInfoStatusEnum;
+  /**
+   * 상품 타입
+   * @example "ALL"
+   */
+  productType?: AdminProductExcelExportRequestDtoProductTypeEnum;
+  /**
+   * SAP 코드 목록
+   * @example ["66000000","66000001"]
+   */
+  sapCodes?: string[];
+  /**
+   * SAP 제품명
+   * @example "선글라스"
+   */
+  sapNames?: string[];
+  /** SKU 코드 목록 */
+  skuCodes?: string[];
+}
+
+/**
+ * 상품 정보 상태
+ * @example "ALL"
+ */
+
+export enum AdminProductExcelExportRequestDtoProductTypeEnum {
+  ALL = "ALL",
+  SINGLE = "SINGLE",
+  BUNDLE = "BUNDLE",
+}
+
+/** V3 어드민 상품 Info 조회 결과 (가격, 패키지) */
+
+export enum AdminProductExcelExportRequestDtoProductInfoStatusEnum {
+  ALL = "ALL",
+  COMPLETE = "COMPLETE",
+  INCOMPLETE = "INCOMPLETE",
+}
+
+/**
+ * 상품 타입
+ * @example "ALL"
+ */
+
 export interface ProductUpdateRequestDTO {
   /**
    * 제품 이미지 업데이트 요청 리스트
@@ -908,15 +983,83 @@ export interface ProductUpdateRequestDTO {
   status?: string;
 }
 
+export interface AdminProductInfoV3ResponseDTO {
+  /** 패키지 정보 */
+  packageMasters: InfoPackageMasterDTO[];
+  /** 가격 정보 */
+  priceMasters: InfoPriceMasterDTO[];
+}
+
+/** 어드민 프론트 상품 검색 요청 (페이지 기반) */
+
+export interface InfoPriceMasterDTO {
+  /**
+   * 통화
+   * @example "KRW"
+   */
+  currency: string;
+  /**
+   * 적용 종료일
+   * @format date-time
+   */
+  endedAt?: string;
+  /** 가격 */
+  price: number;
+  /** 가격 코드 (SAP) */
+  priceCode: string;
+  /**
+   * 적용 시작일
+   * @format date-time
+   */
+  startedAt: string;
+  /**
+   * 상태
+   * @example "ACTIVE"
+   */
+  status: string;
+}
+
+export interface InfoPackageMasterDTO {
+  /**
+   * 표시 순서
+   * @format int32
+   */
+  displayOrder: number;
+  /** 패키지 ID */
+  id: string;
+  /**
+   * 패키지 타입
+   * @example "FREE"
+   */
+  packageType: InfoPackageMasterDtoPackageTypeEnum;
+  /** 패키지 상품 가격 목록 (ACTIVE) */
+  prices: InfoPriceMasterDTO[];
+  /**
+   * 수량
+   * @format int32
+   */
+  quantity: number;
+  /** 패키지 상품명 */
+  sapName: string;
+  /** SKU */
+  sku: string;
+}
+
+/**
+ * 패키지 타입
+ * @example "FREE"
+ */
+
+export enum InfoPackageMasterDtoPackageTypeEnum {
+  FREE = "FREE",
+  PAID = "PAID",
+}
+
+/** 가격 마스터 상세 */
+
 export interface AdminProductDetailV3ResponseDTO {
   /** 카테고리 코드1 */
   categoryCode1?: string;
-  /** 카테고리 코드2 */
-  categoryCode2?: string;
-  /** 카테고리 코드3 */
-  categoryCode3?: string;
-  /** 카테고리 이름1 */
-  categoryName1?: string;
   /** 카테고리 이름2 */
   categoryName2?: string;
   /** 카테고리 이름3 */
@@ -973,7 +1116,7 @@ export interface AdminProductDetailV3ResponseDTO {
   outerFabricEn?: string;
   /** 겉감 한국어 */
   outerFabricKo?: string;
-  /** 패키지 정보 */
+  /** 기본 패키지 정보 (무상/DEFAULT) */
   packageMasters: DetailPackageMasterDTO[];
   /** 가격 정보 */
   priceMasters: DetailPriceMasterDTO[];
@@ -1033,7 +1176,7 @@ export enum AdminProductDetailV3ResponseDtoProductTypeEnum {
   BUNDLE = "BUNDLE",
 }
 
-/** 어드민 프론트 상품 검색 요청 (페이지 기반) */
+/** 어드민 상품 Excel 내보내기 요청 */
 
 export interface DetailPriceMasterDTO {
   /**
@@ -1077,11 +1220,15 @@ export interface DetailPackageMasterDTO {
    * @example "FREE"
    */
   packageType: DetailPackageMasterDtoPackageTypeEnum;
+  /** 패키지 상품 가격 목록 */
+  prices: DetailPriceMasterDTO[];
   /**
    * 수량
    * @format int32
    */
   quantity: number;
+  /** 패키지 상품명 */
+  sapName: string;
   /** SKU */
   sku: string;
 }

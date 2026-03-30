@@ -1,5 +1,7 @@
-// 대시보드 타이틀 컴포넌트 Order | Return | Exchange
+import DashboardIcon from "@/features/dashboard/components/DashboardIcon";
+
 import { cn } from "@/shared/utils/cn";
+import { camelToTitleCase } from "@/shared/utils/stringUtils";
 
 export function DashboardTitle({
   title,
@@ -16,9 +18,9 @@ export function DashboardTitle({
         `border-b-solid bg-${color}-opacity flex items-center gap-[16px] border-b-[2px] border-solid border-b-${color} p-[16px]`,
       )}
     >
-      <div>{icon}</div>
+      <DashboardIcon icon={icon} bgColor={color} />
       <h2 className={`text-[16px] font-bold text-${color} capitalize`}>
-        {title}
+        {camelToTitleCase(title)}
       </h2>
     </div>
   );

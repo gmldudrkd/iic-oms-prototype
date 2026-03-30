@@ -5,8 +5,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
-import ClaimInformation from "@/features/integrated-order-detail/components/ClaimInformation";
-import DataGridClaim from "@/features/integrated-order-detail/components/DataGridClaim";
+import DataGridCancelClaim from "@/features/integrated-order-detail/components/DataGridCancelClaim";
+import ClaimInformation from "@/features/integrated-order-detail/components/RegisterClaim/ClaimInformation";
 import Summary from "@/features/integrated-order-detail/components/Summary";
 import usePatchShipmentCancel from "@/features/integrated-order-detail/hooks/usePatchShipmentCancel";
 import { transformRowsCancelShipment } from "@/features/integrated-order-detail/models/transforms";
@@ -178,8 +178,8 @@ export default function CancelShipment({ open, setOpen, shipment }: Props) {
               />
 
               {/* claim data grid */}
-              <DataGridClaim
-                title="Choose product for cancel"
+              <DataGridCancelClaim
+                claimType="CANCEL_SHIPMENT"
                 rows={rows}
                 setRows={setRows}
                 selectedRows={selectedRows}

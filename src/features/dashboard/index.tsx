@@ -1,5 +1,7 @@
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { Button } from "@mui/material";
+import { Button, Tabs, Tab } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { useMemo, useState } from "react";
 
@@ -12,54 +14,16 @@ import { SECTION_DATA } from "@/features/dashboard/modules/constants";
 import DataGridWrap from "@/features/integrated-order-list/components/DataGridWrap";
 import { useGetIntegratedOrderList } from "@/features/integrated-order-list/hooks/useGetIntegratedOrderList";
 
-import { ExchangeSearchRequest } from "@/shared/generated/oms/types/Exchange";
-import { OrderSearchRequest } from "@/shared/generated/oms/types/Order";
 import { OrderSummaryRequestChannelTypesEnum } from "@/shared/generated/oms/types/OrderDashboard";
-import { ReturnSearchRequest } from "@/shared/generated/oms/types/Return";
 import useCurrentTime from "@/shared/hooks/useCurrentTime";
 
 import IconArrow from "@/assets/icons/IconArrow";
 
-const _dataIntegratedOrderList = {
-  data: [
-    {
-      orderId: "751798973689087458",
-      originOrderNo: "NF2509050AIOM1DOSY",
-      channelType: {
-        name: "NUFLAAT_OFFICIAL",
-        description: "OWN_KR",
-      },
-      orderedAt: "2025-09-05T13:37:57Z",
-      status: {
-        name: "COMPLETED",
-        description: "Completed",
-      },
-      shipments: [
-        {
-          shipmentId: "a",
-          shipmentNo: "a",
-          status: {
-            name: "DELIVERED",
-            description: "Delivered",
-          },
-          trackingNo: "1,2",
-        },
-        {
-          shipmentId: "b",
-          shipmentNo: null,
-          status: {
-            name: "DELIVERED2",
-            description: "Delivered2",
-          },
-          trackingNo: "1",
-        },
-      ],
-    },
-  ],
-};
+type TabType = "order" | "claim";
 
 export default function OrderDashboard() {
   const [isMore, setIsMore] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabType>("order");
 
   const [dashboardStatus, setDashboardStatus] =
     useState<DashboardStatus | null>(null);
@@ -106,7 +70,7 @@ export default function OrderDashboard() {
 
   return (
     <>
-      <div className="relative mb-[24px] border-b border-outlined bg-white px-[24px] pb-[24px]">
+      <div className="relative mb-[24px] border-b border-outlined bg-white px-[24px] pb-[24px] pt-[6px]">
         <div className="absolute right-[24px] top-[-48px] flex items-center gap-[8px]">
           <UpdatedAt />
           <Button
@@ -120,10 +84,32 @@ export default function OrderDashboard() {
           </Button>
         </div>
 
+        {/* 탭 */}
+        <Tabs
+          value={activeTab}
+          onChange={(_, value: TabType) => setActiveTab(value)}
+          sx={{ minHeight: 42 }}
+        >
+          <Tab
+            icon={<CreditCardIcon />}
+            iconPosition="start"
+            label="ORDER"
+            value="order"
+            className="!min-h-[42px]"
+          />
+          <Tab
+            icon={<NotificationsIcon />}
+            iconPosition="start"
+            label="CLAIM"
+            value="claim"
+            className="!min-h-[42px]"
+          />
+        </Tabs>
         {/* 대시보드 */}
         <div className="rounded-[6px] border-[1px] border-solid border-[#E0E0E0]">
+          {/* 탭별 섹션 */}
           <Grid container className="divide-x divide-[#E0E0E0]">
-            {SECTION_DATA.map((section) => (
+            {SECTION_DATA[activeTab].map((section) => (
               <DashboardSection
                 key={section.group}
                 section={section}
@@ -156,12 +142,7 @@ export default function OrderDashboard() {
       {dashboardStatus !== null && (
         <DataGridWrap
           dashboardGroup={dashboardStatus.group}
-          params={
-            params as
-              | OrderSearchRequest
-              | ReturnSearchRequest
-              | ExchangeSearchRequest
-          }
+          params={params}
           setParams={setParams}
           data={dataIntegratedOrderList || null}
           isSuccess={isSuccessIntegratedOrderList}

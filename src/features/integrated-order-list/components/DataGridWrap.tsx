@@ -19,44 +19,30 @@ import { FormProvider, useForm } from "react-hook-form";
 
 import { ModalBulkCancel } from "@/features/integrated-order-list/components/ModalBulkCancel";
 import { transformGroupData } from "@/features/integrated-order-list/models/transforms";
-import {
-  COLUMNS_CANCEL_ORDER,
-  COLUMNS_CANCEL_RETURN,
-  COLUMNS_CANCEL_EXCHANGE,
-} from "@/features/integrated-order-list/modules/columns";
-import {
-  COLUMNS_ORDER_LIST,
-  COLUMNS_RETURN_LIST,
-  COLUMNS_EXCHANGE_LIST,
-} from "@/features/integrated-order-list/modules/columns";
+import { OrderGroup } from "@/features/integrated-order-list/models/types";
+import { IntegratedOrderRequest } from "@/features/integrated-order-list/models/types";
+import { GROUPED_CONFIG } from "@/features/integrated-order-list/modules/constants";
 
 import TotalResult from "@/shared/components/text/TotalResult";
 import { COMMON_TABLE_PAGE_SIZE_OPTIONS } from "@/shared/constants";
 import { PageResponseExchangeResponse } from "@/shared/generated/oms/types/Exchange";
-import { ExchangeSearchRequest } from "@/shared/generated/oms/types/Exchange";
 import { PageResponseOrderResponse } from "@/shared/generated/oms/types/Order";
-import { OrderSearchRequest } from "@/shared/generated/oms/types/Order";
-import {
-  PageResponseReturnResponse,
-  ReturnSearchRequest,
-} from "@/shared/generated/oms/types/Return";
+import { PageResponseReshipmentResponse } from "@/shared/generated/oms/types/Reshipment";
+import { PageResponseReturnResponse } from "@/shared/generated/oms/types/Return";
 import useCurrentTime from "@/shared/hooks/useCurrentTime";
 import useSnackbarStore from "@/shared/stores/useSnackbarStore";
 import { useTimezoneStore } from "@/shared/stores/useTimezoneStore";
 import { MUIDataGridTheme } from "@/shared/styles/theme";
 
 interface DataGridWrapProps {
-  dashboardGroup: "order" | "return" | "exchange";
-  params: OrderSearchRequest | ReturnSearchRequest | ExchangeSearchRequest;
-  setParams: Dispatch<
-    SetStateAction<
-      OrderSearchRequest | ReturnSearchRequest | ExchangeSearchRequest
-    >
-  >;
+  dashboardGroup: OrderGroup;
+  params: IntegratedOrderRequest;
+  setParams: Dispatch<SetStateAction<IntegratedOrderRequest>>;
   data:
     | PageResponseOrderResponse
     | PageResponseReturnResponse
     | PageResponseExchangeResponse
+    | PageResponseReshipmentResponse
     | null;
   isSuccess: boolean;
   isFetching: boolean;
@@ -79,41 +65,6 @@ export default function DataGridWrap({
   const group = dashboardGroup;
   const { timezone } = useTimezoneStore();
   const { openSnackbar } = useSnackbarStore();
-
-  const groupConfig = useMemo(
-    () => ({
-      order: {
-        columns: COLUMNS_ORDER_LIST as GridColDef[],
-        totalCount: 0,
-        bulkCancelTitle: "Order Cancelation",
-        bulkCancelColumns: COLUMNS_CANCEL_ORDER as GridColDef[],
-        bulkCancelConfirmLabel: "Cancel and Refund",
-        ableBulkCancelStatus: ["Pending", "Collected", "Partly Confirmed"],
-      },
-      return: {
-        columns: COLUMNS_RETURN_LIST as GridColDef[],
-        totalCount: 0,
-        bulkCancelTitle: "Bulk Cancel",
-        bulkCancelColumns: COLUMNS_CANCEL_RETURN as GridColDef[],
-        bulkCancelConfirmLabel: "Cancel Return",
-        ableBulkCancelStatus: ["Pending"],
-      },
-      exchange: {
-        columns: COLUMNS_EXCHANGE_LIST as GridColDef[],
-        totalCount: 0,
-        bulkCancelTitle: "Bulk Cancel",
-        bulkCancelColumns: COLUMNS_CANCEL_EXCHANGE as GridColDef[],
-        bulkCancelConfirmLabel: "Cancel Exchange",
-        ableBulkCancelStatus: [
-          "Pending",
-          "Pickup Requested",
-          "Pickup Ongoing",
-          "Received",
-        ],
-      },
-    }),
-    [],
-  );
 
   // DataGrid에 표시될 columns와 rows를 위한 상태 추가
   const [displayColumns, setDisplayColumns] = useState<GridColDef[]>([]);
@@ -148,20 +99,18 @@ export default function DataGridWrap({
   }, [group, data, timezone, isSuccess, isFetching]);
 
   useEffect(() => {
-    const config = groupConfig[group as keyof typeof groupConfig];
+    const config = GROUPED_CONFIG[group as keyof typeof GROUPED_CONFIG];
 
     if (isSuccess && !isFetching && data && Array.isArray(data.data)) {
-      // setCurrentStaticConfig(config);
       setDisplayColumns(config.columns);
       setTotalCount(data.totalCount || 0);
       setRows(transformedRows as GridRowModel[]);
     } else {
-      // setCurrentStaticConfig(config);
       setDisplayColumns(config.columns);
       setTotalCount(0);
       setRows([]);
     }
-  }, [isSuccess, isFetching, data, group, groupConfig, transformedRows]);
+  }, [isSuccess, isFetching, data, group, transformedRows]);
 
   // 그룹 변경 시 선택된 행 및 데이터 초기화
   useEffect(() => {
@@ -196,15 +145,15 @@ export default function DataGridWrap({
     if (selectedRows.length === 0) return false;
     // return true;
     const ableBulkCancelStatus =
-      groupConfig[group as keyof typeof groupConfig]?.ableBulkCancelStatus ||
-      [];
+      GROUPED_CONFIG[group as keyof typeof GROUPED_CONFIG]
+        ?.ableBulkCancelStatus || [];
     if (ableBulkCancelStatus.length === 0) return false;
 
     // selectedRows의 각 row가 status 속성을 가지고 있는지 확인 후 비교
     return selectedRows.every((row) =>
       ableBulkCancelStatus.includes(row.status),
     );
-  }, [selectedRows, group, groupConfig]);
+  }, [selectedRows, group]);
 
   // 취소 모달 버튼 비활성화 로직
   const isButtonDisableCancelModal = useMemo(
@@ -254,32 +203,35 @@ export default function DataGridWrap({
             </Button>
 
             {/* Bulk Cancel 버튼 */}
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleBulkCancel}
-              disabled={!isCancelBulkButtonEnabled}
-            >
-              Bulk Cancel
-            </Button>
-
-            {/* Bulk Cancel Modal */}
-            <FormProvider {...methods}>
-              <ModalBulkCancel
-                group={group}
-                selectedRows={selectedRows}
-                columns={groupConfig[group].bulkCancelColumns}
-                openBulkCancel={openBulkCancel}
-                setOpenBulkCancel={setOpenBulkCancel}
-                bulkCancelTitle={groupConfig[group].bulkCancelTitle}
-                bulkCancelConfirmLabel={
-                  groupConfig[group].bulkCancelConfirmLabel
-                }
-                isButtonDisableCancelModal={isButtonDisableCancelModal}
-                refetchList={refetchList}
-                refetchDashboard={refetchDashboard}
-              />
-            </FormProvider>
+            {group !== "reshipment" && (
+              <>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleBulkCancel}
+                  disabled={!isCancelBulkButtonEnabled}
+                >
+                  Bulk Cancel
+                </Button>
+                {/* Bulk Cancel Modal */}
+                <FormProvider {...methods}>
+                  <ModalBulkCancel
+                    group={group}
+                    selectedRows={selectedRows}
+                    columns={GROUPED_CONFIG[group].bulkCancelColumns}
+                    openBulkCancel={openBulkCancel}
+                    setOpenBulkCancel={setOpenBulkCancel}
+                    bulkCancelTitle={GROUPED_CONFIG[group].bulkCancelTitle}
+                    bulkCancelConfirmLabel={
+                      GROUPED_CONFIG[group].bulkCancelConfirmLabel
+                    }
+                    isButtonDisableCancelModal={isButtonDisableCancelModal}
+                    refetchList={refetchList}
+                    refetchDashboard={refetchDashboard}
+                  />
+                </FormProvider>
+              </>
+            )}
           </div>
         </div>
 
@@ -302,12 +254,17 @@ export default function DataGridWrap({
             disableColumnFilter
             disableColumnSorting
             loading={isFetching}
-            checkboxSelection
-            rowSelectionModel={selectedItems}
-            onRowSelectionModelChange={handleSelectionModelChange}
-            rowHeight={24}
-            getRowHeight={() => "auto"}
-            hideFooterSelectedRowCount
+            {...(group !== "reshipment" && {
+              checkboxSelection: true,
+              rowSelectionModel: selectedItems,
+              onRowSelectionModelChange: handleSelectionModelChange,
+              rowHeight: 24,
+              getRowHeight: () => "auto",
+              hideFooterSelectedRowCount: true,
+            })}
+            {...(group === "reshipment" && {
+              getRowHeight: () => 43,
+            })}
           />
         </div>
       </div>

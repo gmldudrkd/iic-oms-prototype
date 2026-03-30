@@ -1,10 +1,4 @@
 /* eslint-disable */
-export interface InsertInventoryInitRequest {
-  deliveryCode?: string;
-  invoice?: string;
-  japan?: boolean;
-}
-
 export interface BranchPackageMappingUpdateRequest {
   appliedDate: string;
   packageCode: string;

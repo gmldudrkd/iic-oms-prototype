@@ -11,6 +11,7 @@ export default function ModalBump({
   postButtonClassNames,
   closeButtonClassNames,
   buttonDisable = false,
+  children,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -22,14 +23,20 @@ export default function ModalBump({
   postButtonClassNames?: string;
   closeButtonClassNames?: string;
   buttonDisable?: boolean;
+  children?: React.ReactNode;
 }) {
   return (
     <ContentDialog
       open={open}
       setOpen={setOpen}
-      maxWidth="xs"
+      maxWidth={children ? "sm" : "xs"}
       dialogTitleClassNames="hidden"
-      dialogContent={<p className="mt-[16px]">{text}</p>}
+      dialogContent={
+        <>
+          <p className="mt-[16px] whitespace-pre-line">{text}</p>
+          {children}
+        </>
+      }
       dialogConfirmLabel={dialogConfirmLabel}
       dialogCloseLabel={dialogCloseLabel}
       handlePost={handlePost}

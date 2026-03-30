@@ -25,7 +25,7 @@ import { useTimezoneStore } from "@/shared/stores/useTimezoneStore";
 import { getLocalTime } from "@/shared/utils/formatDate";
 
 const ORDER_STATUS = OrderSearchRequestOrderStatusesEnum;
-const { PENDING, COLLECTED, PARTLY_CONFIRMED, PARTIAL_SHIPMENT_REQUESTED } =
+const { PENDING, PARTLY_CONFIRMED, PARTIAL_SHIPMENT_REQUESTED, COMPLETED } =
   ORDER_STATUS;
 
 export default function OrderDetailInfo() {
@@ -46,25 +46,14 @@ export default function OrderDetailInfo() {
   const { orderDetail } = transformedData || {};
 
   const buttonConditions = useMemo(() => {
-    const items = data?.items ?? [];
     return {
       //  Partly Confirmed 또는 Partial Shipment Requested 상태에서만 노출
       requestPartialShipment:
         data?.status.name === PARTLY_CONFIRMED ||
         data?.status.name === PARTIAL_SHIPMENT_REQUESTED,
-
-      // ( (OrderedQty.Shipment) + (ClaimQty.Reshipped) ) > ClaimQty.Returned
-      registerClaim: items.some(
-        (item) =>
-          item.shippedQuantity + item.reshippedQuantity > item.returnedQuantity,
-      ),
-
-      // Pending, Collected, Partly Confirmed, Partial Shipment Requested 상태
-      cancelOrder:
-        data?.status.name === PENDING ||
-        data?.status.name === COLLECTED ||
-        data?.status.name === PARTLY_CONFIRMED ||
-        data?.status.name === PARTIAL_SHIPMENT_REQUESTED, // 부분 출고 후 재고 없는 상품 취소 처리를 위함
+      _registerClaim: data?.status.name === COMPLETED,
+      registerClaim: true,
+      cancelOrder: data?.status.name === PENDING,
     };
   }, [data]);
 
@@ -99,6 +88,7 @@ export default function OrderDetailInfo() {
               )}
               {buttonConditions.registerClaim && (
                 <RegisterClaim
+                  // open={true}
                   open={open === "REGISTER_CLAIM"}
                   setOpen={setOpen}
                 />
@@ -119,6 +109,29 @@ export default function OrderDetailInfo() {
           </div>
         </DetailGridSingle>
       )}
+      <DetailGrid>
+        <div>
+          <h3>Receive Method</h3>
+          <Cell>
+            <Chip
+              label={orderDetail.receiveMethod}
+              sx={{
+                color: "white",
+                bgcolor:
+                  orderDetail.receiveMethod === "Delivery"
+                    ? "var(--color-shipment)"
+                    : "var(--color-storePickup)",
+              }}
+            />
+          </Cell>
+        </div>
+        <div>
+          <h3>Order Type</h3>
+          <Cell>
+            <Chip label={orderDetail.orderType} color="default" />
+          </Cell>
+        </div>
+      </DetailGrid>
       <DetailGrid>
         <div>
           <h3>Orderer Name</h3>

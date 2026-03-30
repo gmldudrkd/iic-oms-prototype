@@ -7,21 +7,32 @@ export const { PICKING_REJECTED } = OrderSearchRequestShipmentStatusesEnum;
 export const CLAIM_OPTIONS = [
   {
     value: "RETURN",
-    label: "Return and request Pickup",
-    tooltip: "Register return and triggers pickup",
-  },
-  {
-    value: "RETURN_FORCE_REFUND",
-    label: "Force Refund without Pickup",
-    tooltip: "Register return and triggers refund without pickup",
+    label: "Return",
   },
   {
     value: "EXCHANGE",
     label: "Exchange",
-    tooltip: "Register exchange and triggers pickup",
+  },
+  {
+    value: "RESHIPMENT",
+    label: "Reshipment",
+  },
+  {
+    value: "RETURN_FORCE_REFUND",
+    label: "Force Refund",
   },
 ];
 
+export const PICKUP_OPTIONS = [
+  {
+    value: "true",
+    label: "Request Pickup",
+  },
+  {
+    value: "false",
+    label: "Do Not Request Pickup",
+  },
+];
 // ------------------------------------------------------------
 // 취소, 교환, 반품 이유 리스트
 export const CLAIM_REASON_LISTS = {
@@ -257,11 +268,11 @@ export const MODAL_CONFIGS = {
     closeButtonClassNames: "!text-primary",
     postButtonClassNames: "!text-error",
   },
-  tracking_info: {
-    text: "'Tracking information' has been entered. Are you sure you want to proceed with the claim without a pickup?",
-    dialogCloseLabel: "Back",
-    dialogConfirmLabel: "Continue",
-    closeButtonClassNames: "!text-error",
-    postButtonClassNames: "!text-primary",
-  },
+  // tracking_info: {
+  //   text: "'Tracking information' has been entered. Are you sure you want to proceed with the claim without a pickup?",
+  //   dialogCloseLabel: "Back",
+  //   dialogConfirmLabel: "Continue",
+  //   closeButtonClassNames: "!text-error",
+  //   postButtonClassNames: "!text-primary",
+  // },
 };

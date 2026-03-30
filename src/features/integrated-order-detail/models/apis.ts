@@ -186,11 +186,11 @@ export const patchReturnRecipient = async (
  * 교환 상세 조회
  */
 export const getExchangeDetail = async (orderId: string) => {
-  const responseData = await FetchWithToken(
+  const responseData = await FetchWithToken<ExchangeDetailResponse>(
     `/exchanges/orders/${orderId}`,
     "GET",
   );
-  return responseData as ExchangeDetailResponse;
+  return responseData;
 };
 
 /**
@@ -201,6 +201,19 @@ export const getExchangeDetail = async (orderId: string) => {
 export const patchExchangeCancel = async (exchangeId: string) => {
   const rawResponse = await FetchWithToken(
     `/exchanges/${exchangeId}/cancel`,
+    "PATCH",
+  );
+  return rawResponse;
+};
+
+/**
+ * PATCH
+ * /v1/api/exchanges/{exchangeId}/request-shipment
+ * 교환 출고 요청
+ */
+export const patchExchangeRequestShipment = async (exchangeId: string) => {
+  const rawResponse = await FetchWithToken(
+    `/exchanges/${exchangeId}/request-shipment`,
     "PATCH",
   );
   return rawResponse;

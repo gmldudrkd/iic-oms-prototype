@@ -1,9 +1,10 @@
 import { Box } from "@mui/material";
 import { useState } from "react";
 
-import ModalLogHistoryExchange from "@/features/integrated-order-detail/components/ModalLogHistoryExchange";
-import ModalLogHistoryOrder from "@/features/integrated-order-detail/components/ModalLogHistoryOrder";
-import ModalLogHistoryReturn from "@/features/integrated-order-detail/components/ModalLogHistoryReturn";
+import ModalExchange from "@/features/integrated-order-detail/components/LogDetail/ModalExchange";
+import ModalOrder from "@/features/integrated-order-detail/components/LogDetail/ModalOrder";
+import ModalReshipment from "@/features/integrated-order-detail/components/LogDetail/ModalReshipment";
+import ModalReturn from "@/features/integrated-order-detail/components/LogDetail/ModalReturn";
 
 import ContentDialog from "@/shared/components/dialog/ContentDialog";
 
@@ -16,7 +17,7 @@ export default function CollapsibleSection({
   children,
   rightButtonText,
 }: {
-  title: "Order" | "Return" | "Exchange";
+  title: "Order" | "Return" | "Exchange" | "Reshipment";
   isExpanded: boolean;
   toggleExpanded: () => void;
   children: React.ReactNode;
@@ -24,7 +25,7 @@ export default function CollapsibleSection({
 }) {
   // 단일 상태로 모달 열림/닫힘 제어
   const [openModal, setOpenModal] = useState<
-    "Order" | "Return" | "Exchange" | null
+    "Order" | "Return" | "Exchange" | "Reshipment" | null
   >(null);
 
   // 모달 열림/닫힘 토글 함수
@@ -65,7 +66,7 @@ export default function CollapsibleSection({
           open={openModal === "Order"}
           setOpen={() => setOpenModal(null)}
           dialogTitle="Order Status Guide"
-          dialogContent={<ModalLogHistoryOrder />}
+          dialogContent={<ModalOrder />}
           dialogConfirmLabel="Close"
           handlePost={() => setOpenModal(null)}
           maxWidth="xl"
@@ -76,7 +77,7 @@ export default function CollapsibleSection({
           open={openModal === "Return"}
           setOpen={() => setOpenModal(null)}
           dialogTitle="Return Status Guide"
-          dialogContent={<ModalLogHistoryReturn />}
+          dialogContent={<ModalReturn />}
           dialogConfirmLabel="Close"
           handlePost={() => setOpenModal(null)}
           maxWidth="xl"
@@ -87,7 +88,17 @@ export default function CollapsibleSection({
           open={openModal === "Exchange"}
           setOpen={() => setOpenModal(null)}
           dialogTitle="Exchange Status Guide"
-          dialogContent={<ModalLogHistoryExchange />}
+          dialogContent={<ModalExchange />}
+          dialogConfirmLabel="Close"
+          handlePost={() => setOpenModal(null)}
+          maxWidth="xl"
+        />
+
+        <ContentDialog
+          open={openModal === "Reshipment"}
+          setOpen={() => setOpenModal(null)}
+          dialogTitle="Reshipment Status Guide"
+          dialogContent={<ModalReshipment />}
           dialogConfirmLabel="Close"
           handlePost={() => setOpenModal(null)}
           maxWidth="xl"

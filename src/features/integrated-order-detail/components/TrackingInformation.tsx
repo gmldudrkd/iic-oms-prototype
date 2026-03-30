@@ -1,14 +1,19 @@
 import { Autocomplete, FormControl, TextField } from "@mui/material";
+import { useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 export default function TrackingInformation() {
-  const { control, trigger } = useFormContext();
+  const { control, trigger, reset } = useFormContext();
   const carrierList = ["CJ", "DHL", "FEDEX", "UPS"];
+
+  useEffect(() => {
+    reset();
+  }, [reset]);
 
   return (
     <div>
       <h2 className="px-[16px] text-[14px] font-medium leading-[48px] text-text-secondary">
-        Tracking Information (Optional)
+        Tracking Information <span className="text-red-500">*</span>
       </h2>
       <div>
         <div className="flex flex-col gap-[12px]">
@@ -60,13 +65,6 @@ export default function TrackingInformation() {
             />
           </FormControl>
         </div>
-
-        <p className="px-[16px] py-[15px] text-[14px] text-gray-500">
-          Please note that if tracking information is entered,{" "}
-          <span className="font-bold text-red-500">
-            pickup through the WMS will not proceed.
-          </span>
-        </p>
       </div>
     </div>
   );

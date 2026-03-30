@@ -6,7 +6,9 @@ import { useState, useMemo } from "react";
 
 import CancelOrder from "@/features/integrated-order-detail/components/CancelOrder";
 import CancelShipment from "@/features/integrated-order-detail/components/CancelShipment";
+import CopyTextButton from "@/features/integrated-order-detail/components/CopyTextButton";
 import OrderInfoWrapper from "@/features/integrated-order-detail/components/OrderInfoWrapper";
+import RegisterClaimLost from "@/features/integrated-order-detail/components/RegisterClaim/variants/RegisterClaimLost";
 import RequestShipment from "@/features/integrated-order-detail/components/RequestShipment";
 import { transformRowsShipmentInfo } from "@/features/integrated-order-detail/models/transforms";
 import { transformRowsRequestShipment } from "@/features/integrated-order-detail/models/transforms";
@@ -30,7 +32,7 @@ import { formatAddress, getDisabledText } from "@/shared/utils/stringUtils";
 import IconArrowDropDownFilled from "@/assets/icons/IconArrowDropDownFilled";
 
 const SHIPMENT_STATUS = OrderSearchRequestShipmentStatusesEnum;
-const { PICKING_REJECTED, PICKING_REQUESTED } = SHIPMENT_STATUS;
+const { SHIPPED, PICKING_REJECTED, PICKING_REQUESTED } = SHIPMENT_STATUS;
 
 export default function ShipmentInfo() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -74,7 +76,8 @@ function ShipmentInfoItem({
 
   const buttonConditions = useMemo(() => {
     return {
-      reShip:
+      lost: item.status.name === SHIPPED,
+      requestShipment:
         item.status.name === PICKING_REJECTED &&
         item.event === OrderDetailShipmentResponseEventEnum.REJECT,
       cancelOrder: item.status.name === PICKING_REJECTED,
@@ -84,17 +87,22 @@ function ShipmentInfoItem({
 
   return (
     <div>
-      <button
-        className="flex w-full items-center gap-[8px] bg-primary p-[16px] text-[14px] font-medium text-white"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {isExpanded ? (
-          <IconArrowDropDownFilled />
-        ) : (
-          <IconArrowDropDownFilled className="rotate-[270deg]" />
-        )}
-        <p className="text-[16px] font-bold">#{item.shipmentNo}</p>
-      </button>
+      <div className="flex w-full items-center gap-[8px] bg-shipment p-[16px] py-[14px] text-white">
+        <button
+          className="flex items-center gap-[8px]"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? (
+            <IconArrowDropDownFilled />
+          ) : (
+            <IconArrowDropDownFilled className="rotate-[270deg]" />
+          )}
+          <span className="flex items-center gap-[6px] text-[16px] font-bold">
+            #{item.shipmentNo}
+          </span>
+        </button>
+        <CopyTextButton text={item.shipmentNo} className="!text-white" />
+      </div>
 
       {isExpanded && (
         <>
@@ -122,18 +130,25 @@ function ShipmentInfoItem({
             <div className="border-t border-solid border-[#E0E0E0]">
               <h3>Shipping Status</h3>
               <Cell>
-                <Chip label={item.status.description} color="default" />
+                <Chip label={item.status.description} color="shipment" />
                 <span className="ml-[17px] text-[13px] text-text-secondary">
                   {item.updatedAt}
                 </span>
 
                 <div className="ml-auto flex gap-[8px]">
-                  {buttonConditions.reShip && (
+                  {buttonConditions.lost && (
+                    <RegisterClaimLost
+                      open={open === "LOST_BUMP"}
+                      setOpen={setOpen}
+                      shipment={shipment}
+                    />
+                  )}
+                  {buttonConditions.requestShipment && (
                     <RequestShipment
                       open={open === "REQUEST_PARTIAL_SHIPMENT"}
                       setOpen={setOpen}
                       rows={rowsReShip ?? []}
-                      buttonLabel="Re-ship"
+                      buttonLabel="Request Shipment"
                     />
                   )}
 

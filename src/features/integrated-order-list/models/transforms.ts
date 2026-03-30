@@ -2,11 +2,13 @@ import {
   OrderRow,
   ReturnRow,
   ExchangeRow,
+  ReshipmentRow,
 } from "@/features/integrated-order-list/models/types";
 import { OrderGroup } from "@/features/integrated-order-list/models/types";
 
 import { ExchangeResponse } from "@/shared/generated/oms/types/Exchange";
 import { OrderResponse } from "@/shared/generated/oms/types/Order";
+import { ReshipmentResponse } from "@/shared/generated/oms/types/Reshipment";
 import { ReturnResponse } from "@/shared/generated/oms/types/Return";
 import { getLocalTime } from "@/shared/utils/formatDate";
 import { snakeToTitleCase } from "@/shared/utils/stringUtils";
@@ -45,17 +47,11 @@ export const transformOrderData = ({
         orderId: row.orderId,
         brand: row.brand.description,
         corp: row.corporation,
+        orderType: row.orderType.description,
+        receiveMethod:
+          (row as Record<string, unknown>).receiveMethod || "Delivery",
         channel: row.channelType.description,
         orderNo: row.originOrderNo,
-        receiveMethod: (row as Record<string, unknown>).receiveMethod
-          ? String((row as Record<string, unknown>).receiveMethod)
-          : (row.orderId.charCodeAt(row.orderId.length - 1) % 3 === 0
-              ? "Store Pickup"
-              : "Delivery"),
-        orderType: row.orderType.description,
-        tags: (row as Record<string, unknown>).tags
-          ? String((row as Record<string, unknown>).tags)
-          : "",
         orderDate: getLocalTime(row.orderedAt, timezone),
         ordererName: row.ordererName || "-",
         ordererEmail: row.ordererEmail,
@@ -68,10 +64,10 @@ export const transformOrderData = ({
               snakeToTitleCase(shipment.status.name),
             )
           : [],
-        fulfillmentNo: row.shipments.map((shipment) =>
+        shipmentNo: row.shipments.map((shipment) =>
           convertShippingText(shipment.shipmentNo),
         ),
-        fulfillmentStatus: row.shipments.map((shipment) =>
+        shipmentStatus: row.shipments.map((shipment) =>
           snakeToTitleCase(shipment.status.name),
         ),
         trackingNo: row.shipments.map((shipment) =>
@@ -104,7 +100,7 @@ export const transformReturnData = ({
         status: snakeToTitleCase(row.status.name),
         recipientName: row.recipientName,
         recipientPhone: row.recipientPhone,
-        trackingNo: row.pickupTrackingNo,
+        trackingNo: row.pickupTrackingNo || "-",
         returnNo: row.returnNo,
       };
     })
@@ -143,16 +139,51 @@ export const transformExchangeData = ({
     .filter(Boolean);
 };
 
+export const transformReshipmentData = ({
+  data,
+  timezone,
+}: TransformParams<ReshipmentResponse>) => {
+  return data
+    .map((row) => {
+      if (!row.reshipmentId) return null;
+
+      return {
+        id: row.reshipmentId,
+        orderId: row.orderId,
+        brand: row.brand.description,
+        corp: row.corporation,
+        channel: row.channelType.description,
+        orderNo: row.originOrderNo || "",
+        createdAt: getLocalTime(row.createdAt, timezone),
+        ordererName: row.ordererName || "-",
+        ordererEmail: row.ordererEmail,
+        ordererPhone: row.ordererPhone || "-",
+        status: snakeToTitleCase(row.status.name),
+        recipientName: row.recipientName,
+        recipientPhone: row.recipientPhone,
+        reshipmentNo: row.reshipmentNo,
+        trackingNo: row.trackingNo || "-",
+      };
+    })
+    .filter(Boolean);
+};
+
 // ✅ 통합 entry 함수
 export const transformGroupData = (
   group: OrderGroup,
-  data: OrderResponse[] | ReturnResponse[] | ExchangeResponse[],
+  data:
+    | OrderResponse[]
+    | ReturnResponse[]
+    | ExchangeResponse[]
+    | ReshipmentResponse[],
   timezone: string,
-): OrderRow[] | ReturnRow[] | ExchangeRow[] => {
+): OrderRow[] | ReturnRow[] | ExchangeRow[] | ReshipmentRow[] => {
   if (data === null || data === undefined) return [];
 
   switch (group) {
     case "order":
+    case "shipment":
+    case "storePickup":
       return transformOrderData({
         data: data as OrderResponse[],
         timezone,
@@ -167,6 +198,11 @@ export const transformGroupData = (
         data: data as ExchangeResponse[],
         timezone,
       }) as ExchangeRow[];
+    case "reshipment":
+      return transformReshipmentData({
+        data: data as ReshipmentResponse[],
+        timezone,
+      }) as ReshipmentRow[];
     default:
       return [];
   }

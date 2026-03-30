@@ -92,14 +92,17 @@ export const useDashboardParams = (dashboardStatus: DashboardStatus | null) => {
   ) => {
     switch (group) {
       case "order":
-        if (category === "shippingClosed" || category === "shipping") {
-          return { shipmentStatuses: status };
-        }
         return { orderStatuses: status };
+      case "shipment":
+        return { shipmentStatuses: status };
+      case "storePickup":
+        return { storePickupStatuses: status };
       case "return":
         return { returnStatuses: status };
       case "exchange":
         return { exchangeStatuses: status };
+      case "reshipment":
+        return { reshipmentStatuses: status };
       default:
         return {};
     }

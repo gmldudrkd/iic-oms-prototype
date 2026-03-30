@@ -1,20 +1,31 @@
-import PageClient from "./PageClient";
+"use client";
 
-export function generateStaticParams() {
-  return [
-    { email: "monster9999%40gentlemonster.com" },
-    { email: "monster%40gentlemonster.com" },
-    { email: "admin.user%40gentlemonster.com" },
-    { email: "monster9996%40gentlemonster.com" },
-    { email: "monster9995%40gentlemonster.com" },
-    { email: "monster9994%40gentlemonster.com" },
-    { email: "monster9993%40gentlemonster.com" },
-    { email: "monster9992%40gentlemonster.com" },
-    { email: "monster9991%40gentlemonster.com" },
-    { email: "monster9990%40gentlemonster.com" },
-  ];
-}
+import { useParams } from "next/navigation";
 
-export default function Page() {
-  return <PageClient />;
+import User from "@/features/user";
+
+import Title from "@/shared/components/text/Title";
+
+export default function UserPage() {
+  const { email }: { email: string } = useParams();
+  const decodedEmail = decodeURIComponent(email);
+
+  return (
+    <>
+      <div className="flex flex-col border-b border-outlined bg-white">
+        <div className="px-[24px] pt-[24px]">
+          <Title
+            text={decodedEmail}
+            classNames="flex flex-row justify-between items-center w-full"
+          >
+            <p className="text-[12px]">
+              Approval can only be processed within the closed network of the
+              head office.
+            </p>
+          </Title>
+        </div>
+      </div>
+      <User />
+    </>
+  );
 }

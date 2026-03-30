@@ -17,6 +17,8 @@ export const transformDashboardData = (
     returnSummaries,
     exchangeSummaries,
     shipmentSummaries,
+    reshipmentSummaries,
+    storePickupSummaries,
   } = data;
 
   const toItems = (counts?: StatusCount[]): DashboardItem[] =>
@@ -40,15 +42,30 @@ export const transformDashboardData = (
         orderSummaries?.inProgressCounts,
         orderSummaries?.inProgressTotalCount,
       ),
-      shipping: transformSection(
-        shipmentSummaries?.inProgressCounts,
-        (shipmentSummaries?.inProgressTotalCount || 0) +
-          (shipmentSummaries?.finalizedTotalCount || 0),
-      ),
-      shippingClosed: transformSection(shipmentSummaries?.finalizedCounts),
       finalized: transformSection(
         orderSummaries?.finalizedCounts,
         orderSummaries?.finalizedTotalCount,
+      ),
+    },
+    shipment: {
+      inProgress: transformSection(
+        shipmentSummaries?.inProgressCounts,
+        shipmentSummaries?.inProgressTotalCount,
+      ),
+      finalized: transformSection(
+        shipmentSummaries?.finalizedCounts,
+        shipmentSummaries?.finalizedTotalCount,
+      ),
+    },
+    // TODO: storePickup 데이터 추가
+    storePickup: {
+      inProgress: transformSection(
+        storePickupSummaries?.inProgressCounts,
+        storePickupSummaries?.inProgressTotalCount,
+      ),
+      finalized: transformSection(
+        storePickupSummaries?.finalizedCounts,
+        storePickupSummaries?.finalizedTotalCount,
       ),
     },
     return: {
@@ -77,6 +94,16 @@ export const transformDashboardData = (
       finalized: transformSection(
         exchangeSummaries?.finalizedCounts,
         exchangeSummaries?.finalizedTotalCount,
+      ),
+    },
+    reshipment: {
+      inProgress: transformSection(
+        reshipmentSummaries?.inProgressCounts,
+        reshipmentSummaries?.inProgressTotalCount,
+      ),
+      finalized: transformSection(
+        reshipmentSummaries?.finalizedCounts,
+        reshipmentSummaries?.finalizedTotalCount,
       ),
     },
   };

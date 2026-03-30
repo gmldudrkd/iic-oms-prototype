@@ -1,6 +1,4 @@
 /* eslint-disable */
-import { Item } from "./common";
-
 export interface SapReceiveResponse {
   ES_RESULT?: ResponseData;
   success?: boolean;
@@ -185,11 +183,4 @@ export interface ProductItem {
   ZZ_VLT?: string;
   enabledSmaregi?: boolean;
   valid?: boolean;
-}
-
-export interface SapAsnInboundRequest {
-  I_BRAND_ID?: string;
-  I_IF_DATE?: string;
-  I_SENDTO?: string;
-  T_DATA?: Item[];
 }

@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
 import NextAuth, {
   AuthOptions,
   DefaultSession,
@@ -8,21 +7,6 @@ import NextAuth, {
 import { AdapterUser } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
-
-// Prototype mode: mock session for /api/auth/session
-const isPrototype = process.env.NEXT_PUBLIC_PROTOTYPE_MODE === "true";
-const MOCK_SESSION_RESPONSE = {
-  user: {
-    id: "prototype@systemiic.com",
-    userId: "prototype@systemiic.com",
-    lastLoginAt: new Date().toISOString(),
-  },
-  expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-  accessToken: "prototype-mock-access-token",
-  refreshToken: "prototype-mock-refresh-token",
-  accessTokenExpires: Date.now() + 365 * 24 * 60 * 60 * 1000,
-  refreshTokenExpires: Date.now() + 365 * 24 * 60 * 60 * 1000,
-};
 
 interface CustomUser extends User {
   userId: string;
@@ -189,19 +173,4 @@ export const authOptions: AuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
-
-// Prototype mode: intercept session requests to return mock session
-const prototypeHandler = async (req: NextRequest) => {
-  const url = new URL(req.url);
-  if (isPrototype && url.pathname.endsWith("/session")) {
-    return NextResponse.json(MOCK_SESSION_RESPONSE);
-  }
-  // CSRF token도 mock으로 반환
-  if (isPrototype && url.pathname.endsWith("/csrf")) {
-    return NextResponse.json({ csrfToken: "prototype-csrf-token" });
-  }
-  return handler(req as any, { params: { nextauth: url.pathname.split("/api/auth/")[1]?.split("/") || [] } } as any);
-};
-
-export const GET = isPrototype ? prototypeHandler : handler;
-export const POST = isPrototype ? prototypeHandler : handler;
+export { handler as GET, handler as POST };

@@ -31,6 +31,7 @@ export function StatusCards({
 }) {
   // 각 아이템에 대한 클릭 핸들러
   const handleClick = (itemLabel: string) => {
+    console.log("group", group, "category", category, "itemLabel", itemLabel);
     setDashboardStatus({
       group,
       category,
@@ -68,11 +69,14 @@ export function StatusCards({
             dashboardStatus?.status?.includes(itemStatusIdentifier);
 
           return (
-            <Grid key={`${group}-${category}-${item.label}`} size={6}>
+            <Grid
+              key={`${group}-${category}-${item.label}`}
+              size={{ md: 12, lg: 6 }}
+            >
               <div>
                 <p>
                   <button
-                    className={`line-clamp-1 overflow-hidden text-left text-[14px] capitalize text-[rgba(0,0,0,0.60)] ${
+                    className={`text-left text-[14px] capitalize text-[rgba(0,0,0,0.60)] ${
                       isActive
                         ? "font-bold text-primary underline"
                         : "font-medium hover:text-text-primary hover:underline"

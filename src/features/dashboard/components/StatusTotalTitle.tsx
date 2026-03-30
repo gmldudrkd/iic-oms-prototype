@@ -16,7 +16,7 @@ export function StatusTotalTitle({
         >
           {label}
         </p>
-        {(label === "Finalized" || label === "Shipping Closed") && (
+        {label === "Finalized" && (
           <p className="text-[14px] text-text-disabled">last 30 days</p>
         )}
       </div>

@@ -25,3 +25,29 @@ export const DATA_GRID_STYLES = {
     alignItems: "center",
   },
 };
+
+export const DATA_GRID_STYLES_CLAIM = {
+  "& .inactive-row:hover": { backgroundColor: "transparent" },
+  "& .inactive-row .MuiCheckbox-root": {
+    opacity: 0.5,
+    pointerEvents: "none",
+  },
+  "& .MuiDataGrid-cell": {
+    alignItems: "center",
+    paddingTop: "8px",
+    paddingBottom: "8px",
+  },
+  "& .custom-cell-claim": {
+    padding: "0",
+  },
+  "& .custom-cell-center": {
+    display: "flex",
+    alignItems: "center",
+  },
+  "& .MuiDataGrid-row.Mui-selected": {
+    backgroundColor: "#fff",
+  },
+  "& .MuiDataGrid-row:hover, & .MuiDataGrid-row.Mui-selected:hover": {
+    backgroundColor: "#fff",
+  },
+};

@@ -1,15 +1,32 @@
-import PageClient from "./PageClient";
+"use client";
 
-export function generateStaticParams() {
-  return [
-    { id: "1" },
-    { id: "2" },
-    { id: "3" },
-    { id: "4" },
-    { id: "5" },
-  ];
-}
+import ChannelDetail from "@/features/channel-detail";
 
-export default function Page() {
-  return <PageClient />;
+import BreadcrumbsComponent from "@/shared/components/Breadcrumbs";
+import Title from "@/shared/components/text/Title";
+
+export default function ChannelDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { id } = params;
+  return (
+    <>
+      <div className="flex flex-col">
+        <div className="bg-white px-[24px] pt-[24px]">
+          <BreadcrumbsComponent
+            items={[
+              {
+                href: "/channel/channel-list",
+                label: "Channel List",
+              },
+            ]}
+          />
+          <Title text={`Channel No: ${id}`} />
+        </div>
+      </div>
+      <ChannelDetail isEdit />
+    </>
+  );
 }

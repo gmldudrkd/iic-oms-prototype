@@ -1,6 +1,4 @@
 /* eslint-disable */
-import { Result } from "./common";
-
 export interface SmsSendRequest {
   REQ_SYS?: string;
   rcontents?: MessagePayload;
@@ -15,6 +13,12 @@ export interface MessagePayload {
 
 export interface SmsSendResponse {
   result?: Result;
+}
+
+export interface Result {
+  /** @format int64 */
+  code?: number;
+  msg?: string;
 }
 
 export interface LmsSendRequest {

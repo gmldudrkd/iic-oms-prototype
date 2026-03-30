@@ -1,16 +1,7 @@
-import PageClient from "./PageClient";
+"use client";
 
-export function generateStaticParams() {
-  return [
-    { sku: "GM-KUK-001-BLK" },
-    { sku: "GM-KUK-002-WHT" },
-    { sku: "AT-LPM-001-RSE" },
-    { sku: "AT-LPM-002-CRL" },
-    { sku: "NF-BDL-001" },
-    { sku: "GM-SUN-001-TRT" },
-  ];
-}
+import ProductMasterDetail from "@/features/product-detail/components/ProductMasterDetail";
 
-export default function Page() {
-  return <PageClient />;
+export default function ProductMasterPage() {
+  return <ProductMasterDetail />;
 }

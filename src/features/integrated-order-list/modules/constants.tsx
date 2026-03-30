@@ -1,5 +1,16 @@
+import { GridColDef } from "@mui/x-data-grid-pro";
 import { DateRange, PickersShortcutsItem } from "@mui/x-date-pickers-pro";
 import dayjs, { Dayjs } from "dayjs";
+
+import {
+  COLUMNS_CANCEL_ORDER,
+  COLUMNS_CANCEL_RETURN,
+  COLUMNS_CANCEL_EXCHANGE,
+  COLUMNS_ORDER_LIST,
+  COLUMNS_RETURN_LIST,
+  COLUMNS_EXCHANGE_LIST,
+  COLUMNS_RESHIPMENT_LIST,
+} from "@/features/integrated-order-list/modules/columns";
 
 // 검색 폼 필드
 export const FORM_FIELDS = [
@@ -79,6 +90,7 @@ export const SEARCH_KEY_TYPE_RETURN = [
   { label: "Orderer Phone", value: "ordererPhone" },
   { label: "Return No", value: "returnNos" },
   { label: "Purchase No", value: "purchaseNo" },
+  { label: "Tracking No", value: "trackingNo" },
 ];
 
 export const SEARCH_KEY_TYPE_EXCHANGE = [
@@ -88,6 +100,16 @@ export const SEARCH_KEY_TYPE_EXCHANGE = [
   { label: "Orderer Phone", value: "ordererPhone" },
   { label: "Exchange No", value: "exchangeNos" },
   { label: "Purchase No", value: "purchaseNo" },
+  { label: "Tracking No", value: "trackingNo" },
+];
+
+export const SEARCH_KEY_TYPE_RESHIPMENT = [
+  { label: "Order No", value: "originOrderNos" },
+  { label: "Orderer Name", value: "ordererName" },
+  { label: "Orderer Email", value: "ordererEmail" },
+  { label: "Orderer Phone", value: "ordererPhone" },
+  { label: "Reshipment No", value: "reshipmentNos" },
+  { label: "Tracking No", value: "trackingNo" },
 ];
 
 // GROUPED_STATUS_FILTER
@@ -144,6 +166,76 @@ export const GROUPED_STATUS_FILTER_EXCHANGE = [
   { label: "Pickup Requested", value: "PICKUP_REQUESTED" },
   { label: "Pickup Ongoing", value: "PICKUP_ONGOING" },
   { label: "Received", value: "RECEIVED" },
+  { label: "Inspected", value: "INSPECTED" },
+  { label: "Shipment Requested", value: "SHIPMENT_REQUESTED" },
   { label: "Exchanged", value: "EXCHANGED" },
   { label: "Canceled", value: "CANCELED" },
 ];
+
+export const GROUPED_STATUS_FILTER_RESHIPMENT = [
+  { label: "Picking Requested", value: "PICKING_REQUESTED" },
+  { label: "Picking Rejected", value: "PICKING_REJECTED" },
+  { label: "Picked", value: "PICKED" },
+  { label: "Packed", value: "PACKED" },
+  { label: "Shipped", value: "SHIPPED" },
+  { label: "Delivered", value: "DELIVERED" },
+  { label: "Canceled", value: "CANCELED" },
+];
+
+// GROUPED_CONFIG
+export const GROUPED_CONFIG = {
+  order: {
+    columns: COLUMNS_ORDER_LIST as GridColDef[],
+    totalCount: 0,
+    bulkCancelTitle: "Order Cancelation",
+    bulkCancelColumns: COLUMNS_CANCEL_ORDER as GridColDef[],
+    bulkCancelConfirmLabel: "Cancel and Refund",
+    ableBulkCancelStatus: ["Pending", "Collected", "Partly Confirmed"],
+  },
+  shipment: {
+    columns: COLUMNS_ORDER_LIST as GridColDef[],
+    totalCount: 0,
+    bulkCancelTitle: "Order Cancelation",
+    bulkCancelColumns: COLUMNS_CANCEL_ORDER as GridColDef[],
+    bulkCancelConfirmLabel: "Cancel and Refund",
+    ableBulkCancelStatus: ["Pending", "Collected", "Partly Confirmed"],
+  },
+  // TODO : storePickup 리스트 확인 필요
+  storePickup: {
+    columns: COLUMNS_ORDER_LIST as GridColDef[],
+    totalCount: 0,
+    bulkCancelTitle: "Order Cancelation",
+    bulkCancelColumns: COLUMNS_CANCEL_ORDER as GridColDef[],
+    bulkCancelConfirmLabel: "Cancel and Refund",
+    ableBulkCancelStatus: ["Pending", "Collected", "Partly Confirmed"],
+  },
+  return: {
+    columns: COLUMNS_RETURN_LIST as GridColDef[],
+    totalCount: 0,
+    bulkCancelTitle: "Bulk Cancel",
+    bulkCancelColumns: COLUMNS_CANCEL_RETURN as GridColDef[],
+    bulkCancelConfirmLabel: "Cancel Return",
+    ableBulkCancelStatus: ["Pending"],
+  },
+  exchange: {
+    columns: COLUMNS_EXCHANGE_LIST as GridColDef[],
+    totalCount: 0,
+    bulkCancelTitle: "Bulk Cancel",
+    bulkCancelColumns: COLUMNS_CANCEL_EXCHANGE as GridColDef[],
+    bulkCancelConfirmLabel: "Cancel Exchange",
+    ableBulkCancelStatus: [
+      "Pending",
+      "Pickup Requested",
+      "Pickup Ongoing",
+      "Received",
+    ],
+  },
+  reshipment: {
+    columns: COLUMNS_RESHIPMENT_LIST as GridColDef[],
+    totalCount: 0,
+    bulkCancelTitle: null,
+    bulkCancelColumns: null,
+    bulkCancelConfirmLabel: null,
+    ableBulkCancelStatus: null,
+  },
+};

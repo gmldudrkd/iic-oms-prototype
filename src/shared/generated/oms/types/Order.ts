@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Recipient, EnumResponse, DeliveryTracking, Delivery, OrderItemComponent, OrderItemProduct } from "./common";
+import { Recipient, Address, OrderItemComponent, OrderItemProduct, Item, EnumResponse, DeliveryTracking, Delivery } from "./common";
 
 export interface OrderEstimateRefundFeeRequest {
   claimType: OrderEstimateRefundFeeRequestClaimTypeEnum;
@@ -65,6 +65,143 @@ export interface OrderPartialShipmentItemRequest {
   quantity: number;
 }
 
+export interface OrderRead {
+  brand: OrderReadBrandEnum;
+  changeReason?: string;
+  channelType: OrderReadChannelTypeEnum;
+  corporation: OrderReadCorporationEnum;
+  /** @format date-time */
+  createdAt: string;
+  /** @format int64 */
+  id: number;
+  items: OrderItemRead[];
+  orderType: OrderReadOrderTypeEnum;
+  /** @format date-time */
+  orderedAt: string;
+  orderer: Orderer;
+  originOrderNo: string;
+  /** @uniqueItems true */
+  payments: OrderPayment[];
+  recipient: Recipient;
+  status: OrderReadStatusEnum;
+  /** @format date-time */
+  updatedAt: string;
+}
+
+export enum OrderReadStatusEnum {
+  PENDING = "PENDING",
+  COLLECTED = "COLLECTED",
+  PARTLY_CONFIRMED = "PARTLY_CONFIRMED",
+  PARTIAL_SHIPMENT_REQUESTED = "PARTIAL_SHIPMENT_REQUESTED",
+  SHIPMENT_REQUESTED = "SHIPMENT_REQUESTED",
+  DELETED = "DELETED",
+  CANCELED = "CANCELED",
+  COMPLETED = "COMPLETED",
+}
+
+export interface OrderPayment {
+  currency: string;
+  dutyAmount?: number;
+  method: string;
+  paidAmount?: number;
+  /** @format date-time */
+  paidAt: string;
+  shippingFee?: number;
+  taxAmount?: number;
+  transactionNo: string;
+}
+
+export interface Orderer {
+  address?: Address;
+  email: string;
+  firstName?: string;
+  fullName?: string;
+  lastName?: string;
+  phone?: string;
+  phoneCountryNo?: string;
+}
+
+export enum OrderReadOrderTypeEnum {
+  NORMAL = "NORMAL",
+  GIFT = "GIFT",
+  RX = "RX",
+}
+
+export interface OrderItemRead {
+  /** @format int32 */
+  allocateQuantity: number;
+  /** @format int32 */
+  cancelQuantity: number;
+  category?: string;
+  components: OrderItemComponent[];
+  /** @format int64 */
+  id: number;
+  /** @format int32 */
+  orderQuantity: number;
+  originItemId?: string;
+  pointAmount: number;
+  price: number;
+  productCode?: string;
+  productName?: string;
+  products: OrderItemProduct[];
+  /** @format int32 */
+  shipmentQuantity: number;
+  sku: string;
+  upcCode?: string;
+}
+
+export enum OrderReadCorporationEnum {
+  KR = "KR",
+  JP = "JP",
+  US = "US",
+  CA = "CA",
+  TW = "TW",
+  SG = "SG",
+  AU = "AU",
+}
+
+export enum OrderReadChannelTypeEnum {
+  GENTLE_MONSTER_OFFICIAL_US = "GENTLE_MONSTER_OFFICIAL_US",
+  GENTLE_MONSTER_OFFICIAL_CA = "GENTLE_MONSTER_OFFICIAL_CA",
+  ATIISSU_OFFICIAL = "ATIISSU_OFFICIAL",
+  ATIISSU_TEST = "ATIISSU_TEST",
+  NUFLAAT_OFFICIAL = "NUFLAAT_OFFICIAL",
+}
+
+export enum OrderReadBrandEnum {
+  GENTLE_MONSTER = "GENTLE_MONSTER",
+  TAMBURINS = "TAMBURINS",
+  NUDAKE = "NUDAKE",
+  NUFLAAT = "NUFLAAT",
+  ATIISSU = "ATIISSU",
+}
+
+export interface ShipmentRead {
+  /** @format date-time */
+  createdAt: string;
+  items: Item[];
+  originOrderNo: string;
+  /** @format int64 */
+  shipmentId: number;
+  shipmentNo: string;
+  /** @format date-time */
+  shippedAt?: string;
+  status: ShipmentReadStatusEnum;
+  /** @format date-time */
+  updatedAt: string;
+}
+
+export enum ShipmentReadStatusEnum {
+  PICKING_REQUESTED = "PICKING_REQUESTED",
+  PICKED = "PICKED",
+  PACKED = "PACKED",
+  SHIPPED = "SHIPPED",
+  CANCELED = "CANCELED",
+  PICKING_REJECTED = "PICKING_REJECTED",
+  DELIVERED = "DELIVERED",
+  LOST = "LOST",
+}
+
 export interface OrderSearchRequest {
   /** @uniqueItems true */
   channelTypes?: OrderSearchRequestChannelTypesEnum[];
@@ -114,6 +251,7 @@ export enum OrderSearchRequestShipmentStatusesEnum {
   CANCELED = "CANCELED",
   PICKING_REJECTED = "PICKING_REJECTED",
   DELIVERED = "DELIVERED",
+  LOST = "LOST",
 }
 
 export enum OrderSearchRequestOrderStatusesEnum {
@@ -254,11 +392,13 @@ export enum OrderDetailShipmentResponseEventEnum {
   PICK = "PICK",
   PACK = "PACK",
   SHIP = "SHIP",
+  DISPATCH_OFFLINE = "DISPATCH_OFFLINE",
   COMPLETE = "COMPLETE",
   REJECT = "REJECT",
   CANCEL = "CANCEL",
   CANCEL_REQUEST = "CANCEL_REQUEST",
   RESHIPMENT = "RESHIPMENT",
+  LOSE = "LOSE",
 }
 
 export interface OrderDetailRefundPaymentResponse {
@@ -278,27 +418,6 @@ export interface RefundPayment {
   shippingFee?: number;
   taxAmount?: number;
   transactionNo: string;
-}
-
-export interface OrderPayment {
-  currency: string;
-  dutyAmount?: number;
-  method: string;
-  paidAmount?: number;
-  /** @format date-time */
-  paidAt: string;
-  shippingFee?: number;
-  taxAmount?: number;
-  transactionNo: string;
-}
-
-export interface Orderer {
-  email: string;
-  firstName?: string;
-  fullName?: string;
-  lastName?: string;
-  phone?: string;
-  phoneCountryNo?: string;
 }
 
 export interface OrderDetailOrderItemResponse {
@@ -344,7 +463,17 @@ export enum OrderDetailResponseCorporationEnum {
 export interface OrderHistoryResponse {
   exchangeHistories: OrderHistoryExchangeResponse[];
   orderHistories: OrderHistoryOrderResponse[];
+  reshipmentHistories: OrderHistoryReshipmentResponse[];
   returnHistories: OrderHistoryReturnResponse[];
+  storePickupHistories: OrderHistoryStorePickupResponse[];
+}
+
+export interface OrderHistoryStorePickupResponse {
+  event: EnumResponse;
+  status: EnumResponse;
+  storePickupId: string;
+  /** @format date-time */
+  updatedAt: string;
 }
 
 export interface OrderHistoryReturnResponse {
@@ -364,7 +493,19 @@ export interface SapApiResponse {
   resultAt: string;
 }
 
+export interface OrderHistoryReshipmentResponse {
+  event: EnumResponse;
+  reshipmentId: string;
+  reshipmentNo: string;
+  /** @format int32 */
+  sequence: number;
+  status: EnumResponse;
+  /** @format date-time */
+  updatedAt: string;
+}
+
 export interface OrderHistoryOrderResponse {
+  event?: EnumResponse;
   orderId: string;
   originOrderNo: string;
   sapResults: SapApiResponse[];
@@ -379,6 +520,7 @@ export interface OrderHistoryOrderResponse {
 }
 
 export interface OrderHistoryExchangeResponse {
+  event?: EnumResponse;
   exchangeId?: string;
   exchangeNo?: string;
   exchangeShipmentId?: string;
