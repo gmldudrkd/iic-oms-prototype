@@ -11,6 +11,8 @@ dist/
 .next/
 out/
 .eslintcache
+tsconfig.tsbuildinfo
+vercel.json
 
 # Environment
 .env
