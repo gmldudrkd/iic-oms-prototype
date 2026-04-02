@@ -40,7 +40,8 @@ jobs:
           NEXTAUTH_URL=https://gmldudrkd.github.io/iic-oms-prototype
           EOF
 
-      - run: GITHUB_PAGES=true npx env-cmd -f .env.prototype next build
+      - name: Build for GitHub Pages
+        run: node scripts/ghpages-build.mjs
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
