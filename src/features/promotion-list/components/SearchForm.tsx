@@ -17,6 +17,7 @@ import {
   DateRange,
 } from "@mui/x-date-pickers-pro";
 import { Dayjs } from "dayjs";
+import { ClipboardEvent, useCallback } from "react";
 import {
   Controller,
   FieldValues,
@@ -42,12 +43,32 @@ interface SearchFormProps {
 }
 
 export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
-  const { control, handleSubmit, watch } = useFormContext();
+  const methods = useFormContext();
+  const { control, handleSubmit, watch } = methods;
   const { timezone } = useTimezoneStore();
   const { selectedPermission } = useUserPermissionStore();
 
   const searchKeyType = watch("searchKeyType");
   const isMultiSearch = MULTI_SEARCH_KEY_TYPES.includes(searchKeyType);
+
+  const handlePaste = useCallback(
+    (e: ClipboardEvent<HTMLDivElement>) => {
+      if (!isMultiSearch) return;
+      const pasted = e.clipboardData.getData("text");
+      if (pasted.includes("\t") || pasted.includes("\r")) {
+        e.preventDefault();
+        const converted = pasted
+          .split(/[\t\r\n]+/)
+          .map((v) => v.trim())
+          .filter(Boolean)
+          .join("\n");
+        const current = methods.getValues("searchKeyword") as string;
+        const prefix = current ? current.trimEnd() + "\n" : "";
+        methods.setValue("searchKeyword", prefix + converted);
+      }
+    },
+    [isMultiSearch, methods],
+  );
 
   const channelTypesList = selectedPermission.flatMap((item) => {
     return item.corporations.flatMap((corp) => {
@@ -200,11 +221,14 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                         : "Enter a keyword to search"
                     }
                     multiline={isMultiSearch}
-                    minRows={isMultiSearch ? 2 : 1}
+                    minRows={1}
                     maxRows={isMultiSearch ? 4 : 1}
+                    onPaste={handlePaste}
+                    size="small"
                     sx={{
                       "& .MuiInputBase-root": {
-                        padding: "12px 14px 12px 8px",
+                        padding: "8px 14px 8px 8px",
+                        minHeight: "40px",
                       },
                       "& .MuiInputBase-input": { padding: 0 },
                       width: "536px",

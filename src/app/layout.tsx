@@ -18,6 +18,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <html lang="en">
+      <head>
+        <script
+          src="https://cdn.jsdelivr.net/npm/agentation@latest/dist/browser.js"
+          defer
+        />
+      </head>
       <body>
         {/* auth */}
         <NextAuthProvider>

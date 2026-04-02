@@ -17,6 +17,7 @@ export const STATUS_OPTIONS = [
 
 // Search Key Type 옵션
 export const SEARCH_KEY_TYPE_OPTIONS = [
+  { label: "ID", value: "id" },
   { label: "Title", value: "title" },
   { label: "Created By", value: "createdBy" },
   { label: "GWP Name", value: "gwpName" },
@@ -26,7 +27,15 @@ export const SEARCH_KEY_TYPE_OPTIONS = [
 ];
 
 // 멀티 검색 가능한 키 타입
-export const MULTI_SEARCH_KEY_TYPES = ["gwpSapCode", "targetSapCode"];
+export const MULTI_SEARCH_KEY_TYPES = [
+  "id",
+  "title",
+  "createdBy",
+  "gwpName",
+  "gwpSapCode",
+  "targetProductName",
+  "targetSapCode",
+];
 
 // 단축키 아이템
 export const SHORTCUTS_ITEMS = (

@@ -15,7 +15,10 @@ import {
 } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 
-import type { ConditionType, ModalItem } from "./ProductModal";
+import type {
+  ConditionType,
+  ModalItem,
+} from "@/features/promotion-detail/components/ProductModal";
 
 // --- Shared Tag ---
 function CondTag({ type }: { type: ConditionType }) {
@@ -70,7 +73,13 @@ function HighlightChip({
 const PREVIEW_LIMIT = 3;
 
 // --- Trigger Sentence ---
-function TriggerSentence({ items, topCond }: { items: ModalItem[]; topCond: ConditionType }) {
+function TriggerSentence({
+  items,
+  topCond,
+}: {
+  items: ModalItem[];
+  topCond: ConditionType;
+}) {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? items : items.slice(0, PREVIEW_LIMIT);
   const hidden = items.length - PREVIEW_LIMIT;
@@ -78,14 +87,30 @@ function TriggerSentence({ items, topCond }: { items: ModalItem[]; topCond: Cond
   return (
     <Box component="span" sx={{ display: "inline", lineHeight: 2.4 }}>
       {visible.map((item, idx) => (
-        <Box key={idx} component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
+        <Box
+          key={idx}
+          component="span"
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.5,
+            flexWrap: "wrap",
+          }}
+        >
           {idx > 0 && <CondTag type={topCond} />}
           {item.type === "product" ? (
             <Chip
               icon={<span style={{ fontSize: 14 }}>{item.img}</span>}
               label={item.name}
               size="small"
-              sx={{ fontSize: 13, fontWeight: 500, backgroundColor: "#F9FAFB", border: "1px solid #EAECF0", height: 28, "& .MuiChip-label": { px: 1 } }}
+              sx={{
+                fontSize: 13,
+                fontWeight: 500,
+                backgroundColor: "#F9FAFB",
+                border: "1px solid #EAECF0",
+                height: 28,
+                "& .MuiChip-label": { px: 1 },
+              }}
             />
           ) : (
             <Box
@@ -94,21 +119,40 @@ function TriggerSentence({ items, topCond }: { items: ModalItem[]; topCond: Cond
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 0.5,
-                backgroundColor: item.color.bg,
-                border: `1px solid ${item.color.border}`,
+                backgroundColor: item.color?.bg ?? "#F2F4F7",
+                border: `1px solid ${item.color?.border ?? "#D0D5DD"}`,
                 borderRadius: 1,
                 px: 1,
                 py: 0.25,
                 flexWrap: "wrap",
               }}
             >
-              <Typography component="span" sx={{ fontSize: 10, fontWeight: 700, color: item.color.text, opacity: 0.7 }}>
+              <Typography
+                component="span"
+                sx={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: item.color?.text ?? "#344054",
+                  opacity: 0.7,
+                }}
+              >
                 {item.name}
               </Typography>
               {item.products.map((p, pi) => (
-                <Box key={p.id} component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+                <Box
+                  key={p.id}
+                  component="span"
+                  sx={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
+                >
                   {pi > 0 && <CondTag type={item.condition} />}
-                  <Typography component="span" sx={{ fontSize: 13, color: item.color.text }}>
+                  <Typography
+                    component="span"
+                    sx={{ fontSize: 13, color: item.color?.text ?? "#344054" }}
+                  >
                     {p.img} {p.name}
                   </Typography>
                 </Box>
@@ -139,7 +183,13 @@ function TriggerSentence({ items, topCond }: { items: ModalItem[]; topCond: Cond
         <Typography
           component="span"
           onClick={() => setExpanded(false)}
-          sx={{ ml: 0.5, fontSize: 12, fontWeight: 600, color: "#98A2B3", cursor: "pointer" }}
+          sx={{
+            ml: 0.5,
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#98A2B3",
+            cursor: "pointer",
+          }}
         >
           show less
         </Typography>
@@ -164,14 +214,26 @@ function RewardSentence({ rewards }: { rewards: RewardSummary[] }) {
   return (
     <Box component="span" sx={{ display: "inline", lineHeight: 2.4 }}>
       {visible.map((r, idx) => (
-        <Box key={r.id} component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+        <Box
+          key={r.id}
+          component="span"
+          sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}
+        >
           {idx > 0 && (
-            <Typography component="span" sx={{ color: "#98A2B3", fontSize: 13, mx: 0.25 }}>+</Typography>
+            <Typography
+              component="span"
+              sx={{ color: "#98A2B3", fontSize: 13, mx: 0.25 }}
+            >
+              +
+            </Typography>
           )}
           <Chip
             icon={<span style={{ fontSize: 14 }}>{r.img}</span>}
             label={
-              <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Box
+                component="span"
+                sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+              >
                 {r.name}
                 <Box
                   component="span"
@@ -223,7 +285,13 @@ function RewardSentence({ rewards }: { rewards: RewardSummary[] }) {
         <Typography
           component="span"
           onClick={() => setExpanded(false)}
-          sx={{ ml: 0.5, fontSize: 12, fontWeight: 600, color: "#98A2B3", cursor: "pointer" }}
+          sx={{
+            ml: 0.5,
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#98A2B3",
+            cursor: "pointer",
+          }}
         >
           show less
         </Typography>
@@ -299,15 +367,31 @@ export default function ReviewModal({
         color: "#7C5CFC",
         label: "Promotion Overview",
         content: (
-          <Box sx={{ fontSize: 14, color: "#344054", lineHeight: 2.4, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5 }}>
+          <Box
+            sx={{
+              fontSize: 14,
+              color: "#344054",
+              lineHeight: 2.4,
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
             <span>You are about to create a</span>
             <HighlightChip color="purple">{formData.type || "—"}</HighlightChip>
             <span>promotion for</span>
-            <HighlightChip color="gray">{formData.brand || "—"} · {formData.corp || "—"}</HighlightChip>
+            <HighlightChip color="gray">
+              {formData.brand || "—"} · {formData.corp || "—"}
+            </HighlightChip>
             <span>running from</span>
-            <HighlightChip color="blue">{formatDate(formData.startDate)}</HighlightChip>
+            <HighlightChip color="blue">
+              {formatDate(formData.startDate)}
+            </HighlightChip>
             <span>to</span>
-            <HighlightChip color="blue">{formatDate(formData.endDate)}</HighlightChip>
+            <HighlightChip color="blue">
+              {formatDate(formData.endDate)}
+            </HighlightChip>
           </Box>
         ),
       },
@@ -317,19 +401,65 @@ export default function ReviewModal({
         label: "Purchase Condition",
         content: (
           <>
-            <Box sx={{ fontSize: 14, color: "#344054", lineHeight: 2.4, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5 }}>
+            <Box
+              sx={{
+                fontSize: 14,
+                color: "#344054",
+                lineHeight: 2.4,
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 0.5,
+              }}
+            >
               <span>When a customer purchases</span>
               <TriggerSentence items={triggerItems} topCond={triggerTopCond} />
             </Box>
             {exceptionItems.length > 0 && (
-              <Box sx={{ fontSize: 14, color: "#344054", lineHeight: 2.4, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5, mt: 1 }}>
+              <Box
+                sx={{
+                  fontSize: 14,
+                  color: "#344054",
+                  lineHeight: 2.4,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: 0.5,
+                  mt: 1,
+                }}
+              >
                 <span>Excluding</span>
-                <TriggerSentence items={exceptionItems} topCond={exceptionTopCond} />
+                <TriggerSentence
+                  items={exceptionItems}
+                  topCond={exceptionTopCond}
+                />
               </Box>
             )}
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.75 }}>
-              <Chip label={`Trigger Type: ${formData.triggerType || "—"}`} size="small" variant="outlined" sx={{ fontSize: 12, color: "#667085", backgroundColor: "#F9FAFB" }} />
-              <Chip label={<>Items condition: <strong>{triggerTopCond}</strong></>} size="small" variant="outlined" sx={{ fontSize: 12, color: "#667085", backgroundColor: "#F9FAFB" }} />
+              <Chip
+                label={`Trigger Type: ${formData.triggerType || "—"}`}
+                size="small"
+                variant="outlined"
+                sx={{
+                  fontSize: 12,
+                  color: "#667085",
+                  backgroundColor: "#F9FAFB",
+                }}
+              />
+              <Chip
+                label={
+                  <>
+                    Items condition: <strong>{triggerTopCond}</strong>
+                  </>
+                }
+                size="small"
+                variant="outlined"
+                sx={{
+                  fontSize: 12,
+                  color: "#667085",
+                  backgroundColor: "#F9FAFB",
+                }}
+              />
             </Box>
           </>
         ),
@@ -339,7 +469,17 @@ export default function ReviewModal({
         color: "#F97316",
         label: "Reward",
         content: (
-          <Box sx={{ fontSize: 14, color: "#344054", lineHeight: 2.4, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5 }}>
+          <Box
+            sx={{
+              fontSize: 14,
+              color: "#344054",
+              lineHeight: 2.4,
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
             <span>The customer will receive</span>
             <RewardSentence rewards={rewardProducts} />
           </Box>
@@ -350,20 +490,51 @@ export default function ReviewModal({
         color: "#099250",
         label: "GWP Inventory",
         content: (
-          <Box sx={{ fontSize: 14, color: "#344054", lineHeight: 2.4, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.5 }}>
-            <HighlightChip color="gray">{totalDedicated.toLocaleString()} units</HighlightChip>
-            <span>will be reserved exclusively for this GWP. An alert will be triggered when stock falls below</span>
+          <Box
+            sx={{
+              fontSize: 14,
+              color: "#344054",
+              lineHeight: 2.4,
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
+            <HighlightChip color="gray">
+              {totalDedicated.toLocaleString()} units
+            </HighlightChip>
+            <span>
+              will be reserved exclusively for this GWP. An alert will be
+              triggered when stock falls below
+            </span>
             <Chip
               icon={<WarningAmberIcon sx={{ fontSize: 14 }} />}
               label={`${totalAlert.toLocaleString()} units`}
               size="small"
-              sx={{ fontSize: 13, fontWeight: 600, backgroundColor: "#FFF4ED", border: "1px solid #F97316", color: "#9A3412", height: 28 }}
+              sx={{
+                fontSize: 13,
+                fontWeight: 600,
+                backgroundColor: "#FFF4ED",
+                border: "1px solid #F97316",
+                color: "#9A3412",
+                height: 28,
+              }}
             />
           </Box>
         ),
       },
     ],
-    [formData, triggerItems, triggerTopCond, exceptionItems, exceptionTopCond, rewardProducts, totalDedicated, totalAlert],
+    [
+      formData,
+      triggerItems,
+      triggerTopCond,
+      exceptionItems,
+      exceptionTopCond,
+      rewardProducts,
+      totalDedicated,
+      totalAlert,
+    ],
   );
 
   return (
@@ -374,13 +545,38 @@ export default function ReviewModal({
       fullWidth
       PaperProps={{ sx: { borderRadius: 2 } }}
     >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1.5, px: 3, py: 2, borderBottom: "1px solid #EAECF0" }}>
-        <Box sx={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: "#FFFAEB", border: "1px solid #FEC84B", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <DialogTitle
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          px: 3,
+          py: 2,
+          borderBottom: "1px solid #EAECF0",
+        }}
+      >
+        <Box
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            backgroundColor: "#FFFAEB",
+            border: "1px solid #FEC84B",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <WarningAmberIcon sx={{ fontSize: 18, color: "#F59E0B" }} />
         </Box>
         <Box>
-          <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#101828" }}>Please review before submitting</Typography>
-          <Typography sx={{ fontSize: 12, color: "#667085", mt: 0.25 }}>Check the promotion details carefully. This action cannot be undone once confirmed.</Typography>
+          <Typography sx={{ fontSize: 14, fontWeight: 700, color: "#101828" }}>
+            Please review before submitting
+          </Typography>
+          <Typography sx={{ fontSize: 12, color: "#667085", mt: 0.25 }}>
+            Check the promotion details carefully. This action cannot be undone
+            once confirmed.
+          </Typography>
         </Box>
       </DialogTitle>
 
@@ -393,17 +589,58 @@ export default function ReviewModal({
               gap: 0,
               pb: idx < steps.length - 1 ? 2 : 0,
               mb: idx < steps.length - 1 ? 2 : 0,
-              borderBottom: idx < steps.length - 1 ? "1px solid #F2F4F7" : "none",
+              borderBottom:
+                idx < steps.length - 1 ? "1px solid #F2F4F7" : "none",
             }}
           >
-            <Box sx={{ width: 28, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <Box sx={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: step.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+            <Box
+              sx={{
+                width: 28,
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  backgroundColor: step.color,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#fff",
+                  flexShrink: 0,
+                }}
+              >
                 {step.num}
               </Box>
-              {idx < steps.length - 1 && <Box sx={{ width: 2, flex: 1, backgroundColor: "#F2F4F7", mt: 0.5 }} />}
+              {idx < steps.length - 1 && (
+                <Box
+                  sx={{
+                    width: 2,
+                    flex: 1,
+                    backgroundColor: "#F2F4F7",
+                    mt: 0.5,
+                  }}
+                />
+              )}
             </Box>
             <Box sx={{ flex: 1, pl: 2, pt: 0.25 }}>
-              <Typography sx={{ fontSize: 11, fontWeight: 700, color: "#98A2B3", textTransform: "uppercase", letterSpacing: "0.06em", mb: 1 }}>
+              <Typography
+                sx={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#98A2B3",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  mb: 1,
+                }}
+              >
                 {step.label}
               </Typography>
               {step.content}
@@ -412,11 +649,34 @@ export default function ReviewModal({
         ))}
       </DialogContent>
 
-      <DialogActions sx={{ borderTop: "1px solid #EAECF0", px: 3, py: 1.5, justifyContent: "flex-end" }}>
+      <DialogActions
+        sx={{
+          borderTop: "1px solid #EAECF0",
+          px: 3,
+          py: 1.5,
+          justifyContent: "flex-end",
+        }}
+      >
         {countdown > 0 && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mr: 1 }}>
-            <Typography sx={{ fontSize: 12, color: "#98A2B3" }}>Please review carefully.</Typography>
-            <Box sx={{ width: 24, height: 24, borderRadius: "50%", backgroundColor: "#F0EDFF", border: "1.5px solid #7C5CFC", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#7C5CFC" }}>
+            <Typography sx={{ fontSize: 12, color: "#98A2B3" }}>
+              Please review carefully.
+            </Typography>
+            <Box
+              sx={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                backgroundColor: "#F0EDFF",
+                border: "1.5px solid #7C5CFC",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#7C5CFC",
+              }}
+            >
               {countdown}
             </Box>
           </Box>

@@ -1,11 +1,13 @@
 "use client";
 
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { Button, ThemeProvider } from "@mui/material";
 import { DataGridPro, GridPaginationModel } from "@mui/x-data-grid-pro";
 import dayjs from "dayjs";
 import { useCallback, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import * as XLSX from "xlsx";
 
 import SearchForm from "@/features/promotion-list/components/SearchForm";
 import { COLUMNS_PROMOTION_LIST } from "@/features/promotion-list/modules/columns";
@@ -47,7 +49,8 @@ export default function PromotionList() {
 
   // Mock: 실제로는 API에서 isFetching, isSuccess를 받아옴
   const [isFetching] = useState(false);
-  const [filteredData, setFilteredData] = useState<PromotionRow[]>(MOCK_PROMOTIONS);
+  const [filteredData, setFilteredData] =
+    useState<PromotionRow[]>(MOCK_PROMOTIONS);
 
   const { currentTime } = useCurrentTime({
     isFetching: false,
@@ -114,6 +117,7 @@ export default function PromotionList() {
       if (keywords.length > 0) {
         result = result.filter((row) => {
           const fieldMap: Record<string, string> = {
+            id: String(row.id),
             title: row.title,
             createdBy: row.createdBy,
             gwpName: row.reward,
@@ -142,6 +146,27 @@ export default function PromotionList() {
     // Mock: 실제로는 refetch 호출
   }, []);
 
+  const handleExport = useCallback(() => {
+    const exportData = filteredData.map((row) => ({
+      ID: row.id,
+      promotionTitle: row.title,
+      allocatedStock: Math.floor(Math.random() * 50000) + 900,
+      totalStock: Math.floor(Math.random() * 50000) + 1000,
+      promotionRule: row.triggerType,
+      channel: row.triggerChannels.join(", "),
+      status: row.status,
+      createdDate: row.createdAt.replace(/\./g, "-").slice(0, 10),
+      startDate: row.startDate.replace(/\./g, "-").slice(0, 10),
+      endDate: row.endDate.replace(/\./g, "-"),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Promotions");
+    const date = dayjs().tz(timezone).format("YYYYMMDD_HHmm");
+    XLSX.writeFile(wb, `IIC_OMS_Promotion_List_${date}.xlsx`);
+  }, [filteredData, timezone]);
+
   const handlePaginationModelChange = useCallback(
     (model: GridPaginationModel) => {
       if (isFetching) return;
@@ -164,7 +189,10 @@ export default function PromotionList() {
           {/* DataGrid */}
           <div className="border-[1px] border-solid border-[#E0E0E0] bg-white p-[24px]">
             <div className="mb-[8px] flex items-center justify-between">
-              <TotalResult totalResult={filteredData.length} classNames="!mb-0" />
+              <TotalResult
+                totalResult={filteredData.length}
+                classNames="!mb-0"
+              />
 
               <div className="flex items-center gap-[8px]">
                 <p className="text-[14px] text-black">
@@ -178,6 +206,14 @@ export default function PromotionList() {
                   disabled={isFetching}
                 >
                   Refresh
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<FileDownloadIcon />}
+                  onClick={handleExport}
+                >
+                  Export
                 </Button>
               </div>
             </div>
