@@ -74,6 +74,22 @@ export const COLUMNS_ORDER_LIST = [
     },
   },
   {
+    field: "status",
+    headerName: "Status",
+    flex: 1,
+    minWidth: 220,
+    renderCell: (params: { value: string }) =>
+      renderCellForStatus({ value: params.value, color: "order" }),
+  },
+  {
+    field: "shipmentStatus",
+    headerName: "Shipment Status",
+    flex: 1,
+    minWidth: 180,
+    cellClassName: "!p-0",
+    renderCell: renderCellForShippingStatus,
+  },
+  {
     field: "orderDate",
     headerName: "Order Date",
     flex: 1,
@@ -98,14 +114,6 @@ export const COLUMNS_ORDER_LIST = [
     minWidth: 130,
   },
   {
-    field: "status",
-    headerName: "Status",
-    flex: 1,
-    minWidth: 220,
-    renderCell: (params: { value: string }) =>
-      renderCellForStatus({ value: params.value, color: "order" }),
-  },
-  {
     field: "recipientName",
     headerName: "Recipient Name",
     flex: 1,
@@ -124,14 +132,6 @@ export const COLUMNS_ORDER_LIST = [
     minWidth: 200,
     cellClassName: "!p-0",
     renderCell: renderCellMultiLine,
-  },
-  {
-    field: "shipmentStatus",
-    headerName: "Shipment Status",
-    flex: 1,
-    minWidth: 180,
-    cellClassName: "!p-0",
-    renderCell: renderCellForShippingStatus,
   },
   {
     field: "trackingNo",
