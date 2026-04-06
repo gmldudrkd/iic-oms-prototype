@@ -8,6 +8,7 @@ import CancelOrder from "@/features/integrated-order-detail/components/CancelOrd
 import CancelShipment from "@/features/integrated-order-detail/components/CancelShipment";
 import CopyTextButton from "@/features/integrated-order-detail/components/CopyTextButton";
 import OrderInfoWrapper from "@/features/integrated-order-detail/components/OrderInfoWrapper";
+import PrintLabel from "@/features/integrated-order-detail/components/PrintLabel";
 import RegisterClaimLost from "@/features/integrated-order-detail/components/RegisterClaim/variants/RegisterClaimLost";
 import RequestShipment from "@/features/integrated-order-detail/components/RequestShipment";
 import { transformRowsShipmentInfo } from "@/features/integrated-order-detail/models/transforms";
@@ -32,7 +33,8 @@ import { formatAddress, getDisabledText } from "@/shared/utils/stringUtils";
 import IconArrowDropDownFilled from "@/assets/icons/IconArrowDropDownFilled";
 
 const SHIPMENT_STATUS = OrderSearchRequestShipmentStatusesEnum;
-const { SHIPPED, PICKING_REJECTED, PICKING_REQUESTED } = SHIPMENT_STATUS;
+const { SHIPPED, PICKING_REJECTED, PICKING_REQUESTED, PICKED } =
+  SHIPMENT_STATUS;
 
 export default function ShipmentInfo() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -74,6 +76,9 @@ function ShipmentInfoItem({
   const [open, setOpen] = useState<string | null>(null);
   const rowsReShip = useMemo(() => transformRowsRequestShipment(data), [data]);
 
+  const isGmCa =
+    data?.brand?.name === "GENTLE_MONSTER" && data?.corporation === "CA";
+
   const buttonConditions = useMemo(() => {
     return {
       lost: item.status.name === SHIPPED,
@@ -82,8 +87,11 @@ function ShipmentInfoItem({
         item.event === OrderDetailShipmentResponseEventEnum.REJECT,
       cancelOrder: item.status.name === PICKING_REJECTED,
       cancelShipment: item.status.name === PICKING_REQUESTED,
+      printLabel:
+        isGmCa &&
+        (item.status.name === PICKING_REQUESTED || item.status.name === PICKED),
     };
-  }, [item]);
+  }, [item, isGmCa]);
 
   return (
     <div>
@@ -136,6 +144,28 @@ function ShipmentInfoItem({
                 </span>
 
                 <div className="ml-auto flex gap-[8px]">
+                  {buttonConditions.printLabel && (
+                    <PrintLabel
+                      shipmentNo={item.shipmentNo}
+                      shipmentStatus={item.status.name}
+                      orderId={data?.orderId ?? ""}
+                      recipientName={shipment.recipient?.fullName ?? ""}
+                      recipientCompany="IIC Combined"
+                      recipientAddress={
+                        shipment.recipient?.address?.line1 ?? ""
+                      }
+                      recipientCityStateZip={`${shipment.recipient?.address?.city ?? ""} ${shipment.recipient?.address?.state ?? ""} ${shipment.recipient?.address?.postalCode ?? ""}`}
+                      recipientCountry={
+                        shipment.recipient?.address?.countryType ?? ""
+                      }
+                      recipientPhone={shipment.recipient?.phone ?? ""}
+                      trackingNo={shipment.delivery?.trackingNo ?? ""}
+                      onStatusUpdate={() => {
+                        // Mock: Picking Requested -> Picked 상태 업데이트
+                        // 실제로는 API 호출 후 queryClient.invalidateQueries
+                      }}
+                    />
+                  )}
                   {buttonConditions.lost && (
                     <RegisterClaimLost
                       open={open === "LOST_BUMP"}
