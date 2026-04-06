@@ -134,18 +134,28 @@ export const GROUPED_STATUS_FILTER_ORDER = [
 ];
 export const GROUPED_STATUS_FILTER_SHIPPING = [
   {
-    label: "Picking Requested",
-    value: "PICKING_REQUESTED",
+    label: "Shipping Status Filter",
+    value: "__header_shipping",
+    isGroupHeader: true,
   },
-  {
-    label: "Picking Rejected",
-    value: "PICKING_REJECTED",
-  },
+  { label: "Picking Requested", value: "PICKING_REQUESTED" },
+  { label: "Picking Rejected", value: "PICKING_REJECTED" },
   { label: "Picked", value: "PICKED" },
   { label: "Packed", value: "PACKED" },
   { label: "Shipped", value: "SHIPPED" },
+  { label: "Lost", value: "LOST" },
   { label: "Delivered", value: "DELIVERED" },
   { label: "Canceled", value: "CANCELED" },
+  {
+    label: "Store Pickup Filter",
+    value: "__header_store_pickup",
+    isGroupHeader: true,
+  },
+  { label: "Pickup Requested", value: "PICKUP_REQUESTED" },
+  { label: "Shipped", value: "STORE_SHIPPED" },
+  { label: "Prepared", value: "PREPARED" },
+  { label: "Completed", value: "STORE_COMPLETED" },
+  { label: "Canceled", value: "STORE_CANCELED" },
 ];
 export const GROUPED_STATUS_FILTER_RETURN = [
   { label: "Pending", value: "PENDING" },

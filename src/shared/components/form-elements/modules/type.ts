@@ -9,6 +9,7 @@ export interface SelectItem {
   selected?: boolean;
   disabled?: boolean;
   hidden?: boolean;
+  isGroupHeader?: boolean;
 }
 
 export interface TControl<T extends FieldValues> {

@@ -26,6 +26,7 @@ import { OrderGroup } from "@/features/integrated-order-list/models/types";
 import { IntegratedOrderRequest } from "@/features/integrated-order-list/models/types";
 import { GROUPED_CONFIG } from "@/features/integrated-order-list/modules/constants";
 
+import AlertDialog from "@/shared/components/dialog/AlertDialog";
 import TotalResult from "@/shared/components/text/TotalResult";
 import { COMMON_TABLE_PAGE_SIZE_OPTIONS } from "@/shared/constants";
 import { PageResponseExchangeResponse } from "@/shared/generated/oms/types/Exchange";
@@ -77,6 +78,7 @@ export default function DataGridWrap({
   // Print Label 모달 관리
   const [openPrintLabel, setOpenPrintLabel] = useState(false);
   const [printLabels, setPrintLabels] = useState<LabelData[]>([]);
+  const [openPrintLabelAlert, setOpenPrintLabelAlert] = useState(false);
 
   // Bulk Cancel 모달 관리
   const [openBulkCancel, setOpenBulkCancel] = useState(false);
@@ -182,16 +184,13 @@ export default function DataGridWrap({
       channels.every((ch) => ch.toUpperCase().includes("_CA"));
     const hasValidStatus =
       statuses.length > 0 &&
-      statuses.some((s) => s === "PICKING_REQUESTED" || s === "PICKED");
+      statuses.every((s) => s === "PICKING_REQUESTED" || s === "PICKED");
     return hasCA && hasValidStatus;
   }, [group, params]);
 
   const handlePrintLabel = useCallback(() => {
     if (selectedRows.length === 0) {
-      openSnackbar({
-        message: "No orders selected. Please select orders to print labels.",
-        severity: "error",
-      });
+      setOpenPrintLabelAlert(true);
       return;
     }
     const targetRows: GridRowModel[] = selectedRows;
@@ -210,7 +209,7 @@ export default function DataGridWrap({
     }));
     setPrintLabels(labels);
     setOpenPrintLabel(true);
-  }, [selectedRows, openSnackbar]);
+  }, [selectedRows]);
 
   const handleBulkCancel = () => {
     const allSameBrand = selectedRows.every(
@@ -315,6 +314,13 @@ export default function DataGridWrap({
           open={openPrintLabel}
           onClose={() => setOpenPrintLabel(false)}
           labels={printLabels}
+        />
+        <AlertDialog
+          open={openPrintLabelAlert}
+          setOpen={setOpenPrintLabelAlert}
+          isButton={false}
+          dialogContent="No orders selected. Please select orders to print labels."
+          dialogCloseLabel="OK"
         />
 
         <div className="h-[calc(100vh-210px)] min-h-[400px]">

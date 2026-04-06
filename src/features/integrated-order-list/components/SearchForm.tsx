@@ -306,7 +306,7 @@ export default function SearchForm({
               <FormControl fullWidth>
                 <SelectCheckboxField
                   name="shippingStatusFilter"
-                  labelName="Shipping Status Filter"
+                  labelName="Fulfillment Status Filter"
                   selectList={statusFilter[1]}
                   selectProps={{ multiple: true }}
                 />

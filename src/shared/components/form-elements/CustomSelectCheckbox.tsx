@@ -5,6 +5,7 @@ import {
   MenuItem,
   Checkbox,
   ListItemText,
+  ListSubheader,
   InputLabel,
   FormControl,
 } from "@mui/material";
@@ -143,7 +144,29 @@ const CustomSelectCheckboxInner = <
   );
 
   const renderSelectItem = useCallback(
-    ({ label, value: itemValue, disabled: itemDisabled }: SelectItem) => {
+    ({
+      label,
+      value: itemValue,
+      disabled: itemDisabled,
+      isGroupHeader,
+    }: SelectItem) => {
+      if (isGroupHeader) {
+        return (
+          <ListSubheader
+            key={`header-${String(itemValue)}`}
+            sx={{
+              fontWeight: 700,
+              fontSize: 13,
+              color: "rgba(0,0,0,0.87)",
+              backgroundColor: "#f5f5f5",
+              lineHeight: "36px",
+            }}
+          >
+            {label}
+          </ListSubheader>
+        );
+      }
+
       const isAllOptionSelected = selectedValues.includes("All");
 
       const isDisabled =
