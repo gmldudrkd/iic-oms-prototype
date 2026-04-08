@@ -32,7 +32,14 @@ export default function InfoExchange() {
 
   if (data) {
     return data.map((item) => {
-      return <ExchangeDetailInfo key={item.exchangeId} exchangeData={item} />;
+      return (
+        <ExchangeDetailInfo
+          key={item.exchangeId}
+          exchangeData={item}
+          corporation={orderData?.corporation}
+          brand={orderData?.brand?.name}
+        />
+      );
     });
   }
 

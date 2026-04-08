@@ -97,10 +97,10 @@ const mockOrderList = {
     {
       brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
       channelType: {
-        name: "NUFLAAT_OFFICIAL",
-        description: "Nuflaat Official",
+        name: "GENTLE_MONSTER_OFFICIAL_CA",
+        description: "GM Official CA",
       },
-      corporation: "US",
+      corporation: "CA",
       orderId: "ORD-20250201-004",
       orderType: { name: "NORMAL", description: "Normal" },
       tags: "Pre-order",
