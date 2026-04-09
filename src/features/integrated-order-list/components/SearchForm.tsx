@@ -1,8 +1,13 @@
-import { FormControl } from "@mui/material";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import dayjs from "dayjs";
 import { isEqual } from "lodash";
 import { Dispatch, SetStateAction } from "react";
-import { FieldValues, SubmitHandler, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  FieldValues,
+  SubmitHandler,
+  useFormContext,
+} from "react-hook-form";
 
 import OrderAttributeField from "@/features/integrated-order-list/components/OrderAttributeField";
 import { PeriodPickerField } from "@/features/integrated-order-list/components/PeriodPickerField";
@@ -120,6 +125,12 @@ export default function SearchForm({
       });
     });
   });
+
+  const isGmCa = selectedPermission.some(
+    (item) =>
+      item.brand?.name === "GENTLE_MONSTER" &&
+      item.corporations.some((corp) => corp.name === "CA"),
+  );
 
   // 검색 폼 제출 이벤트 핸들러 수정
   const onSubmit = (data: FieldValues) => {
@@ -330,6 +341,25 @@ export default function SearchForm({
             <div className="flex w-[330px] items-center gap-[8px]">
               <FormControl fullWidth>
                 <OrderAttributeField />
+              </FormControl>
+            </div>
+          )}
+
+          {/* Label Print 필터 - GM brand + CA channel, order group only */}
+          {isGmCa && group === "order" && (
+            <div className="flex w-[180px] items-center gap-[8px]">
+              <FormControl fullWidth variant="outlined">
+                <InputLabel shrink>Label Print</InputLabel>
+                <Controller
+                  name="labelPrint"
+                  render={({ field }) => (
+                    <Select {...field} label="Label Print" displayEmpty>
+                      <MenuItem value="all">All</MenuItem>
+                      <MenuItem value="unprinted">Unprinted</MenuItem>
+                      <MenuItem value="printed">Printed</MenuItem>
+                    </Select>
+                  )}
+                />
               </FormControl>
             </div>
           )}

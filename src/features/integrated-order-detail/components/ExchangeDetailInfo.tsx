@@ -375,6 +375,59 @@ export default function ExchangeDetailInfo({
                 </div>
               </DetailGridSingle>
 
+              {/* Label Status - GM brand + CA channel only */}
+              {brand === "GENTLE_MONSTER" && corporation === "CA" && (
+                <DetailGridSingle>
+                  <div>
+                    <h3>Label Status</h3>
+                    <Cell>
+                      <Chip
+                        label={
+                          resend.status === "Picking Requested"
+                            ? "Unprinted"
+                            : "Printed"
+                        }
+                        sx={
+                          resend.status === "Picking Requested"
+                            ? {
+                                backgroundColor: "#e4a343",
+                                color: "#fff",
+                              }
+                            : {
+                                backgroundColor: "#e0e0e0",
+                                color: "rgba(0,0,0,0.87)",
+                              }
+                        }
+                      />
+                      <div className="ml-auto flex gap-[8px]">
+                        <PrintLabel
+                          shipmentNo={resend.shipmentNo}
+                          shipmentStatus={
+                            resend.status === "Picking Requested"
+                              ? "PICKING_REQUESTED"
+                              : "PICKED"
+                          }
+                          orderId={orderId ?? ""}
+                          recipientName={exchangeDetail.recipientName}
+                          recipientCompany="IIC Combined"
+                          recipientAddress={
+                            exchangeDetail.resendAddress.address1
+                          }
+                          recipientCityStateZip={`${exchangeDetail.resendAddress.city} ${exchangeDetail.resendAddress.stateProvince} ${exchangeDetail.resendAddress.postcode}`}
+                          recipientCountry={
+                            exchangeDetail.resendAddress.countryRegion
+                          }
+                          recipientPhone={exchangeDetail.recipientPhone}
+                          trackingNo={
+                            resend.resendDeliveries[0]?.trackingNo ?? ""
+                          }
+                        />
+                      </div>
+                    </Cell>
+                  </div>
+                </DetailGridSingle>
+              )}
+
               <DetailGridSingle>
                 <div>
                   <h3>Pickup Address</h3>

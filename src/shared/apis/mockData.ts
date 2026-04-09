@@ -1351,6 +1351,69 @@ const mockOrderDetailPrintLabel = {
         },
       ],
     },
+    {
+      id: "SHP-CA-002",
+      shipmentNo: "TEST-DLV-20260325-0002",
+      wmsNo: "WMS-CA-002",
+      status: { name: "PICKED", description: "Picked" },
+      event: "PICK",
+      shippedAt: "",
+      updatedAt: now,
+      trackingUrl: "",
+      cancelReason: "",
+      recipient: {
+        fullName: "Emma Tremblay",
+        firstName: "Emma",
+        lastName: "Tremblay",
+        phone: "(416) 987-6543",
+        phoneCountryNo: "+1",
+        address: {
+          line1: "100 Queen Street West",
+          line2: "",
+          city: "Toronto",
+          state: "ON",
+          postalCode: "M5V 2T6",
+          countryType: "CA",
+        },
+      },
+      delivery: {
+        carrierCode: "FEDEX",
+        trackingNo: "3999 2375 8288",
+        deliveryType: "GROUND",
+      },
+      deliveries: [
+        {
+          trackingNo: "3999 2375 8288",
+          trackingUrl: "",
+        },
+      ],
+      items: [
+        {
+          shipmentItemId: "SI-CA-002",
+          orderItemId: "OI-CA-001",
+          originItemId: "ORIG-CA-001",
+          sku: "GM-BOLD-002-WHT",
+          productCode: "SAP-GM-CA-002",
+          productName: "BOLD - The Dreamer 02",
+          thumbnailUrl: "",
+          sequence: 1,
+          shipmentQuantity: 1,
+          shippedQuantity: 1,
+          canceledQuantity: 0,
+          components: [],
+          products: [
+            {
+              sku: "GM-BOLD-002-WHT",
+              productCode: "SAP-GM-CA-002",
+              productName: "BOLD - The Dreamer 02 White",
+              category: "Eyewear",
+              price: 350,
+              quantity: 1,
+            },
+          ],
+        },
+      ],
+    },
   ],
   refundPayments: [],
 };
@@ -2185,7 +2248,7 @@ const mockExchangeDetail = [
         id: "ESHIP-003",
         shipmentNo: "ESHIP-NO-003",
         wmsNo: "WMS-ESHIP-003",
-        status: { name: "DELIVERED", description: "Delivered" },
+        status: { name: "PICKING_REQUESTED", description: "Picking Requested" },
         event: "EXCHANGE_SHIP",
         shippedAt: yesterday,
         updatedAt: now,
@@ -2291,6 +2354,69 @@ const mockOrderHistory = {
   exchangeHistories: [],
 };
 
+// --- Reshipment Detail Mock (ReshipmentDetailResponse[]) ---
+const mockReshipmentDetail = [
+  {
+    reshipmentId: "RS822337540130758356",
+    reshipmentNo: "RS822337540130758356",
+    claimId: "CLM-RS-001",
+    originOrderNo: "2603180PT028YSDDPFY",
+    status: { name: "PICKING_REQUESTED", description: "Picking Requested" },
+    event: { name: "PICKING_REQUEST", description: "Picking Request" },
+    claimFault: "OPERATION",
+    claimReason: "Wrong item shipped",
+    claimRequesterType: "OMS_ADMIN",
+    claimCreatedBy: "monster37@gentlemonster.com",
+    createdAt: yesterday,
+    updatedAt: "2026-03-19T14:20:09",
+    shippedAt: undefined,
+    wmsNo: "WMS-RS-001",
+    trackingUrl: undefined,
+    recipient: {
+      fullName: "kangheeyoung",
+      firstName: "heeyoung",
+      lastName: "kang",
+      phone: "1122333444",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "1707 Ave, 1",
+        line2: "",
+        city: "Saskatoon",
+        state: "Saskatchewan",
+        postalCode: "S7K 1P7",
+        countryType: "CA",
+      },
+    },
+    delivery: {
+      carrierCode: undefined,
+      trackingNo: undefined,
+      deliveryType: undefined,
+    },
+    deliveries: [],
+    items: [
+      {
+        sku: "S11500340",
+        productCode: "11500340",
+        productName: "2025 PACKAGE SET(SUN)",
+        quantity: 1,
+        skuType: "PRODUCT",
+        thumbnailUrl: "",
+      },
+    ],
+    claimItems: [
+      {
+        id: "CI-RS-001",
+        sku: "S11500340",
+        productCode: "11500340",
+        productName: "2025 PACKAGE SET(SUN)",
+        quantity: 1,
+        cancelQuantity: 0,
+        thumbnailUrl: "",
+      },
+    ],
+  },
+];
+
 // --- Default success response ---
 const successResponse = { result: true };
 
@@ -2382,10 +2508,20 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
     return found ? [found] : mockExchangeDetail;
   }
 
+  // Reshipment detail: /reshipments/orders/{orderId}
+  if (path.match(/\/reshipments\/orders\/[^/]+$/)) {
+    const orderId = path.split("/").pop()?.toUpperCase();
+    const filtered = mockReshipmentDetail.filter(
+      (r: { originOrderNo?: string }) =>
+        r.originOrderNo?.toUpperCase() === orderId,
+    );
+    return filtered.length > 0 ? filtered : mockReshipmentDetail;
+  }
+
   // Order detail: /orders/{orderId} (단일 주문 상세)
   if (path.match(/\/orders\/[^/]+$/)) {
     const orderId = path.split("/").pop();
-    if (orderId === "TEST-ORD-20260325-0001") {
+    if (orderId?.toUpperCase() === "TEST-ORD-20260325-0001") {
       return mockOrderDetailPrintLabel;
     }
     const listRow = (mockOrderList.content ?? mockOrderList.data)?.find(

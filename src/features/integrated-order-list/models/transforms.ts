@@ -51,6 +51,7 @@ export const transformOrderData = ({
         receiveMethod:
           (row as Record<string, unknown>).receiveMethod || "Delivery",
         channel: row.channelType.description,
+        channelTypeName: row.channelType.name,
         orderNo: row.originOrderNo,
         orderDate: getLocalTime(row.orderedAt, timezone),
         ordererName: row.ordererName || "-",

@@ -19,6 +19,7 @@ import {
   OrderHistoryResponse,
   RefundPayment,
 } from "@/shared/generated/oms/types/Order";
+import { ReshipmentDetailResponse } from "@/shared/generated/oms/types/Reshipment";
 import {
   ReturnDetailClaimItemResponse,
   ReturnDetailResponse,
@@ -1330,4 +1331,57 @@ export const transformLogHistoryDetail = (
     returnHistories,
     exchangeHistories,
   };
+};
+
+/**
+ * Reshipment Detail 데이터 변환
+ */
+export const transformReshipmentDetail = (
+  data: ReshipmentDetailResponse,
+  timezone: string,
+) => {
+  return {
+    reshipmentId: data.reshipmentId,
+    reshipmentNo: data.reshipmentNo,
+    status: data.status,
+    event: data.event,
+    updatedAt: getLocalTime(data.updatedAt, timezone),
+    carrier: data.delivery?.carrierCode ?? NOT_STARTED,
+    trackingNo:
+      data.deliveries && data.deliveries.length > 0
+        ? data.deliveries
+        : [{ trackingNo: NOT_STARTED, trackingUrl: undefined }],
+    trackingUrl: data.trackingUrl,
+    recipientName: data.recipient?.fullName || "-",
+    phoneCountryNo: data.recipient?.phoneCountryNo ?? "",
+    recipientPhone: data.recipient?.phone ?? "",
+    deliveryAddress: {
+      postcode: data.recipient?.address?.postalCode ?? "",
+      address1: formatLine1(
+        data.recipient?.address?.line1 ?? "",
+        data.recipient?.address?.state ?? "",
+        data.recipient?.address?.city ?? "",
+      ),
+      address2: data.recipient?.address?.line2 ?? "",
+      city: data.recipient?.address?.city ?? "",
+      stateProvince: data.recipient?.address?.state ?? "",
+      countryRegion: data.recipient?.address?.countryType ?? "",
+    },
+  };
+};
+
+/**
+ * Reshipment Detail rows (DataGrid용)
+ */
+export const transformRowsReshipmentDetail = (
+  data: ReshipmentDetailResponse,
+) => {
+  return data.items.map((item, idx) => ({
+    id: item.productCode || `item-${idx}`,
+    no: idx + 1,
+    skuCode: item.sku,
+    sapCode: item.productCode ?? "-",
+    sapName: item.productName,
+    qty: item.quantity,
+  }));
 };

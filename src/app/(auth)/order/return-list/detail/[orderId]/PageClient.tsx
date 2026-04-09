@@ -16,7 +16,7 @@ import { useOrderNoStore } from "@/shared/stores/useOrderNoStore";
 export default function ReturnListDetailPage() {
   const { orderInfo } = useOrderNoStore((state) => state);
   const [activeType, setActiveType] = useState<
-    "order" | "return" | "exchange" | "log-history"
+    "order" | "return" | "exchange" | "reshipment" | "log-history"
   >("return");
 
   const { orderId } = useParams<{ orderId: string }>();

@@ -12,6 +12,8 @@ export const queryKeys = {
   orderDetail: (orderId: string) => ["order-detail", orderId] as const,
   returnDetail: (orderId: string) => ["return-detail", orderId] as const,
   exchangeDetail: (orderId: string) => ["exchange-detail", orderId] as const,
+  reshipmentDetail: (orderId: string) =>
+    ["reshipment-detail", orderId] as const,
   logHistoryDetail: (orderId: string) =>
     ["log-history-detail", orderId] as const,
   // channel

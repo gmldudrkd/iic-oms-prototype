@@ -13,11 +13,11 @@ import { OrderDetailResponse } from "@/shared/generated/oms/types/Order";
 import { queryKeys } from "@/shared/queryKeys";
 import { useOrderNoStore } from "@/shared/stores/useOrderNoStore";
 
-export default function LogHistoryDetailPage() {
+export default function ReshipmentListDetailPage() {
   const { orderInfo } = useOrderNoStore((state) => state);
   const [activeType, setActiveType] = useState<
     "order" | "return" | "exchange" | "reshipment" | "log-history"
-  >("log-history");
+  >("reshipment");
 
   const { orderId } = useParams<{ orderId: string }>();
   const queryClient = useQueryClient();
@@ -32,13 +32,12 @@ export default function LogHistoryDetailPage() {
           <BreadcrumbsComponent
             items={[
               {
-                href: "/order/log-history",
-                label: "Log",
+                href: "/order/reshipment-list",
+                label: "Reshipment List",
               },
-              { href: "", label: "Log detail" },
+              { href: "", label: "Reshipment Detail" },
             ]}
           />
-          {/* store로 데이터 가져오기 */}
           <Title
             text={`Order #${orderInfo.orderNo}`}
             classNames="flex-row items-center gap-2"

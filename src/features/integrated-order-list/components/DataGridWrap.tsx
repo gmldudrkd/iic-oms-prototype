@@ -1,6 +1,6 @@
 import PrintIcon from "@mui/icons-material/Print";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { Button, ThemeProvider, Tooltip } from "@mui/material";
+import { Button, ThemeProvider } from "@mui/material";
 import {
   DataGridPro,
   GridColDef,
@@ -170,29 +170,29 @@ export default function DataGridWrap({
     [group, cancelReason],
   );
 
-  // Print Label 버튼 활성화 조건: CA 채널 + Picking Requested/Picked 상태
-  const isPrintLabelEnabled = useMemo(() => {
-    if (group !== "order") return false;
-    const orderParams = params as {
-      channelTypes?: string[];
-      shipmentStatuses?: string[];
-    };
-    const channels = orderParams.channelTypes ?? [];
-    const statuses = orderParams.shipmentStatuses ?? [];
-    const hasCA =
-      channels.length > 0 &&
-      channels.every((ch) => ch.toUpperCase().includes("_CA"));
-    const hasValidStatus =
-      statuses.length > 0 &&
-      statuses.every((s) => s === "PICKING_REQUESTED" || s === "PICKED");
-    return hasCA && hasValidStatus;
-  }, [group, params]);
+  // Print Label: 자가물류 채널(GM/CA) 검증 에러 메시지
+  const [printLabelChannelError, setPrintLabelChannelError] = useState(false);
 
   const handlePrintLabel = useCallback(() => {
     if (selectedRows.length === 0) {
       setOpenPrintLabelAlert(true);
       return;
     }
+
+    // GM/CA 자가물류 채널 검증
+    const hasNonSelfLogistics = selectedRows.some((row) => {
+      const name = (row.channelTypeName ?? "").toUpperCase();
+      return (
+        !name.includes("_CA") &&
+        !name.includes("_GM") &&
+        !name.startsWith("GM_")
+      );
+    });
+    if (hasNonSelfLogistics) {
+      setPrintLabelChannelError(true);
+      return;
+    }
+
     const targetRows: GridRowModel[] = selectedRows;
     const labels: LabelData[] = targetRows.map((row) => ({
       shipmentNo: row.shipmentNo ?? row.orderId ?? "",
@@ -265,26 +265,14 @@ export default function DataGridWrap({
                 </Button>
                 {/* Print Label 버튼 */}
                 {group === "order" && (
-                  <Tooltip
-                    title={
-                      isPrintLabelEnabled
-                        ? ""
-                        : "Activated when a self-logistics channel and a printable status are searched."
-                    }
-                    arrow
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<PrintIcon />}
+                    onClick={handlePrintLabel}
                   >
-                    <span>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<PrintIcon />}
-                        disabled={!isPrintLabelEnabled}
-                        onClick={handlePrintLabel}
-                      >
-                        Print Label
-                      </Button>
-                    </span>
-                  </Tooltip>
+                    Print Label
+                  </Button>
                 )}
 
                 {/* Bulk Cancel Modal */}
@@ -320,6 +308,13 @@ export default function DataGridWrap({
           setOpen={setOpenPrintLabelAlert}
           isButton={false}
           dialogContent="No orders selected. Please select orders to print labels."
+          dialogCloseLabel="OK"
+        />
+        <AlertDialog
+          open={printLabelChannelError}
+          setOpen={setPrintLabelChannelError}
+          isButton={false}
+          dialogContent="Print Label is only available for channels using self-logistics."
           dialogCloseLabel="OK"
         />
 

@@ -8,6 +8,7 @@ import {
   OrderPartialShipmentRequest,
   OrderRecipientUpdateRequest,
 } from "@/shared/generated/oms/types/Order";
+import { ReshipmentDetailResponse } from "@/shared/generated/oms/types/Reshipment";
 import {
   ReturnDetailResponse,
   ReturnRecipientUpdateRequest,
@@ -217,6 +218,21 @@ export const patchExchangeRequestShipment = async (exchangeId: string) => {
     "PATCH",
   );
   return rawResponse;
+};
+
+/**
+ * GET
+ * /v1/api/reshipments/orders/{orderId}
+ * 재배송 상세 조회
+ */
+export const getReshipmentDetail = async (
+  orderId: string,
+): Promise<ReshipmentDetailResponse[]> => {
+  const responseData = await FetchWithToken<ReshipmentDetailResponse[]>(
+    `/reshipments/orders/${orderId}`,
+    "GET",
+  );
+  return responseData;
 };
 
 /**

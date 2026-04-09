@@ -4,9 +4,9 @@ export default function Tab({
   activeType,
   setActiveType,
 }: {
-  activeType: "order" | "return" | "exchange" | "log-history";
+  activeType: "order" | "return" | "exchange" | "reshipment" | "log-history";
   setActiveType: (
-    type: "order" | "return" | "exchange" | "log-history",
+    type: "order" | "return" | "exchange" | "reshipment" | "log-history",
   ) => void;
 }) {
   return (
@@ -27,6 +27,11 @@ export default function Tab({
         setActiveType={setActiveType}
       />
       <TabButton
+        type="reshipment"
+        activeType={activeType}
+        setActiveType={setActiveType}
+      />
+      <TabButton
         type="log-history"
         activeType={activeType}
         setActiveType={setActiveType}
@@ -40,10 +45,10 @@ const TabButton = ({
   activeType,
   setActiveType,
 }: {
-  type: "order" | "return" | "exchange" | "log-history";
-  activeType: "order" | "return" | "exchange" | "log-history";
+  type: "order" | "return" | "exchange" | "reshipment" | "log-history";
+  activeType: "order" | "return" | "exchange" | "reshipment" | "log-history";
   setActiveType: (
-    type: "order" | "return" | "exchange" | "log-history",
+    type: "order" | "return" | "exchange" | "reshipment" | "log-history",
   ) => void;
 }) => {
   const typeName =

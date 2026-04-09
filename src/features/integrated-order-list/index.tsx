@@ -58,6 +58,7 @@ export default function IntegratedOrderList({
         types: [],
         tags: [],
       },
+      labelPrint: "all",
     }),
     [timezone],
   );
