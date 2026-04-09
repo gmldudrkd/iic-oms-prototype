@@ -126,20 +126,6 @@ export default function ReshipmentDetailInfo({
                 </span>
 
                 <div className="ml-auto flex gap-[8px]">
-                  {buttonConditions.printLabel && (
-                    <PrintLabel
-                      shipmentNo={detail.reshipmentNo}
-                      shipmentStatus={reshipmentData.status.name}
-                      orderId={orderId}
-                      recipientName={detail.recipientName}
-                      recipientCompany="IIC Combined"
-                      recipientAddress={detail.deliveryAddress.address1}
-                      recipientCityStateZip={`${detail.deliveryAddress.city} ${detail.deliveryAddress.stateProvince} ${detail.deliveryAddress.postcode}`}
-                      recipientCountry={detail.deliveryAddress.countryRegion}
-                      recipientPhone={detail.recipientPhone}
-                      trackingNo={detail.trackingNo[0]?.trackingNo ?? ""}
-                    />
-                  )}
                   {buttonConditions.cancelShipment && (
                     <ExchangeActionButton
                       modalKey="CANCEL_SHIPMENT"

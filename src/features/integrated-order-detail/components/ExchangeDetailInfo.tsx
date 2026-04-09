@@ -347,27 +347,6 @@ export default function ExchangeDetailInfo({
                             buttonLabel="Cancel Shipment"
                             postButtonClassNames="!text-error"
                           />
-                          {brand === "GENTLE_MONSTER" &&
-                            corporation === "CA" && (
-                              <PrintLabel
-                                shipmentNo={resend.shipmentNo}
-                                shipmentStatus="PICKING_REQUESTED"
-                                orderId={orderId ?? ""}
-                                recipientName={exchangeDetail.recipientName}
-                                recipientCompany="IIC Combined"
-                                recipientAddress={
-                                  exchangeDetail.resendAddress.address1
-                                }
-                                recipientCityStateZip={`${exchangeDetail.resendAddress.city} ${exchangeDetail.resendAddress.stateProvince} ${exchangeDetail.resendAddress.postcode}`}
-                                recipientCountry={
-                                  exchangeDetail.resendAddress.countryRegion
-                                }
-                                recipientPhone={exchangeDetail.recipientPhone}
-                                trackingNo={
-                                  resend.resendDeliveries[0]?.trackingNo ?? ""
-                                }
-                              />
-                            )}
                         </>
                       )}
                     </div>
