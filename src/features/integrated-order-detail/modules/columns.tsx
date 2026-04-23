@@ -242,6 +242,45 @@ export const LIST_COLUMNS_PAYMENT: GridColDef[] = [
     },
   },
   {
+    field: "net",
+    headerName: "Net",
+    minWidth: 120,
+    flex: 1,
+    align: "right",
+    headerAlign: "right",
+    renderHeader: () => (
+      <Tooltip title="(Amount-Tax)">
+        <span className="underline decoration-dotted">Net</span>
+      </Tooltip>
+    ),
+    renderCell: (params: GridRenderCellParams) => {
+      return (
+        <div
+          className={`${params.row.type === "Payment" ? "text-[#33691E]" : "text-[#BF360C]"}`}
+        >
+          {convertToPrice(Number(params.row.net), params.row.currency)}
+        </div>
+      );
+    },
+  },
+  {
+    field: "tax",
+    headerName: "Tax",
+    minWidth: 120,
+    flex: 1,
+    align: "right",
+    headerAlign: "right",
+    renderCell: (params: GridRenderCellParams) => {
+      return (
+        <div
+          className={`${params.row.type === "Payment" ? "text-[#33691E]" : "text-[#BF360C]"}`}
+        >
+          {convertToPrice(Number(params.row.tax), params.row.currency)}
+        </div>
+      );
+    },
+  },
+  {
     field: "amount",
     headerName: "Amount",
     minWidth: 150,

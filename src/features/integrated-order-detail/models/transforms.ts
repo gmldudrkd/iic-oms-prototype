@@ -211,17 +211,23 @@ export const transformRowsPaymentInfo = (
   if (!data) return [];
   const { currency } = data.payments[0] ?? {};
 
-  const payments = data.payments.map((payment, index) => ({
-    id: `${payment.transactionNo}-${index}`,
-    no: index + 1,
-    occurredAt: getLocalTime(payment.paidAt, timezone),
-    type: "Payment",
-    method: payment.method,
-    tid: payment.transactionNo,
-    note: null,
-    amount: payment.paidAmount,
-    currency,
-  }));
+  const payments = data.payments.map((payment, index) => {
+    const paidAmount = payment.paidAmount ?? 0;
+    const taxAmount = payment.taxAmount ?? 0;
+    return {
+      id: `${payment.transactionNo}-${index}`,
+      no: index + 1,
+      occurredAt: getLocalTime(payment.paidAt, timezone),
+      type: "Payment",
+      method: payment.method,
+      tid: payment.transactionNo,
+      note: null,
+      tax: taxAmount,
+      net: paidAmount - taxAmount,
+      amount: paidAmount,
+      currency,
+    };
+  });
 
   // 이전 refundGroup들의 총 refundPayments 개수를 누적하기 위한 변수
   let previousRefundCount = 0;
@@ -230,23 +236,29 @@ export const transformRowsPaymentInfo = (
     (refundGroup, refundGroupIndex) => {
       const refunds = refundGroup.refundPayments
         .filter((refund) => refund !== null)
-        .map((refund: RefundPayment, refundIndex) => ({
-          id: `${refund.transactionNo}-${refundGroupIndex}-${refundIndex}`,
-          no: data.payments.length + previousRefundCount + refundIndex + 1,
-          occurredAt: getLocalTime(refund.refundAt, timezone),
-          type: "Refund",
-          method: refund.method,
-          tid: refund.transactionNo,
-          note: refundGroup.reason
-            ? `${refundGroup.reason}${
-                refund.shippingFee
-                  ? ` (excl., shipping ${refund.shippingFee.toLocaleString()})`
-                  : ""
-              }`
-            : "-",
-          amount: refund.refundAmount ? refund.refundAmount * -1 : 0,
-          currency,
-        }));
+        .map((refund: RefundPayment, refundIndex) => {
+          const amount = refund.refundAmount ? refund.refundAmount * -1 : 0;
+          const tax = refund.taxAmount ? refund.taxAmount * -1 : 0;
+          return {
+            id: `${refund.transactionNo}-${refundGroupIndex}-${refundIndex}`,
+            no: data.payments.length + previousRefundCount + refundIndex + 1,
+            occurredAt: getLocalTime(refund.refundAt, timezone),
+            type: "Refund",
+            method: refund.method,
+            tid: refund.transactionNo,
+            note: refundGroup.reason
+              ? `${refundGroup.reason}${
+                  refund.shippingFee
+                    ? ` (excl., shipping ${refund.shippingFee.toLocaleString()})`
+                    : ""
+                }`
+              : "-",
+            tax,
+            net: amount - tax,
+            amount,
+            currency,
+          };
+        });
 
       // 현재 refundGroup의 개수를 누적
       previousRefundCount += refundGroup.refundPayments.length;
