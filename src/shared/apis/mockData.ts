@@ -1192,7 +1192,7 @@ const mockOrderDetail = {
       paidAmount: 620000,
       paidAt: yesterday,
       shippingFee: 0,
-      taxAmount: 56364,
+      taxAmount: 0,
       dutyAmount: 0,
       transactionNo: "TXN-20250201-001",
     },

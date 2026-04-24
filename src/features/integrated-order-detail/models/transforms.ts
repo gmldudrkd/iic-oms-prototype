@@ -394,47 +394,65 @@ export const transformRowsShipmentInfoRows = (
   ];
 
   const rows: GridRowModel[] = shipment.items.flatMap((item, itemIndex) => {
-    const totalSubItems =
-      (item.products?.length || 0) + (item.components?.length || 0);
+    const hasProducts = (item.products?.length || 0) > 0;
+    const hasComponents = (item.components?.length || 0) > 0;
     const { sequence } = item;
+    const imageValue = `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`;
 
     const commonFields = createCommonQuantityFields(fields, item, sequence);
     const itemRows: GridRowModel[] = [];
 
-    // ✅ products
+    // ✅ bundle products - 각 row는 자체 SKU/Product Name 표시
     item.products?.forEach((product, productIndex) => {
+      const rowSeq = `product-${sequence}-${productIndex}`;
       itemRows.push({
         id: `item-${itemIndex}-product-${productIndex}-${sequence}`,
         no: sequence,
-        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`,
-        skuCode: formatWithSequence(item.sku, sequence),
-        productName: formatWithSequence(item.productName, sequence),
-        sapCode: formatWithSequence(product.productCode, sequence),
-        sapName: formatWithSequence(product.productName, sequence),
+        image: imageValue,
+        skuCode: formatWithSequence(product.sku, rowSeq),
+        productName: formatWithSequence(product.productName, rowSeq),
+        sapCode: formatWithSequence(product.productCode, rowSeq),
+        sapName: formatWithSequence(product.productName, rowSeq),
         ...commonFields,
       });
     });
 
-    // ✅ components
+    // ✅ bundle이 아닌 경우 메인 item row 먼저 표시
+    if (!hasProducts && hasComponents) {
+      const mainSeq = `main-${sequence}`;
+      itemRows.push({
+        id: `item-${itemIndex}-main-${sequence}`,
+        no: sequence,
+        image: imageValue,
+        skuCode: formatWithSequence(item.sku, mainSeq),
+        productName: formatWithSequence(item.productName, mainSeq),
+        sapCode: formatWithSequence(item.productCode, mainSeq),
+        sapName: formatWithSequence(item.productName, mainSeq),
+        ...commonFields,
+      });
+    }
+
+    // ✅ components - 각 row는 자체 SKU/Product Name 표시
     item.components?.forEach((component, componentIndex) => {
+      const rowSeq = `component-${sequence}-${componentIndex}`;
       itemRows.push({
         id: `item-${itemIndex}-component-${componentIndex}-${sequence}`,
         no: sequence,
-        image: null,
-        skuCode: formatWithSequence(component.sku, sequence),
-        productName: formatWithSequence(component.productName, sequence),
-        sapCode: formatWithSequence(component.productCode, sequence),
-        sapName: formatWithSequence(component.productName, sequence),
+        image: imageValue,
+        skuCode: formatWithSequence(component.sku, rowSeq),
+        productName: formatWithSequence(component.productName, rowSeq),
+        sapCode: formatWithSequence(component.productCode, rowSeq),
+        sapName: formatWithSequence(component.productName, rowSeq),
         ...commonFields,
       });
     });
 
     // ✅ 단일 상품
-    if (totalSubItems === 0) {
+    if (!hasProducts && !hasComponents) {
       itemRows.push({
         id: item.productCode || `item-${itemIndex}`,
         no: sequence,
-        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`,
+        image: imageValue,
         skuCode: formatWithSequence(item.sku, sequence),
         productName: item.productName ?? "-",
         sapCode: formatWithSequence(item.productCode, sequence),
