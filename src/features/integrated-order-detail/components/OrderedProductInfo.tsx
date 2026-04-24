@@ -30,7 +30,19 @@ export default function OrderedProductInfo() {
   const currency = getCurrencyFromPayments(data?.payments);
   const total =
     data?.items.reduce(
-      (acc, item) => acc + Number(item.subTotal ?? 0),
+      (acc, item) => {
+        const hasProducts = (item.products?.length || 0) > 0;
+        const componentsTotal =
+          item.components?.reduce(
+            (sum, c) => sum + Number(c.price ?? 0) * Number(c.quantity ?? 0),
+            0,
+          ) ?? 0;
+        // bundle은 item.subTotal이 sub-products 합계를 포함 → components만 추가
+        // non-bundle은 item.subTotal + components 각각의 subtotal
+        return (
+          acc + Number(item.subTotal ?? 0) + (hasProducts ? 0 : componentsTotal)
+        );
+      },
       Number(data?.shippingFee ?? 0),
     ) ?? 0;
 
@@ -50,6 +62,16 @@ export default function OrderedProductInfo() {
           disableColumnResize
           disableDensitySelector
           rowSpanning
+          getRowClassName={(params) => {
+            const productName = String(params.row.productName ?? "");
+            return productName.includes("└") ? "bundle-sub-row" : "";
+          }}
+          sx={{
+            "& .bundle-sub-row, & .bundle-sub-row:hover, & .bundle-sub-row.Mui-hovered, & .bundle-sub-row .MuiDataGrid-cell, & .bundle-sub-row:hover .MuiDataGrid-cell":
+              {
+                backgroundColor: "#EEEEEE !important",
+              },
+          }}
           slots={{
             footer: () => (
               <>

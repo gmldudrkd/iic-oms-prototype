@@ -58,25 +58,9 @@ export const LIST_COLUMNS_PRODUCT: GridColDef[] = [
     field: "productName",
     headerName: "Product Name",
     flex: 2,
-    minWidth: 150,
-    renderCell: (params: GridRenderCellParams) =>
-      renderCellSpanningNullCheck(params, "productName"),
-  },
-  {
-    field: "sapCode",
-    headerName: "SAP Code",
-    flex: 1,
-    minWidth: 120,
-    renderCell: (params: GridRenderCellParams) =>
-      renderCellSpanningNullCheck(params, "sapCode"),
-  },
-  {
-    field: "sapName",
-    headerName: "SAP Name",
-    flex: 1,
     minWidth: 200,
     renderCell: (params: GridRenderCellParams) =>
-      renderCellSpanningNullCheck(params, "sapName"),
+      renderCellSpanningNullCheck(params, "productName"),
   },
   {
     field: "orderedQuantity",
@@ -192,10 +176,11 @@ export const LIST_COLUMNS_PRODUCT: GridColDef[] = [
     minWidth: 120,
     align: "right",
     renderCell: (params: GridRenderCellParams) => {
-      const price = params.row.price
-        ? Number(params.row.price.split("^")[0])
-        : null;
-      return price ? convertToPrice(price, params.row.currency) : "-";
+      const raw = params.row.price;
+      if (raw === null || raw === undefined) return "-";
+      const price = Number(String(raw).split("^")[0]);
+      if (Number.isNaN(price)) return "-";
+      return convertToPrice(price, params.row.currency);
     },
   },
   {

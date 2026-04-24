@@ -12,7 +12,6 @@ import {
 } from "@/shared/generated/oms/types/Exchange";
 import {
   OrderDetailResponse,
-  OrderDetailOrderItemResponse,
   OrderDetailShipmentResponse,
   OrderDetailShipmentItemResponse,
   OrderEstimateRefundFeeResponse,
@@ -111,66 +110,136 @@ export const transformRowsOrderedProductInfo = (
 ) => {
   if (!data) return [];
   const { currency } = data.payments[0] ?? {};
-  const fields: (keyof OrderDetailOrderItemResponse)[] = [
-    "orderedQuantity",
-    "shipmentQuantity",
-    "canceledQuantity",
-    "returnedQuantity",
-    "reshippedQuantity",
-    "price",
-    "subTotal",
-  ];
 
   const rows: GridRowModel[] = data.items.flatMap((item, itemIndex) => {
-    const totalSubItems =
-      (item.products?.length || 0) + (item.components?.length || 0);
+    const hasProducts = (item.products?.length || 0) > 0;
+    const hasComponents = (item.components?.length || 0) > 0;
     const { sequence } = item;
-
-    const commonFields = {
-      ...createCommonQuantityFields(fields, item, sequence),
-      currency,
-    };
+    const imageValue = `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`;
     const itemRows: GridRowModel[] = [];
 
-    // ✅ products
-    item.products?.forEach((product, productIndex) => {
-      itemRows.push({
-        id: `item-${itemIndex}-product-${productIndex}-${sequence}`,
+    const buildSubRow = (
+      sub: Record<string, unknown>,
+      keyPrefix: string,
+      subIndex: number,
+      productNamePrefix = "",
+    ): GridRowModel => {
+      const subSeq = `${keyPrefix}-${sequence}-${subIndex}`;
+      const quantity = Number(sub.quantity ?? 0);
+      const price = Number(sub.price ?? 0);
+      const shipmentQuantity = Number(sub.shipmentQuantity ?? quantity);
+      const canceledQuantity = Number(sub.canceledQuantity ?? 0);
+      const returnedQuantity = Number(sub.returnedQuantity ?? 0);
+      const reshippedQuantity = Number(sub.reshippedQuantity ?? 0);
+      return {
+        id: `item-${itemIndex}-${keyPrefix}-${subIndex}-${sequence}`,
         no: sequence,
-        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`,
-        skuCode: formatWithSequence(item.sku, sequence),
-        productName: formatWithSequence(item.productName, sequence),
-        sapCode: formatWithSequence(product.productCode, sequence),
-        sapName: formatWithSequence(product.productName, sequence),
-        ...commonFields,
-      });
-    });
+        image: imageValue,
+        skuCode: formatWithSequence(sub.sku as string, subSeq),
+        productName: formatWithSequence(
+          `${productNamePrefix}${sub.productName ?? ""}`,
+          subSeq,
+        ),
+        orderedQuantity: formatWithSequence(quantity, subSeq),
+        shipmentQuantity: formatWithSequence(shipmentQuantity, subSeq),
+        canceledQuantity: formatWithSequence(canceledQuantity, subSeq),
+        returnedQuantity: formatWithSequence(returnedQuantity, subSeq),
+        reshippedQuantity: formatWithSequence(reshippedQuantity, subSeq),
+        price: formatWithSequence(price, subSeq),
+        subTotal: formatWithSequence(price * quantity, subSeq),
+        currency,
+      };
+    };
 
-    // ✅ components
-    item.components?.forEach((component, componentIndex) => {
+    if (hasProducts) {
+      // Bundle: 헤더 row + products 하위 row ("└ " prefix)
+      const headerSeq = `bundle-${sequence}`;
       itemRows.push({
-        id: `item-${itemIndex}-component-${componentIndex}-${sequence}`,
+        id: `item-${itemIndex}-bundle-${sequence}`,
         no: sequence,
-        image: null,
-        skuCode: formatWithSequence(component.sku, sequence),
-        productName: formatWithSequence(component.productName, sequence),
-        sapCode: formatWithSequence(component.productCode, sequence),
-        sapName: formatWithSequence(component.productName, sequence),
-        ...commonFields,
+        image: imageValue,
+        skuCode: formatWithSequence(item.sku, headerSeq),
+        productName: formatWithSequence(item.productName, headerSeq),
+        orderedQuantity: formatWithSequence(item.orderedQuantity, headerSeq),
+        shipmentQuantity: formatWithSequence(item.shipmentQuantity, headerSeq),
+        canceledQuantity: formatWithSequence(item.canceledQuantity, headerSeq),
+        returnedQuantity: formatWithSequence("", headerSeq),
+        reshippedQuantity: formatWithSequence("", headerSeq),
+        price: formatWithSequence(item.price, headerSeq),
+        subTotal: formatWithSequence(item.subTotal, headerSeq),
+        currency,
       });
-    });
 
-    // ✅ 단일 상품
-    if (totalSubItems === 0) {
+      item.products.forEach((product, productIndex) => {
+        itemRows.push(
+          buildSubRow(
+            product as unknown as Record<string, unknown>,
+            "product",
+            productIndex,
+            "└ ",
+          ),
+        );
+      });
+
+      // Bundle에 components도 있다면 함께 렌더
+      item.components?.forEach((component, componentIndex) => {
+        itemRows.push(
+          buildSubRow(
+            component as unknown as Record<string, unknown>,
+            "component",
+            componentIndex,
+            "└ ",
+          ),
+        );
+      });
+    } else if (hasComponents) {
+      // 메인 item row + components row (prefix 없음)
+      const mainSeq = `main-${sequence}`;
+      itemRows.push({
+        id: `item-${itemIndex}-main-${sequence}`,
+        no: sequence,
+        image: imageValue,
+        skuCode: formatWithSequence(item.sku, mainSeq),
+        productName: formatWithSequence(item.productName, mainSeq),
+        orderedQuantity: formatWithSequence(item.orderedQuantity, mainSeq),
+        shipmentQuantity: formatWithSequence(item.shipmentQuantity, mainSeq),
+        canceledQuantity: formatWithSequence(item.canceledQuantity, mainSeq),
+        returnedQuantity: formatWithSequence(item.returnedQuantity, mainSeq),
+        reshippedQuantity: formatWithSequence(item.reshippedQuantity, mainSeq),
+        price: formatWithSequence(item.price, mainSeq),
+        subTotal: formatWithSequence(item.subTotal, mainSeq),
+        currency,
+      });
+
+      item.components.forEach((component, componentIndex) => {
+        itemRows.push(
+          buildSubRow(
+            component as unknown as Record<string, unknown>,
+            "component",
+            componentIndex,
+          ),
+        );
+      });
+    } else {
+      // 단일 상품
+      const singleSeq = `single-${sequence}`;
       itemRows.push({
         id: item.productCode || `item-${itemIndex}`,
         no: sequence,
-        image: `${getDefaultImageUrl(item.thumbnailUrl)}?${sequence}`,
-        skuCode: formatWithSequence(item.sku, sequence),
-        productName: item.productName ?? "-",
-        sapCode: formatWithSequence(item.productCode, sequence),
-        sapName: formatWithSequence(item.productName, sequence),
-        ...commonFields,
+        image: imageValue,
+        skuCode: formatWithSequence(item.sku, singleSeq),
+        productName: formatWithSequence(item.productName, singleSeq),
+        orderedQuantity: formatWithSequence(item.orderedQuantity, singleSeq),
+        shipmentQuantity: formatWithSequence(item.shipmentQuantity, singleSeq),
+        canceledQuantity: formatWithSequence(item.canceledQuantity, singleSeq),
+        returnedQuantity: formatWithSequence(item.returnedQuantity, singleSeq),
+        reshippedQuantity: formatWithSequence(
+          item.reshippedQuantity,
+          singleSeq,
+        ),
+        price: formatWithSequence(item.price, singleSeq),
+        subTotal: formatWithSequence(item.subTotal, singleSeq),
+        currency,
       });
     }
 
@@ -182,10 +251,8 @@ export const transformRowsOrderedProductInfo = (
     id: "shipping-fee",
     no: "-",
     skuCode: "",
-    sapCode: "",
     image: null,
-    productName: "",
-    sapName: "배송비^",
+    productName: "배송비",
     orderedQuantity: `^`,
     shipmentQuantity: `^`,
     canceledQuantity: `^`,
