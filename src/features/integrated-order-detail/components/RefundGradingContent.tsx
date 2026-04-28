@@ -1,8 +1,5 @@
-import { useMemo } from "react";
-
 import CheckIcon from "@mui/icons-material/Check";
-
-import { ReturnDetailOrderItemResponse } from "@/shared/generated/oms/types/Return";
+import { useMemo } from "react";
 
 const GRADE_OPTIONS = ["A", "B", "C"] as const;
 
@@ -12,8 +9,15 @@ const GRADE_CONFIG = {
   C: { label: "심한 손상", color: "#E91E63" },
 } as const;
 
+interface GradingItem {
+  productCode: string;
+  productName: string;
+  quantity: number;
+  thumbnailUrl?: string;
+}
+
 interface RefundGradingContentProps {
-  items: ReturnDetailOrderItemResponse[];
+  items: GradingItem[];
   grades: Record<string, string>;
   onGradeChange: (key: string, value: string) => void;
   onSelectAllGrade: (grade: string) => void;
@@ -29,7 +33,7 @@ export default function RefundGradingContent({
 }: RefundGradingContentProps) {
   const allUnits = useMemo(() => {
     const units: {
-      item: ReturnDetailOrderItemResponse;
+      item: GradingItem;
       unitIndex: number;
       key: string;
       isFirst: boolean;

@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 
 import CopyTextButton from "@/features/integrated-order-detail/components/CopyTextButton";
 import ExchangeActionButton from "@/features/integrated-order-detail/components/ExchangeDetail/ExchangeActionButton";
-import PrintLabel from "@/features/integrated-order-detail/components/PrintLabel";
 import {
   transformReshipmentDetail,
   transformRowsReshipmentDetail,
@@ -27,7 +26,6 @@ import { formatAddress, getDisabledText } from "@/shared/utils/stringUtils";
 import IconArrowDropDownFilled from "@/assets/icons/IconArrowDropDownFilled";
 
 const PICKING_REQUESTED = "PICKING_REQUESTED";
-const PICKED = "PICKED";
 
 const LIST_COLUMNS_RESHIPMENT_DETAIL: GridColDef[] = [
   { field: "no", headerName: "No.", width: 50 },
@@ -39,17 +37,9 @@ const LIST_COLUMNS_RESHIPMENT_DETAIL: GridColDef[] = [
 
 interface Props {
   reshipmentData: ReshipmentDetailResponse;
-  orderId: string;
-  corporation?: string;
-  brand?: string;
 }
 
-export default function ReshipmentDetailInfo({
-  reshipmentData,
-  orderId,
-  corporation,
-  brand,
-}: Props) {
+export default function ReshipmentDetailInfo({ reshipmentData }: Props) {
   const { timezone } = useTimezoneStore();
   const [isExpanded, setIsExpanded] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
@@ -63,17 +53,11 @@ export default function ReshipmentDetailInfo({
     [reshipmentData],
   );
 
-  const isGmCa = brand === "GENTLE_MONSTER" && corporation === "CA";
-
   const buttonConditions = useMemo(() => {
     return {
       cancelShipment: reshipmentData.status.name === PICKING_REQUESTED,
-      printLabel:
-        isGmCa &&
-        (reshipmentData.status.name === PICKING_REQUESTED ||
-          reshipmentData.status.name === PICKED),
     };
-  }, [reshipmentData, isGmCa]);
+  }, [reshipmentData]);
 
   return (
     <div className="mx-[24px] rounded-[5px] border border-outlined bg-white">
@@ -145,50 +129,6 @@ export default function ReshipmentDetailInfo({
               </Cell>
             </div>
           </DetailGridSingle>
-
-          {/* Label Status - GM brand + CA channel only */}
-          {isGmCa && (
-            <DetailGridSingle>
-              <div className="border-t border-solid border-[#E0E0E0]">
-                <h3>Label Status</h3>
-                <Cell>
-                  <Chip
-                    label={
-                      reshipmentData.status.name === PICKING_REQUESTED
-                        ? "Unprinted"
-                        : "Printed"
-                    }
-                    sx={
-                      reshipmentData.status.name === PICKING_REQUESTED
-                        ? {
-                            backgroundColor: "#e4a343",
-                            color: "#fff",
-                          }
-                        : {
-                            backgroundColor: "#e0e0e0",
-                            color: "rgba(0,0,0,0.87)",
-                          }
-                    }
-                  />
-                  <div className="ml-auto flex gap-[8px]">
-                    <PrintLabel
-                      shipmentNo={detail.reshipmentNo}
-                      shipmentStatus={reshipmentData.status.name}
-                      orderId={orderId}
-                      recipientName={detail.recipientName}
-                      recipientCompany="IIC Combined"
-                      recipientAddress={detail.deliveryAddress.address1}
-                      recipientCityStateZip={`${detail.deliveryAddress.city} ${detail.deliveryAddress.stateProvince} ${detail.deliveryAddress.postcode}`}
-                      recipientCountry={detail.deliveryAddress.countryRegion}
-                      recipientPhone={detail.recipientPhone}
-                      trackingNo={detail.trackingNo[0]?.trackingNo ?? ""}
-                      onStatusUpdate={() => {}}
-                    />
-                  </div>
-                </Cell>
-              </div>
-            </DetailGridSingle>
-          )}
 
           {/* Carrier */}
           <DetailGridSingle>

@@ -32,13 +32,7 @@ export default function InfoReshipment() {
 
   if (data) {
     return data.map((item) => (
-      <ReshipmentDetailInfo
-        key={item.reshipmentId}
-        reshipmentData={item}
-        orderId={orderId as string}
-        corporation={orderData?.corporation}
-        brand={orderData?.brand?.name}
-      />
+      <ReshipmentDetailInfo key={item.reshipmentId} reshipmentData={item} />
     ));
   }
 

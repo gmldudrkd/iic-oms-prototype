@@ -1338,214 +1338,6 @@ const mockOrderDetail = {
   refundPayments: [],
 };
 
-// --- Order Detail Mock for Print Label (GM + CA, PICKING_REQUESTED) ---
-const mockOrderDetailPrintLabel = {
-  brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-  channelType: { name: "GM_CA_OFFICIAL", description: "GM CA Official" },
-  corporation: "CA",
-  orderId: "TEST-ORD-20260325-0001",
-  orderType: { name: "NORMAL", description: "Normal" },
-  orderedAt: yesterday,
-  updatedAt: now,
-  originOrderNo: "GM-CA-2026032501",
-  purchaseNo: "PUR-CA-001",
-  shippingFee: 0,
-  changeReason: "",
-  status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
-  orderer: {
-    fullName: "Emma Tremblay",
-    firstName: "Emma",
-    lastName: "Tremblay",
-    email: "emma.tremblay@example.com",
-    phone: "(416) 987-6543",
-    phoneCountryNo: "+1",
-  },
-  recipient: {
-    fullName: "Emma Tremblay",
-    firstName: "Emma",
-    lastName: "Tremblay",
-    phone: "(416) 987-6543",
-    phoneCountryNo: "+1",
-    deliveryMessage: "",
-    address: {
-      line1: "100 Queen Street West",
-      line2: "",
-      city: "Toronto",
-      state: "ON",
-      postalCode: "M5V 2T6",
-      countryType: "CA",
-    },
-  },
-  items: [
-    {
-      orderItemId: "OI-CA-001",
-      originItemId: "ORIG-CA-001",
-      sku: "GM-BOLD-001-BLK",
-      productCode: "SAP-GM-CA-001",
-      productName: "BOLD - The Dreamer 01",
-      thumbnailUrl: "",
-      quantity: 1,
-      canceledQuantity: 0,
-      pricePerUnit: 380,
-      totalPrice: 380,
-      discountedTotalPrice: 380,
-      status: { name: "CONFIRMED", description: "Confirmed" },
-      components: [],
-      products: [
-        {
-          sku: "GM-BOLD-001-BLK",
-          productCode: "SAP-GM-CA-001",
-          productName: "BOLD - The Dreamer 01 Black",
-          category: "Eyewear",
-          price: 380,
-          quantity: 1,
-        },
-      ],
-    },
-  ],
-  payments: [
-    {
-      currency: "CAD",
-      method: "CREDIT_CARD",
-      paidAmount: 380,
-      paidAt: yesterday,
-      shippingFee: 0,
-      taxAmount: 0,
-      dutyAmount: 0,
-      transactionNo: "TXN-CA-20260325-001",
-    },
-  ],
-  shipments: [
-    {
-      id: "SHP-CA-001",
-      shipmentNo: "TEST-DLV-20260325-0001",
-      wmsNo: "WMS-CA-001",
-      status: { name: "PICKING_REQUESTED", description: "Picking Requested" },
-      event: "PICKING_REQUEST",
-      shippedAt: "",
-      updatedAt: now,
-      trackingUrl: "",
-      cancelReason: "",
-      recipient: {
-        fullName: "Emma Tremblay",
-        firstName: "Emma",
-        lastName: "Tremblay",
-        phone: "(416) 987-6543",
-        phoneCountryNo: "+1",
-        address: {
-          line1: "100 Queen Street West",
-          line2: "",
-          city: "Toronto",
-          state: "ON",
-          postalCode: "M5V 2T6",
-          countryType: "CA",
-        },
-      },
-      delivery: {
-        carrierCode: "FEDEX",
-        trackingNo: "3999 2375 8287",
-        deliveryType: "GROUND",
-      },
-      deliveries: [
-        {
-          trackingNo: "3999 2375 8287",
-          trackingUrl: "",
-        },
-      ],
-      items: [
-        {
-          shipmentItemId: "SI-CA-001",
-          orderItemId: "OI-CA-001",
-          originItemId: "ORIG-CA-001",
-          sku: "GM-BOLD-001-BLK",
-          productCode: "SAP-GM-CA-001",
-          productName: "BOLD - The Dreamer 01",
-          thumbnailUrl: "",
-          sequence: 1,
-          shipmentQuantity: 1,
-          shippedQuantity: 0,
-          canceledQuantity: 0,
-          components: [],
-          products: [
-            {
-              sku: "GM-BOLD-001-BLK",
-              productCode: "SAP-GM-CA-001",
-              productName: "BOLD - The Dreamer 01 Black",
-              category: "Eyewear",
-              price: 380,
-              quantity: 1,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: "SHP-CA-002",
-      shipmentNo: "TEST-DLV-20260325-0002",
-      wmsNo: "WMS-CA-002",
-      status: { name: "PICKED", description: "Picked" },
-      event: "PICK",
-      shippedAt: "",
-      updatedAt: now,
-      trackingUrl: "",
-      cancelReason: "",
-      recipient: {
-        fullName: "Emma Tremblay",
-        firstName: "Emma",
-        lastName: "Tremblay",
-        phone: "(416) 987-6543",
-        phoneCountryNo: "+1",
-        address: {
-          line1: "100 Queen Street West",
-          line2: "",
-          city: "Toronto",
-          state: "ON",
-          postalCode: "M5V 2T6",
-          countryType: "CA",
-        },
-      },
-      delivery: {
-        carrierCode: "FEDEX",
-        trackingNo: "3999 2375 8288",
-        deliveryType: "GROUND",
-      },
-      deliveries: [
-        {
-          trackingNo: "3999 2375 8288",
-          trackingUrl: "",
-        },
-      ],
-      items: [
-        {
-          shipmentItemId: "SI-CA-002",
-          orderItemId: "OI-CA-001",
-          originItemId: "ORIG-CA-001",
-          sku: "GM-BOLD-002-WHT",
-          productCode: "SAP-GM-CA-002",
-          productName: "BOLD - The Dreamer 02",
-          thumbnailUrl: "",
-          sequence: 1,
-          shipmentQuantity: 1,
-          shippedQuantity: 1,
-          canceledQuantity: 0,
-          components: [],
-          products: [
-            {
-              sku: "GM-BOLD-002-WHT",
-              productCode: "SAP-GM-CA-002",
-              productName: "BOLD - The Dreamer 02 White",
-              category: "Eyewear",
-              price: 350,
-              quantity: 1,
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  refundPayments: [],
-};
-
 // --- Return Detail Mock (ReturnDetailResponse[]) ---
 const mockReturnDetail = [
   {
@@ -1838,6 +1630,77 @@ const mockReturnDetail = [
     claimItems: [
       {
         id: "CI-RTN-004",
+        orderItemId: "OI-001",
+        sku: "GM-KUK-001-BLK",
+        productCode: "SAP-GM-001",
+        productName: "Jennie - Kuku 01",
+        thumbnailUrl: "",
+        quantity: 1,
+        cancelQuantity: 0,
+        components: [],
+        products: [
+          {
+            sku: "GM-KUK-001-BLK",
+            productCode: "SAP-GM-001",
+            productName: "Jennie - Kuku 01 Black",
+            category: "Eyewear",
+            price: 320,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    returnId: "RTN-005",
+    returnNo: "RTN-NO-20250201-005",
+    claimId: "CLM-RTN-005",
+    orderId: "ORD-20250201-005",
+    originOrderNo: "GM-2025020105",
+    status: { name: "PICKUP_REQUESTED", description: "Pickup Requested" },
+    claimFault: "CUSTOMER",
+    claimReason: "Color mismatch",
+    returnMethod: "DELIVERY",
+    claimRequesterType: "CUSTOMER",
+    claimCreatedBy: "mike.park@example.com",
+    createdAt: threeDaysAgo,
+    updatedAt: yesterday,
+    recipient: {
+      fullName: "Mike Park",
+      firstName: "Mike",
+      lastName: "Park",
+      phone: "555-0105",
+      phoneCountryNo: "+1",
+      address: {
+        line1: "789 Maple Street",
+        line2: "",
+        city: "Vancouver",
+        state: "BC",
+        postalCode: "V6B 4N9",
+        countryType: "CA",
+      },
+    },
+    delivery: {
+      carrierCode: "CANADA_POST",
+      trackingNo: "1Z999AA10123456793",
+      deliveryType: "RETURN",
+    },
+    trackingUrl:
+      "https://www.canadapost-postescanada.ca/track-reperer/en#/details/1Z999AA10123456793",
+    items: [
+      {
+        productCode: "SAP-GM-001",
+        productName: "Jennie - Kuku 01",
+        sku: "GM-KUK-001-BLK",
+        quantity: 1,
+        thumbnailUrl: "",
+        upcCode: "8809123456001",
+        gradeSummaries: {},
+      },
+    ],
+    claimItems: [
+      {
+        id: "CI-RTN-005",
         orderItemId: "OI-001",
         sku: "GM-KUK-001-BLK",
         productCode: "SAP-GM-001",
@@ -2293,7 +2156,7 @@ const mockExchangeDetail = [
     orderId: "ORD-20250201-005",
     originOrderNo: "GM-2025020105",
     wmsNo: "WMS-EXC-005",
-    status: { name: "EXCHANGED", description: "Exchanged" },
+    status: { name: "PICKUP_REQUESTED", description: "Pickup Requested" },
     claimFault: "CUSTOMER",
     claimReason: "Frame does not fit",
     claimRequesterType: "CUSTOMER",
@@ -2649,9 +2512,6 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
   // Order detail: /orders/{orderId} (단일 주문 상세)
   if (path.match(/\/orders\/[^/]+$/)) {
     const orderId = path.split("/").pop();
-    if (orderId?.toUpperCase() === "TEST-ORD-20260325-0001") {
-      return mockOrderDetailPrintLabel;
-    }
     const listRow = (mockOrderList.content ?? mockOrderList.data)?.find(
       (r: { orderId: string }) =>
         r.orderId.toLowerCase() === orderId?.toLowerCase(),

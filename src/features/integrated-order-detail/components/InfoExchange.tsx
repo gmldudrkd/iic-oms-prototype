@@ -37,7 +37,6 @@ export default function InfoExchange() {
           key={item.exchangeId}
           exchangeData={item}
           corporation={orderData?.corporation}
-          brand={orderData?.brand?.name}
         />
       );
     });

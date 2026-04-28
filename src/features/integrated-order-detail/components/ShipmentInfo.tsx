@@ -8,7 +8,6 @@ import CancelOrder from "@/features/integrated-order-detail/components/CancelOrd
 import CancelShipment from "@/features/integrated-order-detail/components/CancelShipment";
 import CopyTextButton from "@/features/integrated-order-detail/components/CopyTextButton";
 import OrderInfoWrapper from "@/features/integrated-order-detail/components/OrderInfoWrapper";
-import PrintLabel from "@/features/integrated-order-detail/components/PrintLabel";
 import RegisterClaimLost from "@/features/integrated-order-detail/components/RegisterClaim/variants/RegisterClaimLost";
 import RequestShipment from "@/features/integrated-order-detail/components/RequestShipment";
 import { transformRowsShipmentInfo } from "@/features/integrated-order-detail/models/transforms";
@@ -74,9 +73,6 @@ function ShipmentInfoItem({
   const [isExpanded, setIsExpanded] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
   const rowsReShip = useMemo(() => transformRowsRequestShipment(data), [data]);
-
-  const isGmCa =
-    data?.brand?.name === "GENTLE_MONSTER" && data?.corporation === "CA";
 
   const buttonConditions = useMemo(() => {
     return {
@@ -175,54 +171,6 @@ function ShipmentInfoItem({
               </Cell>
             </div>
           </DetailGridSingle>
-
-          {/* Label Status - GM brand + CA channel only */}
-          {isGmCa && (
-            <DetailGridSingle>
-              <div className="border-t border-solid border-[#E0E0E0]">
-                <h3>Label Status</h3>
-                <Cell>
-                  <Chip
-                    label={
-                      item.status.name === PICKING_REQUESTED
-                        ? "Unprinted"
-                        : "Printed"
-                    }
-                    sx={
-                      item.status.name === PICKING_REQUESTED
-                        ? {
-                            backgroundColor: "#e4a343",
-                            color: "#fff",
-                          }
-                        : {
-                            backgroundColor: "#e0e0e0",
-                            color: "rgba(0,0,0,0.87)",
-                          }
-                    }
-                  />
-                  <div className="ml-auto flex gap-[8px]">
-                    <PrintLabel
-                      shipmentNo={item.shipmentNo}
-                      shipmentStatus={item.status.name}
-                      orderId={data?.orderId ?? ""}
-                      recipientName={shipment.recipient?.fullName ?? ""}
-                      recipientCompany="IIC Combined"
-                      recipientAddress={
-                        shipment.recipient?.address?.line1 ?? ""
-                      }
-                      recipientCityStateZip={`${shipment.recipient?.address?.city ?? ""} ${shipment.recipient?.address?.state ?? ""} ${shipment.recipient?.address?.postalCode ?? ""}`}
-                      recipientCountry={
-                        shipment.recipient?.address?.countryType ?? ""
-                      }
-                      recipientPhone={shipment.recipient?.phone ?? ""}
-                      trackingNo={shipment.delivery?.trackingNo ?? ""}
-                      onStatusUpdate={() => {}}
-                    />
-                  </div>
-                </Cell>
-              </div>
-            </DetailGridSingle>
-          )}
 
           <DetailGridSingle>
             <div>

@@ -4,12 +4,12 @@ import { ThemeProvider } from "@mui/material/styles";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import CopyTextButton from "@/features/integrated-order-detail/components/CopyTextButton";
 import ExchangeActionButton from "@/features/integrated-order-detail/components/ExchangeDetail/ExchangeActionButton";
 import { MODAL_TEXT } from "@/features/integrated-order-detail/components/ExchangeDetail/modules/constants";
-import PrintLabel from "@/features/integrated-order-detail/components/PrintLabel";
+import RefundGradingContent from "@/features/integrated-order-detail/components/RefundGradingContent";
 import usePatchExchangeCancel from "@/features/integrated-order-detail/hooks/usePatchExchangeCancel";
 import usePatchExchangeRequestShipment from "@/features/integrated-order-detail/hooks/usePatchExchangeRequestShipment";
 import {
@@ -25,6 +25,8 @@ import { DATA_GRID_STYLES_PRODUCT_INSPECTION } from "@/features/integrated-order
 import { getRecipientPhone } from "@/features/integrated-order-detail/modules/utils";
 import { DATA_GRID_STYLES } from "@/features/integrated-order-list/modules/styles";
 
+import ContentDialog from "@/shared/components/dialog/ContentDialog";
+import ModalBump from "@/shared/components/modal/ModalBump";
 import {
   DetailGrid,
   DetailGridSingle,
@@ -45,12 +47,10 @@ import IconArrowDropDownFilled from "@/assets/icons/IconArrowDropDownFilled";
 interface Props {
   exchangeData: ExchangeDetailResponse;
   corporation?: string;
-  brand?: string;
 }
 export default function ExchangeDetailInfo({
   exchangeData,
   corporation,
-  brand,
 }: Props) {
   const { CANCELED } = ExchangeSearchRequestExchangeStatusesEnum;
 
@@ -59,6 +59,37 @@ export default function ExchangeDetailInfo({
   const { orderId } = useParams<{ orderId: string }>();
   const [isExpanded, setIsExpanded] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
+  const [grades, setGrades] = useState<Record<string, string>>({});
+
+  const handleGradeChange = useCallback((key: string, value: string) => {
+    setGrades((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleSelectAllGrade = useCallback(
+    (grade: string) => {
+      const newGrades: Record<string, string> = {};
+      exchangeData.items.forEach((item) => {
+        Array.from({ length: item.quantity }, (_, i) => {
+          newGrades[`${item.productCode}-${i}`] = grade;
+        });
+      });
+      setGrades(newGrades);
+    },
+    [exchangeData.items],
+  );
+
+  const handleResetGrades = useCallback(() => {
+    setGrades({});
+  }, []);
+
+  const allGraded = useMemo(() => {
+    const totalUnits = exchangeData.items.reduce(
+      (sum, item) => sum + item.quantity,
+      0,
+    );
+    const gradedCount = Object.values(grades).filter((g) => g !== "").length;
+    return totalUnits > 0 && gradedCount === totalUnits;
+  }, [grades, exchangeData.items]);
 
   const { mutate: mutateCancelExchange } = usePatchExchangeCancel({
     onSuccess: async () => {
@@ -98,8 +129,15 @@ export default function ExchangeDetailInfo({
         exchangeData.status.name === "PICKUP_ONGOING" ||
         exchangeData.status.name === "RECEIVED" ||
         exchangeData.status.name === "INSPECTED",
+      inspect:
+        (exchangeData.status.name === "RECEIVED" ||
+          exchangeData.status.name === "PICKUP_REQUESTED" ||
+          exchangeData.status.name === "PICKUP_ONGOING") &&
+        corporation === "CA",
     };
-  }, [exchangeData]);
+  }, [exchangeData, corporation]);
+
+  const isReceived = exchangeData.status.name === "RECEIVED";
 
   return (
     <div className="mx-[24px] rounded-[5px] border border-outlined bg-white">
@@ -196,6 +234,56 @@ export default function ExchangeDetailInfo({
                       buttonLabel="Request Shipment"
                       closeButtonClassNames="!text-error"
                     />
+                  )}
+
+                  {buttonConditions.inspect && (
+                    <>
+                      <Button
+                        color="primary"
+                        size="small"
+                        onClick={() => {
+                          handleResetGrades();
+                          setOpen(
+                            isReceived ? "INSPECT" : "INSPECT_PRECONFIRM",
+                          );
+                        }}
+                      >
+                        Inspect
+                      </Button>
+                      <ModalBump
+                        open={open === "INSPECT_PRECONFIRM"}
+                        setOpen={(isOpen) =>
+                          setOpen(isOpen ? "INSPECT_PRECONFIRM" : null)
+                        }
+                        text="This claim is not yet marked as received in the system. If the parcel has actually arrived and inspection is complete, you may proceed. Do you want to complete the inspection?"
+                        dialogCloseLabel="Cancel"
+                        dialogConfirmLabel="Confirm"
+                        handleClose={() => setOpen(null)}
+                        handlePost={() => setOpen("INSPECT")}
+                        closeButtonClassNames="!text-default"
+                      />
+                      <ContentDialog
+                        open={open === "INSPECT"}
+                        setOpen={(isOpen) => setOpen(isOpen ? "INSPECT" : null)}
+                        dialogTitle="교환 Grading"
+                        maxWidth="sm"
+                        dialogContent={
+                          <RefundGradingContent
+                            items={exchangeData.items}
+                            grades={grades}
+                            onGradeChange={handleGradeChange}
+                            onSelectAllGrade={handleSelectAllGrade}
+                            onReset={handleResetGrades}
+                          />
+                        }
+                        dialogCloseLabel="Cancel"
+                        dialogConfirmLabel="Confirm"
+                        handleClose={() => setOpen(null)}
+                        handlePost={() => setOpen(null)}
+                        buttonDisable={!allGraded}
+                        variant="outlined"
+                      />
+                    </>
                   )}
 
                   {buttonConditions.cancelExchange && (
@@ -353,59 +441,6 @@ export default function ExchangeDetailInfo({
                   </Cell>
                 </div>
               </DetailGridSingle>
-
-              {/* Label Status - GM brand + CA channel only */}
-              {brand === "GENTLE_MONSTER" && corporation === "CA" && (
-                <DetailGridSingle>
-                  <div>
-                    <h3>Label Status</h3>
-                    <Cell>
-                      <Chip
-                        label={
-                          resend.status === "Picking Requested"
-                            ? "Unprinted"
-                            : "Printed"
-                        }
-                        sx={
-                          resend.status === "Picking Requested"
-                            ? {
-                                backgroundColor: "#e4a343",
-                                color: "#fff",
-                              }
-                            : {
-                                backgroundColor: "#e0e0e0",
-                                color: "rgba(0,0,0,0.87)",
-                              }
-                        }
-                      />
-                      <div className="ml-auto flex gap-[8px]">
-                        <PrintLabel
-                          shipmentNo={resend.shipmentNo}
-                          shipmentStatus={
-                            resend.status === "Picking Requested"
-                              ? "PICKING_REQUESTED"
-                              : "PICKED"
-                          }
-                          orderId={orderId ?? ""}
-                          recipientName={exchangeDetail.recipientName}
-                          recipientCompany="IIC Combined"
-                          recipientAddress={
-                            exchangeDetail.resendAddress.address1
-                          }
-                          recipientCityStateZip={`${exchangeDetail.resendAddress.city} ${exchangeDetail.resendAddress.stateProvince} ${exchangeDetail.resendAddress.postcode}`}
-                          recipientCountry={
-                            exchangeDetail.resendAddress.countryRegion
-                          }
-                          recipientPhone={exchangeDetail.recipientPhone}
-                          trackingNo={
-                            resend.resendDeliveries[0]?.trackingNo ?? ""
-                          }
-                        />
-                      </div>
-                    </Cell>
-                  </div>
-                </DetailGridSingle>
-              )}
 
               <DetailGridSingle>
                 <div>

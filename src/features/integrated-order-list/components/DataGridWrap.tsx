@@ -1,4 +1,3 @@
-import PrintIcon from "@mui/icons-material/Print";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { Button, ThemeProvider } from "@mui/material";
 import {
@@ -18,15 +17,12 @@ import {
 } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
-import PrintLabelModal from "@/features/integrated-order-detail/components/PrintLabelModal";
-import type { LabelData } from "@/features/integrated-order-detail/components/PrintLabelModal";
 import { ModalBulkCancel } from "@/features/integrated-order-list/components/ModalBulkCancel";
 import { transformGroupData } from "@/features/integrated-order-list/models/transforms";
 import { OrderGroup } from "@/features/integrated-order-list/models/types";
 import { IntegratedOrderRequest } from "@/features/integrated-order-list/models/types";
 import { GROUPED_CONFIG } from "@/features/integrated-order-list/modules/constants";
 
-import AlertDialog from "@/shared/components/dialog/AlertDialog";
 import TotalResult from "@/shared/components/text/TotalResult";
 import { COMMON_TABLE_PAGE_SIZE_OPTIONS } from "@/shared/constants";
 import { PageResponseExchangeResponse } from "@/shared/generated/oms/types/Exchange";
@@ -74,11 +70,6 @@ export default function DataGridWrap({
   const [displayColumns, setDisplayColumns] = useState<GridColDef[]>([]);
   const [rows, setRows] = useState<GridRowModel[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0); // 총 개수 상태 추가
-
-  // Print Label 모달 관리
-  const [openPrintLabel, setOpenPrintLabel] = useState(false);
-  const [printLabels, setPrintLabels] = useState<LabelData[]>([]);
-  const [openPrintLabelAlert, setOpenPrintLabelAlert] = useState(false);
 
   // Bulk Cancel 모달 관리
   const [openBulkCancel, setOpenBulkCancel] = useState(false);
@@ -170,47 +161,6 @@ export default function DataGridWrap({
     [group, cancelReason],
   );
 
-  // Print Label: 자가물류 채널(GM/CA) 검증 에러 메시지
-  const [printLabelChannelError, setPrintLabelChannelError] = useState(false);
-
-  const handlePrintLabel = useCallback(() => {
-    if (selectedRows.length === 0) {
-      setOpenPrintLabelAlert(true);
-      return;
-    }
-
-    // GM/CA 자가물류 채널 검증
-    const hasNonSelfLogistics = selectedRows.some((row) => {
-      const name = (row.channelTypeName ?? "").toUpperCase();
-      return (
-        !name.includes("_CA") &&
-        !name.includes("_GM") &&
-        !name.startsWith("GM_")
-      );
-    });
-    if (hasNonSelfLogistics) {
-      setPrintLabelChannelError(true);
-      return;
-    }
-
-    const targetRows: GridRowModel[] = selectedRows;
-    const labels: LabelData[] = targetRows.map((row) => ({
-      shipmentNo: row.shipmentNo ?? row.orderId ?? "",
-      orderId: row.orderId ?? "",
-      recipientName: row.recipientName ?? "",
-      recipientCompany: "IIC Combined",
-      recipientAddress: row.recipientAddress ?? "100 Queen Street West",
-      recipientCityStateZip: row.recipientCity
-        ? `${row.recipientCity} ${row.recipientState ?? ""} ${row.recipientPostalCode ?? ""}`
-        : "Toronto ON M5V 2T6",
-      recipientCountry: row.recipientCountry ?? "CA",
-      recipientPhone: row.recipientPhone ?? "",
-      trackingNo: row.trackingNo ?? "3999 2375 8287",
-    }));
-    setPrintLabels(labels);
-    setOpenPrintLabel(true);
-  }, [selectedRows]);
-
   const handleBulkCancel = () => {
     const allSameBrand = selectedRows.every(
       (row) => row.brand === selectedRows[0].brand,
@@ -263,18 +213,6 @@ export default function DataGridWrap({
                 >
                   Bulk Cancel
                 </Button>
-                {/* Print Label 버튼 */}
-                {group === "order" && (
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<PrintIcon />}
-                    onClick={handlePrintLabel}
-                  >
-                    Print Label
-                  </Button>
-                )}
-
                 {/* Bulk Cancel Modal */}
                 <FormProvider {...methods}>
                   <ModalBulkCancel
@@ -296,27 +234,6 @@ export default function DataGridWrap({
             )}
           </div>
         </div>
-
-        {/* Print Label Modal */}
-        <PrintLabelModal
-          open={openPrintLabel}
-          onClose={() => setOpenPrintLabel(false)}
-          labels={printLabels}
-        />
-        <AlertDialog
-          open={openPrintLabelAlert}
-          setOpen={setOpenPrintLabelAlert}
-          isButton={false}
-          dialogContent="No orders selected. Please select orders to print labels."
-          dialogCloseLabel="OK"
-        />
-        <AlertDialog
-          open={printLabelChannelError}
-          setOpen={setPrintLabelChannelError}
-          isButton={false}
-          dialogContent="Print Label is only available for channels using self-logistics."
-          dialogCloseLabel="OK"
-        />
 
         <div className="h-[calc(100vh-210px)] min-h-[400px]">
           <DataGridPro

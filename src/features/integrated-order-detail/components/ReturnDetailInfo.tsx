@@ -115,9 +115,15 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
       changeToCancel:
         returnData.status.name === "PENDING" ||
         returnData.status.name === "PICKUP_ONGOING",
-      refund: returnData.status.name === "RECEIVED" && corporation === "CA",
+      refund:
+        (returnData.status.name === "RECEIVED" ||
+          returnData.status.name === "PICKUP_REQUESTED" ||
+          returnData.status.name === "PICKUP_ONGOING") &&
+        corporation === "CA",
     };
   }, [returnData, corporation]);
+
+  const isReceived = returnData.status.name === "RECEIVED";
 
   return (
     <div className="mx-[24px] rounded-[5px] border border-outlined bg-white">
@@ -266,11 +272,23 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
                         size="small"
                         onClick={() => {
                           handleResetGrades();
-                          setOpen("REFUND");
+                          setOpen(isReceived ? "REFUND" : "REFUND_PRECONFIRM");
                         }}
                       >
                         Refund
                       </Button>
+                      <ModalBump
+                        open={open === "REFUND_PRECONFIRM"}
+                        setOpen={(isOpen) =>
+                          setOpen(isOpen ? "REFUND_PRECONFIRM" : null)
+                        }
+                        text="This claim is not yet marked as received in the system. If the parcel has actually arrived and inspection is complete, you may proceed. Do you want to complete the inspection?"
+                        dialogCloseLabel="Cancel"
+                        dialogConfirmLabel="Confirm"
+                        handleClose={() => setOpen(null)}
+                        handlePost={() => setOpen("REFUND")}
+                        closeButtonClassNames="!text-default"
+                      />
                       <ContentDialog
                         open={open === "REFUND"}
                         setOpen={(isOpen) => setOpen(isOpen ? "REFUND" : null)}
