@@ -2953,7 +2953,7 @@ const mockOrderHistory = {
       returnId: "RTN-002",
       returnNo: "RT850601653664929061",
       sequence: 3,
-      status: { name: "CANCELLED", description: "Cancelled" },
+      status: { name: "CANCELED", description: "Canceled" },
       updatedAt: "2026-06-05T14:12:20Z",
       sapResults: [],
     },

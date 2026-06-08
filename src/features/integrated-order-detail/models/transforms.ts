@@ -1446,8 +1446,8 @@ export const transformLogHistoryDetail = (
             status: item.status?.description ?? "",
             groupStatus: "return",
           },
-          // OrderHistoryReturnResponse 타입에는 event 없음 → status 기반 fallback
-          event: item.status?.description ?? "-",
+          // OrderHistoryReturnResponse 타입에는 event 없음 → Event 컬럼은 "-" 표기
+          event: "-",
         }))
       : [];
 

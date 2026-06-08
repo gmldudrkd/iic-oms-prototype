@@ -131,7 +131,13 @@ export default function InfoLogHistory() {
                           />
                         )}
                       </TableCell>
-                      <TableCell>{row.event}</TableCell>
+                      <TableCell>
+                        {row.event && row.event !== "-" ? (
+                          <Chip label={row.event} color="secondary" />
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -241,7 +247,13 @@ const LogTable = ({
                     />
                   )}
                 </TableCell>
-                <TableCell>{row.event}</TableCell>
+                <TableCell>
+                  {row.event && row.event !== "-" ? (
+                    <Chip label={row.event} color="secondary" />
+                  ) : (
+                    "-"
+                  )}
+                </TableCell>
               </TableRow>
             ))
           )}
