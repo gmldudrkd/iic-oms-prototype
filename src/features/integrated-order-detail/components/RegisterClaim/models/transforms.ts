@@ -162,87 +162,112 @@ export const transformRowsClaimOrderSeparated = (
   if (!data) return [];
 
   let globalIndex = 1;
+  let bundleCounter = 0;
 
   return data.items.flatMap((item, itemIndex): GridRowModel[] => {
     const itemId = item.orderItemId;
-    const isBundle = !item.productCode;
-
-    // 번들이 아닌 경우 → item 자체를 1 row
-    if (!isBundle) {
-      const claimableQty = Math.max(
-        (Number(item.shipmentQuantity) || 0) +
-          (Number(item.reshippedQuantity) || 0) -
-          (Number(item.returnedQuantity) || 0),
-        0,
-      );
-
-      return [
-        {
-          no: globalIndex++,
-          id: `${itemId}-separated-${itemIndex}`,
-          orderItemId: item.orderItemId,
-          originItemId: item.originItemId,
-          skuCode: item.sku,
-          category: "",
-          productName: item.productName,
-          orderQty: item.orderedQuantity,
-          claimableQty,
-          cancelPrice: item.price,
-          isBundle: false,
-          parentItemId: null,
-          isActive: claimableQty > 0,
-        },
-      ];
-    }
-
-    // 번들인 경우 → item 레벨 스킵, products + components 각각 row
+    // 하위 product를 가진 item만 번들로 취급 (번들은 싱글 단위로 풀어서 노출)
+    const isBundle = (item.products?.length ?? 0) > 0;
     const subRows: GridRowModel[] = [];
 
-    if (item.products?.length) {
-      item.products.forEach((product, prodIndex) => {
-        // TODO: claimableQty 계산 로직 추가
-        const claimableQty = 0;
+    if (isBundle) {
+      const bundleNo = ++bundleCounter;
 
+      // 번들 구성품(product)/포장(component) 모두 개별 선택 가능한 row로 노출
+      item.products?.forEach((product, prodIndex) => {
+        // 구성품: 취소를 제외한 주문 수량 (=Order Qty), 가용재고 무관하게 출고 가능
+        const qty = Number(product.quantity) || 0;
         subRows.push({
           no: globalIndex++,
           id: `${itemId}-product-${prodIndex}`,
           orderItemId: item.orderItemId,
           originItemId: item.originItemId,
           skuCode: product.sku,
-          category: product.category,
+          category: product.category ?? "",
           productName: product.productName,
-          orderQty: product.quantity,
-          claimableQty,
+          orderQty: qty,
+          cellQuantity: qty,
+          initialAvailableQuantity: qty,
           cancelPrice: product.price,
+          bundleNo,
           isBundle: false,
           parentItemId: itemId,
-          isActive: claimableQty > 0,
+          isActive: qty > 0,
         });
       });
-    }
 
-    if (item.components?.length) {
-      item.components.forEach((component, compIndex) => {
-        // TODO: claimableQty 계산 로직 추가
-        const claimableQty = 0;
-
+      item.components?.forEach((component, compIndex) => {
+        const qty = Number(component.quantity) || 0;
         subRows.push({
           no: globalIndex++,
           id: `${itemId}-component-${compIndex}`,
           orderItemId: item.orderItemId,
           originItemId: item.originItemId,
           skuCode: component.sku,
-          category: component.category,
+          category: component.category ?? "",
           productName: component.productName,
-          orderQty: component.quantity,
-          claimableQty,
+          orderQty: qty,
+          cellQuantity: qty,
+          initialAvailableQuantity: qty,
           cancelPrice: component.price,
+          bundleNo,
           isBundle: false,
           parentItemId: itemId,
-          isActive: claimableQty > 0,
+          isActive: qty > 0,
         });
       });
+
+      return subRows;
     }
+
+    // 일반 상품 → 본품 1 row + 포장/구성품 각각 1 row
+    // 제품: 취소 제외 주문 수량 중 실제 출고 가능한 수량
+    const productQty =
+      Math.max(
+        (Number(item.shipmentQuantity) || 0) +
+          (Number(item.reshippedQuantity) || 0) -
+          (Number(item.returnedQuantity) || 0),
+        0,
+      ) ||
+      Number(item.orderedQuantity) ||
+      0;
+
+    subRows.push({
+      no: globalIndex++,
+      id: `${itemId}-separated-${itemIndex}`,
+      orderItemId: item.orderItemId,
+      originItemId: item.originItemId,
+      skuCode: item.sku,
+      category: "",
+      productName: item.productName,
+      orderQty: item.orderedQuantity,
+      cellQuantity: productQty,
+      initialAvailableQuantity: productQty,
+      cancelPrice: item.price,
+      isBundle: false,
+      parentItemId: null,
+      isActive: productQty > 0,
+    });
+
+    item.components?.forEach((component, compIndex) => {
+      const qty = Number(component.quantity) || 0;
+      subRows.push({
+        no: globalIndex++,
+        id: `${itemId}-component-${compIndex}`,
+        orderItemId: item.orderItemId,
+        originItemId: item.originItemId,
+        skuCode: component.sku,
+        category: component.category ?? "",
+        productName: component.productName,
+        orderQty: qty,
+        cellQuantity: qty,
+        initialAvailableQuantity: qty,
+        cancelPrice: component.price,
+        isBundle: false,
+        parentItemId: itemId,
+        isActive: qty > 0,
+      });
+    });
 
     return subRows;
   });

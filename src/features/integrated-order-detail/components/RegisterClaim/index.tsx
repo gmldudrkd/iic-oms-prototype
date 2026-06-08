@@ -39,6 +39,12 @@ import { queryKeys } from "@/shared/queryKeys";
 const { EXCHANGE, RESHIPMENT } = OrderEstimateRefundFeeRequestClaimTypeEnum;
 type ClaimViewMode = "grouped" | "separated";
 
+// 베지키링 자재 식별 (SAP Code 16000271 / SKU S16000271)
+const KEYCHAIN_MATERIAL_CODE = "16000271";
+const KEYCHAIN_SKU = "S16000271";
+const isKeychainMaterial = (productCode?: string, sku?: string) =>
+  productCode === KEYCHAIN_MATERIAL_CODE || sku === KEYCHAIN_SKU;
+
 interface Props {
   open: boolean;
   setOpen: (open: string | null) => void;
@@ -66,7 +72,6 @@ export default function RegisterClaim({ open, setOpen }: Props) {
     setPickupOption,
     reasonList,
     fault,
-    formValid,
     resetForm,
     showPickupOption,
     showTrackingInfo,
@@ -77,7 +82,8 @@ export default function RegisterClaim({ open, setOpen }: Props) {
   });
 
   // rows & summary
-  const [viewMode, setViewMode] = useState<ClaimViewMode>("grouped");
+  // Reshipment은 번들을 싱글 단위로 분리(separated)해 노출 (그룹/분리 탭 없이 고정)
+  const [viewMode, setViewMode] = useState<ClaimViewMode>("separated");
   const [rows, setRows] = useState<GridRowModel[]>([]);
   const [selectedRows, setSelectedRows] = useState<GridRowModel[]>([]);
   const [summaryRequestData, setSummaryRequestData] =
@@ -88,11 +94,9 @@ export default function RegisterClaim({ open, setOpen }: Props) {
       items: [],
     });
 
-  // address validation
+  // address forms (값은 제출 시 ref/recipientInfo로 수집)
   const pickupRef = useRef<PickupAddressFormRef>(null);
   const shipmentRef = useRef<ShipmentAddressFormRef>(null);
-  const [isPickupValid, setIsPickupValid] = useState(true);
-  const [isShipmentValid, setIsShipmentValid] = useState(true);
   const [recipientInfo, setRecipientInfo] = useState<{
     pickupRecipient: TAddressForm;
     shipmentRecipient: TAddressForm;
@@ -102,16 +106,14 @@ export default function RegisterClaim({ open, setOpen }: Props) {
   });
 
   const handlePickupValidChange = useCallback(
-    (isValid: boolean, values: TAddressForm) => {
-      setIsPickupValid(isValid);
+    (_isValid: boolean, values: TAddressForm) => {
       setRecipientInfo((prev) => ({ ...prev, pickupRecipient: values }));
     },
     [],
   );
 
   const handleShipmentValidChange = useCallback(
-    (isValid: boolean, values: TAddressForm) => {
-      setIsShipmentValid(isValid);
+    (_isValid: boolean, values: TAddressForm) => {
       setRecipientInfo((prev) => ({ ...prev, shipmentRecipient: values }));
     },
     [],
@@ -127,14 +129,32 @@ export default function RegisterClaim({ open, setOpen }: Props) {
     });
   }, [resetForm, defaultAddressValues]);
 
+  // 주문에 베지키링(16000271)이 포함되어 있는지
+  const orderHasKeychain = (data?.items ?? []).some(
+    (item) =>
+      isKeychainMaterial(item.productCode, item.sku) ||
+      (item.products ?? []).some((p) =>
+        isKeychainMaterial(p.productCode, p.sku),
+      ) ||
+      (item.components ?? []).some((c) =>
+        isKeychainMaterial(c.productCode, c.sku),
+      ),
+  );
+  // 클레임에 키링이 1개 이상 포함되었는지 (1개라도 선택되면 경고 미노출)
+  const keychainIncludedInClaim = selectedRows.some((row) =>
+    isKeychainMaterial(row.sapCode as string, row.skuCode as string),
+  );
+  // 주문에 키링이 있으나 클레임에 미포함 시 경고
+  const needsKeychainWarning = orderHasKeychain && !keychainIncludedInClaim;
+
   // 제출 로직
   const {
     isPending,
     isPostClaimProcessing,
     openModalType,
     setOpenModalType,
-    handlePostRegisterClaim,
     handleOpenModalBump,
+    handleBumpConfirm,
   } = useSubmitClaim({
     claimType,
     claimReason,
@@ -149,6 +169,7 @@ export default function RegisterClaim({ open, setOpen }: Props) {
     recipientInfo,
     pickupRef,
     shipmentRef,
+    needsKeychainWarning,
     onCloseModal: () => {
       handleClose();
       setOpen(null);
@@ -192,17 +213,9 @@ export default function RegisterClaim({ open, setOpen }: Props) {
     }));
   }, [claimReason, selectedRows, fault, claimType]);
 
-  // 최종 유효성
-  const addressValid =
-    (showPickupAddressForm ? isPickupValid : true) &&
-    (showShipmentAddressForm ? isShipmentValid : true);
-
+  // 제품이 하나라도 선택되면 Confirm 활성화
   const isConfirmDisabled =
-    !formValid ||
-    selectedRows.length === 0 ||
-    !addressValid ||
-    isPending ||
-    isPostClaimProcessing;
+    selectedRows.length === 0 || isPending || isPostClaimProcessing;
 
   return (
     <FormProvider {...methods}>
@@ -244,6 +257,7 @@ export default function RegisterClaim({ open, setOpen }: Props) {
               setRows={setRows}
               selectedRows={selectedRows}
               setSelectedRows={setSelectedRows}
+              showViewModeTabs={false}
             />
 
             {showPickupAddressForm && (
@@ -275,7 +289,7 @@ export default function RegisterClaim({ open, setOpen }: Props) {
                 setOpen={(isOpen) =>
                   setOpenModalType(isOpen ? openModalType : null)
                 }
-                handlePost={handlePostRegisterClaim}
+                handlePost={handleBumpConfirm}
                 handleClose={() => setOpenModalType(null)}
                 text={MODAL_CONFIGS[openModalType].text}
                 dialogCloseLabel={MODAL_CONFIGS[openModalType].dialogCloseLabel}

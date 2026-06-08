@@ -5,6 +5,7 @@ import {
   GridRowModel,
 } from "@mui/x-data-grid-pro";
 
+import GiftCardSerialLink from "@/shared/components/GiftCardSerialLink";
 import { OrderItemComponent } from "@/shared/generated/oms/types/common";
 import { OrderDetailOrderItemResponse } from "@/shared/generated/oms/types/Order";
 import {
@@ -59,8 +60,39 @@ export const LIST_COLUMNS_PRODUCT: GridColDef[] = [
     headerName: "Product Name",
     flex: 2,
     minWidth: 200,
+    renderCell: (params: GridRenderCellParams) => {
+      const serial = params.row.serialNo as string | null | undefined;
+      // 기프트카드 상품: 상품명 아래 줄에 () 안 시리얼번호를 클릭 가능하게 노출
+      if (serial) {
+        const name = String(params.row.productName ?? "").split("^")[0];
+        const display = !name || name === "null" ? "-" : name;
+        return (
+          <div key={params.row.id} className="flex flex-col justify-center">
+            <span>{display}</span>
+            <span className="text-[13px] text-text-secondary">
+              (<GiftCardSerialLink serial={serial} />)
+            </span>
+          </div>
+        );
+      }
+      return renderCellSpanningNullCheck(params, "productName");
+    },
+  },
+  {
+    field: "sapCode",
+    headerName: "SAP Code",
+    flex: 1,
+    minWidth: 120,
     renderCell: (params: GridRenderCellParams) =>
-      renderCellSpanningNullCheck(params, "productName"),
+      renderCellSpanningNullCheck(params, "sapCode"),
+  },
+  {
+    field: "sapName",
+    headerName: "SAP Name",
+    flex: 1.5,
+    minWidth: 150,
+    renderCell: (params: GridRenderCellParams) =>
+      renderCellSpanningNullCheck(params, "sapName"),
   },
   {
     field: "orderedQuantity",
@@ -223,7 +255,12 @@ export const LIST_COLUMNS_PAYMENT: GridColDef[] = [
     minWidth: 150,
     flex: 2,
     renderCell: (params: GridRenderCellParams) => {
-      return params.value === null ? "-" : params.value;
+      if (params.value === null || params.value === undefined) return "-";
+      // 기프트카드 결제건의 시리얼번호는 클릭 가능한 링크로 노출
+      if (params.row.noteClickable) {
+        return <GiftCardSerialLink serial={String(params.value)} />;
+      }
+      return params.value;
     },
   },
   {

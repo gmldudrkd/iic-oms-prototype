@@ -22,6 +22,8 @@ import {
 } from "@/shared/generated/oms/types/Order";
 import { queryKeys } from "@/shared/queryKeys";
 
+const isPrototype = process.env.NEXT_PUBLIC_PROTOTYPE_MODE === "true";
+
 interface UseSubmitClaimParams {
   claimType: OrderEstimateRefundFeeRequestClaimTypeEnum;
   claimReason: string;
@@ -41,6 +43,8 @@ interface UseSubmitClaimParams {
   shipmentRef: React.RefObject<ShipmentAddressFormRef | null>;
   onCloseModal: () => void;
   modalType?: ClaimModalType;
+  // 주문에 베지키링(16000271)이 있으나 클레임에 포함되지 않은 경우 경고
+  needsKeychainWarning?: boolean;
 }
 
 export default function useSubmitClaim({
@@ -59,14 +63,15 @@ export default function useSubmitClaim({
   shipmentRef,
   onCloseModal,
   modalType = "DEFAULT",
+  needsKeychainWarning = false,
 }: UseSubmitClaimParams) {
   const { orderId } = useParams<{ orderId: string }>();
   const queryClient = useQueryClient();
 
   const [isPostClaimProcessing, setIsPostClaimProcessing] = useState(false);
-  const [openModalType, setOpenModalType] = useState<"force_refund" | null>(
-    null,
-  );
+  const [openModalType, setOpenModalType] = useState<
+    "force_refund" | "keychain" | null
+  >(null);
 
   const { mutate, isPending } = usePostClaims({
     onSuccess: () => {
@@ -113,6 +118,16 @@ export default function useSubmitClaim({
     });
 
     console.log("🚀 requestData", requestData);
+
+    // 프로토타입 모드: 실제 API(mutation)가 no-op이라 onSuccess가 호출되지 않으므로
+    // 여기서 직접 확정 처리(모달/Alert 닫기 + 상태 초기화)
+    if (isPrototype) {
+      onCloseModal();
+      setOpenModalType(null);
+      setIsPostClaimProcessing(false);
+      return;
+    }
+
     mutate(requestData as ClaimCreateRequest, {
       onError: () => {
         setIsPostClaimProcessing(false);
@@ -135,19 +150,36 @@ export default function useSubmitClaim({
     pickupRef,
     shipmentRef,
     modalType,
+    onCloseModal,
     mutate,
   ]);
 
+  const isForceRefund =
+    claimType ===
+    ("RETURN_FORCE_REFUND" as OrderEstimateRefundFeeRequestClaimTypeEnum);
+
   const handleOpenModalBump = useCallback(() => {
-    if (
-      claimType ===
-      ("RETURN_FORCE_REFUND" as OrderEstimateRefundFeeRequestClaimTypeEnum)
-    ) {
-      setOpenModalType("force_refund");
-    } else {
-      handlePostRegisterClaim();
+    // 1) 베지키링 누락 경고 우선 노출 (모든 클레임 타입 대상)
+    if (needsKeychainWarning) {
+      setOpenModalType("keychain");
+      return;
     }
-  }, [claimType, handlePostRegisterClaim]);
+    // 2) 강제 환불 확인
+    if (isForceRefund) {
+      setOpenModalType("force_refund");
+      return;
+    }
+    handlePostRegisterClaim();
+  }, [needsKeychainWarning, isForceRefund, handlePostRegisterClaim]);
+
+  // bump 모달의 Confirm 처리: 키링 경고 확인 후 강제 환불이면 강제 환불 경고로 이어서 노출
+  const handleBumpConfirm = useCallback(() => {
+    if (openModalType === "keychain" && isForceRefund) {
+      setOpenModalType("force_refund");
+      return;
+    }
+    handlePostRegisterClaim();
+  }, [openModalType, isForceRefund, handlePostRegisterClaim]);
 
   return {
     isPending,
@@ -156,5 +188,6 @@ export default function useSubmitClaim({
     setOpenModalType,
     handlePostRegisterClaim,
     handleOpenModalBump,
+    handleBumpConfirm,
   };
 }

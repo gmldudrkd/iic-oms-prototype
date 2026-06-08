@@ -1,4 +1,5 @@
 import {
+  Box,
   Table,
   TableBody,
   TableCell,
@@ -6,12 +7,12 @@ import {
   TableHead,
   TableRow,
   Chip,
+  ChipProps,
 } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import CollapsibleSection from "@/features/integrated-order-detail/components/CollapsibleSection";
-import SapIfCell from "@/features/integrated-order-detail/components/SapIfCell";
 import { useGetLogHistoryDetail } from "@/features/integrated-order-detail/hooks/useGetLogHistoryDetail";
 import { useGetOrderDetail } from "@/features/integrated-order-detail/hooks/useGetOrderDetail";
 import { transformLogHistoryDetail } from "@/features/integrated-order-detail/models/transforms";
@@ -20,6 +21,35 @@ import { OrderHistoryResponse } from "@/shared/generated/oms/types/Order";
 import { useOrderNoStore } from "@/shared/stores/useOrderNoStore";
 import { useTimezoneStore } from "@/shared/stores/useTimezoneStore";
 
+type LogViewMode = "timeline" | "by-type";
+
+interface SapIfEntry {
+  sap: string;
+  if: string;
+  resultAt: string;
+}
+
+/** SAP I/F 셀 렌더링: "{interface} / {result}  {resultAt}" 형식 */
+const renderSapIf = (sapIf: SapIfEntry[]) => {
+  if (!sapIf || sapIf.length === 0) return "-";
+  return (
+    <div className="flex flex-col gap-[4px]">
+      {sapIf.map((entry, index) => (
+        <div key={index} className="flex items-center gap-[8px]">
+          <span>
+            {entry.sap} / <span className="text-primary">{entry.if}</span>
+          </span>
+          {entry.resultAt && (
+            <span className="text-[13px] text-text-disabled">
+              {entry.resultAt}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function InfoLogHistory() {
   const { orderId } = useParams();
   const { timezone } = useTimezoneStore();
@@ -27,8 +57,12 @@ export default function InfoLogHistory() {
   const { data, isLoading } = useGetLogHistoryDetail(orderId as string);
   const { data: orderData } = useGetOrderDetail(orderId as string);
 
-  const { orderHistories, returnHistories, exchangeHistories } =
-    transformLogHistoryDetail(data as OrderHistoryResponse, timezone);
+  const {
+    orderHistories,
+    returnHistories,
+    exchangeHistories,
+    timelineHistories,
+  } = transformLogHistoryDetail(data as OrderHistoryResponse, timezone);
 
   useEffect(() => {
     if (orderData && orderData.originOrderNo) {
@@ -39,182 +73,232 @@ export default function InfoLogHistory() {
     }
   }, [orderData, setOrderInfo]);
 
+  const [viewMode, setViewMode] = useState<LogViewMode>("timeline");
   const [isExpandedOrder, setIsExpandedOrder] = useState<boolean>(true);
   const [isExpandedReturn, setIsExpandedReturn] = useState<boolean>(true);
   const [isExpandedExchange, setIsExpandedExchange] = useState<boolean>(true);
 
-  const chipColor = (groupStatus: string) => {
-    if (groupStatus === "shipping") return "default";
+  const chipColor = (groupStatus: string): ChipProps["color"] => {
+    if (groupStatus === "shipping") return "shipment";
     if (groupStatus === "order") return "primary";
     if (groupStatus === "return") return "warning";
     if (groupStatus === "exchange") return "success";
     return "default";
   };
 
+  const typeChipColor = (type: string): ChipProps["color"] => {
+    if (type === "Order") return "primary";
+    if (type === "Return") return "warning";
+    if (type === "Exchange") return "success";
+    return "default";
+  };
+
   return (
     <div className="flex flex-col gap-[24px]">
-      <CollapsibleSection
-        title="Order"
-        isExpanded={isExpandedOrder}
-        toggleExpanded={() => setIsExpandedOrder(!isExpandedOrder)}
-        rightButtonText="Order Status Guide"
-      >
-        <TableContainer className="border-t border-outlined">
-          <Table sx={{ minWidth: 650 }} aria-label="order history table">
-            <TableHead className="bg-order-opacity">
-              <TableRow>
-                <TableCell width="60px" align="center">
-                  SEQ
-                </TableCell>
-                <TableCell width="33%">TimeStamp (KST)</TableCell>
-                <TableCell width="33%">SAP I/F</TableCell>
-                <TableCell width="33%">Updated Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {orderHistories.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    align="center"
-                    className="!text-text-disabled"
-                  >
-                    Not Registered
-                  </TableCell>
-                </TableRow>
-              ) : (
-                orderHistories.map((row, index) => (
-                  <TableRow
-                    key={index}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
-                    <TableCell align="center">{row.seq}</TableCell>
-                    <TableCell>{row.timeStamp}</TableCell>
-                    <SapIfCell sapIf={row.sapIf} />
-                    <TableCell>
-                      {row.updatedStatus.status && (
-                        <Chip
-                          label={row.updatedStatus.status}
-                          color={chipColor(row.updatedStatus.groupStatus)}
-                        />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </CollapsibleSection>
+      {/* Timeline | By Type 탭 */}
+      <div className="flex flex-row gap-[8px] border-b border-outlined px-[24px]">
+        <ViewModeButton
+          label="Timeline"
+          mode="timeline"
+          activeMode={viewMode}
+          setMode={setViewMode}
+        />
+        <ViewModeButton
+          label="By Type"
+          mode="by-type"
+          activeMode={viewMode}
+          setMode={setViewMode}
+        />
+      </div>
 
-      <CollapsibleSection
-        title="Return"
-        isExpanded={isExpandedReturn}
-        toggleExpanded={() => setIsExpandedReturn(!isExpandedReturn)}
-        rightButtonText="Return Status Guide"
-      >
-        <TableContainer className="border-t border-outlined">
-          <Table sx={{ minWidth: 650 }} aria-label="order history table">
-            <TableHead className="bg-order-opacity">
-              <TableRow>
-                <TableCell width="60px" align="center">
-                  SEQ
-                </TableCell>
-                <TableCell width="33%">TimeStamp (KST)</TableCell>
-                <TableCell width="33%">SAP I/F</TableCell>
-                <TableCell width="33%">Updated Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {returnHistories.length === 0 ? (
+      {viewMode === "timeline" ? (
+        <Box className="relative mx-[24px] rounded-[8px] border border-outlined bg-white">
+          <div className="p-[16px] text-[20px] font-bold">Timeline log</div>
+          <TableContainer className="border-t border-outlined">
+            <Table sx={{ minWidth: 650 }} aria-label="timeline history table">
+              <TableHead className="bg-order-opacity">
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    align="center"
-                    className="!text-text-disabled"
-                  >
-                    Not Registered
-                  </TableCell>
+                  <TableCell width="20%">#</TableCell>
+                  <TableCell width="18%">TimeStamp (KST)</TableCell>
+                  <TableCell width="100px">Type</TableCell>
+                  <TableCell width="30%">SAP I/F</TableCell>
+                  <TableCell width="18%">Updated Status</TableCell>
                 </TableRow>
-              ) : (
-                returnHistories.map((row, index) => (
-                  <TableRow
-                    key={index}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
-                    <TableCell align="center">{row.seq}</TableCell>
-                    <TableCell>{row.timeStamp}</TableCell>
-                    <SapIfCell sapIf={row.sapIf} />
-                    <TableCell>
-                      {row.updatedStatus.status && (
-                        <Chip
-                          label={row.updatedStatus.status}
-                          color={chipColor(row.updatedStatus.groupStatus)}
-                        />
-                      )}
+              </TableHead>
+              <TableBody>
+                {timelineHistories.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      align="center"
+                      className="!text-text-disabled"
+                    >
+                      Not Registered
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </CollapsibleSection>
+                ) : (
+                  timelineHistories.map((row, index) => (
+                    <TableRow
+                      key={index}
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    >
+                      <TableCell>{row.no}</TableCell>
+                      <TableCell>{row.timeStamp}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={row.type}
+                          color={typeChipColor(row.type)}
+                        />
+                      </TableCell>
+                      <TableCell>{renderSapIf(row.sapIf)}</TableCell>
+                      <TableCell>
+                        {row.updatedStatus.status && (
+                          <Chip
+                            label={row.updatedStatus.status}
+                            color={chipColor(row.updatedStatus.groupStatus)}
+                          />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      ) : (
+        <>
+          <CollapsibleSection
+            title="Order"
+            isExpanded={isExpandedOrder}
+            toggleExpanded={() => setIsExpandedOrder(!isExpandedOrder)}
+            rightButtonText="Order Status Guide"
+          >
+            <LogTable
+              rows={orderHistories}
+              chipColor={chipColor}
+              ariaLabel="order history table"
+            />
+          </CollapsibleSection>
 
-      <CollapsibleSection
-        title="Exchange"
-        isExpanded={isExpandedExchange}
-        toggleExpanded={() => setIsExpandedExchange(!isExpandedExchange)}
-        rightButtonText="Exchange Status Guide"
-      >
-        <TableContainer className="border-t border-outlined">
-          <Table sx={{ minWidth: 650 }} aria-label="order history table">
-            <TableHead className="bg-order-opacity">
-              <TableRow>
-                <TableCell width="60px" align="center">
-                  SEQ
-                </TableCell>
-                <TableCell width="33%">TimeStamp (KST)</TableCell>
-                <TableCell width="33%">SAP I/F</TableCell>
-                <TableCell width="33%">Updated Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {exchangeHistories.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    align="center"
-                    className="!text-text-disabled"
-                  >
-                    Not Registered
-                  </TableCell>
-                </TableRow>
-              ) : (
-                exchangeHistories.map((row, index) => (
-                  <TableRow
-                    key={index}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
-                    <TableCell align="center">{row.seq}</TableCell>
-                    <TableCell>{row.timeStamp}</TableCell>
-                    <SapIfCell sapIf={row.sapIf} />
-                    <TableCell>
-                      {row.updatedStatus.status && (
-                        <Chip
-                          label={row.updatedStatus.status}
-                          color={chipColor(row.updatedStatus.groupStatus)}
-                        />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </CollapsibleSection>
+          <CollapsibleSection
+            title="Return"
+            isExpanded={isExpandedReturn}
+            toggleExpanded={() => setIsExpandedReturn(!isExpandedReturn)}
+            rightButtonText="Return Status Guide"
+          >
+            <LogTable
+              rows={returnHistories}
+              chipColor={chipColor}
+              ariaLabel="return history table"
+            />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Exchange"
+            isExpanded={isExpandedExchange}
+            toggleExpanded={() => setIsExpandedExchange(!isExpandedExchange)}
+            rightButtonText="Exchange Status Guide"
+          >
+            <LogTable
+              rows={exchangeHistories}
+              chipColor={chipColor}
+              ariaLabel="exchange history table"
+            />
+          </CollapsibleSection>
+        </>
+      )}
     </div>
   );
+
   if (isLoading || !data) return null;
 }
+
+interface LogRow {
+  no: string;
+  timeStamp: string;
+  sapIf: SapIfEntry[];
+  updatedStatus: { status: string; groupStatus: string };
+}
+
+const LogTable = ({
+  rows,
+  chipColor,
+  ariaLabel,
+}: {
+  rows: LogRow[];
+  chipColor: (groupStatus: string) => ChipProps["color"];
+  ariaLabel: string;
+}) => {
+  return (
+    <TableContainer className="border-t border-outlined">
+      <Table sx={{ minWidth: 650 }} aria-label={ariaLabel}>
+        <TableHead className="bg-order-opacity">
+          <TableRow>
+            <TableCell width="25%">#</TableCell>
+            <TableCell width="20%">TimeStamp (KST)</TableCell>
+            <TableCell width="35%">SAP I/F</TableCell>
+            <TableCell width="20%">Updated Status</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={4}
+                align="center"
+                className="!text-text-disabled"
+              >
+                Not Registered
+              </TableCell>
+            </TableRow>
+          ) : (
+            rows.map((row, index) => (
+              <TableRow
+                key={index}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell>{row.no}</TableCell>
+                <TableCell>{row.timeStamp}</TableCell>
+                <TableCell>{renderSapIf(row.sapIf)}</TableCell>
+                <TableCell>
+                  {row.updatedStatus.status && (
+                    <Chip
+                      label={row.updatedStatus.status}
+                      color={chipColor(row.updatedStatus.groupStatus)}
+                    />
+                  )}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
+
+const ViewModeButton = ({
+  label,
+  mode,
+  activeMode,
+  setMode,
+}: {
+  label: string;
+  mode: LogViewMode;
+  activeMode: LogViewMode;
+  setMode: (mode: LogViewMode) => void;
+}) => {
+  return (
+    <button
+      className={`border-b-[2px] border-solid ${
+        activeMode === mode
+          ? "border-primary text-primary"
+          : "border-transparent text-text-secondary"
+      } px-[16px] py-[9px] text-[15px] font-medium`}
+      onClick={() => setMode(mode)}
+    >
+      {label}
+    </button>
+  );
+};

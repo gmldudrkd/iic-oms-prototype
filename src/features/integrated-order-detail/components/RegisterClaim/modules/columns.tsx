@@ -1,4 +1,4 @@
-import { Chip, MenuItem, Select, Tooltip } from "@mui/material";
+import { Chip, MenuItem, Select } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-pro";
 import clsx from "clsx";
 
@@ -38,7 +38,9 @@ const renderProductCell = (
 
   return (
     <div className="flex h-full flex-col justify-center overflow-visible whitespace-normal break-words">
-      {isBundle && <div className={MAIN_ROW_CLASS}>{main}</div>}
+      {(isBundle || safeProducts.length === 0) && (
+        <div className={MAIN_ROW_CLASS}>{main}</div>
+      )}
 
       {!isBundle &&
         safeProducts.map((sub: SubItem, i: number) => (
@@ -124,15 +126,6 @@ export const LIST_COLUMNS_REGISTER = (
       renderProductCell(params, (sub) => sub.productName || "-"),
   },
   {
-    field: "orderQty",
-    headerName: "Ordered Qty",
-    flex: 1,
-    minWidth: 100,
-    cellClassName: "custom-cell-claim",
-    renderCell: (params) =>
-      renderProductCell(params, (sub) => sub.quantity || "-"),
-  },
-  {
     field: "cellQuantity",
     headerName: "Qty",
     minWidth: 120,
@@ -146,47 +139,63 @@ export const LIST_COLUMNS_REGISTER = (
   },
 ];
 
-export const LIST_COLUMNS_REGISTER_RESHIPMENT: GridColDef[] = [
+// ─── Reshipment: 번들을 싱글 단위로 풀어 평면(flat) row로 노출 ───
+export const LIST_COLUMNS_REGISTER_RESHIPMENT = (
+  renderSelectCell: (params: GridRenderCellParams) => React.ReactNode,
+): GridColDef[] => [
   {
     field: "no",
     headerName: "No",
     flex: 0.25,
     minWidth: 50,
-    cellClassName: "",
+    renderCell: (params) => (
+      <div className="flex h-full items-center">{params.row.no}</div>
+    ),
   },
   {
     field: "skuCode",
     headerName: "SKU Code",
     flex: 1,
     minWidth: 100,
-    cellClassName: "",
   },
   {
     field: "category",
     headerName: "Category",
     flex: 1,
-    cellClassName: "",
+    renderCell: (params) =>
+      params.row.category ? (
+        <Chip label={params.row.category} className="!text-gray-600" />
+      ) : null,
   },
   {
     field: "productName",
     headerName: "Product Name",
     flex: 1.5,
     minWidth: 100,
-    cellClassName: "",
+    renderCell: (params) => (
+      <div className="flex items-center gap-2">
+        <span>{params.row.productName || "-"}</span>
+        {params.row.bundleNo ? (
+          <Chip
+            size="small"
+            label={`Bundle #${params.row.bundleNo}`}
+            className="!bg-[#E3F2FD] !text-[#1E88E5]"
+          />
+        ) : null}
+      </div>
+    ),
   },
   {
     field: "orderQty",
     headerName: "Ordered Qty",
     flex: 1,
     minWidth: 100,
-    cellClassName: "",
   },
   {
-    field: "claimableQty",
-    // headerName: "To Use Qty",
+    field: "cellQuantity",
     headerName: "Qty",
     minWidth: 120,
-    cellClassName: "",
+    renderCell: (params) => renderSelectCell(params),
   },
 ];
 

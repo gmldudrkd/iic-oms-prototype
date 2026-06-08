@@ -163,7 +163,7 @@ export default function DataGridClaim({
     if (claimType === RESHIPMENT) {
       return viewMode === "grouped"
         ? LIST_COLUMNS_REGISTER(renderSelectCell)
-        : LIST_COLUMNS_REGISTER_RESHIPMENT;
+        : LIST_COLUMNS_REGISTER_RESHIPMENT(renderSelectCell);
     }
     return LIST_COLUMNS_REGISTER(renderSelectCell);
   }, [columnsProp, renderSelectCell, claimType, viewMode]);

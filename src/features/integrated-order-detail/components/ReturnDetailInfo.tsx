@@ -184,18 +184,29 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
           {/* dataTable */}
           <DetailGrid className="border-t border-solid border-[#E0E0E0]">
             <div>
-              <h3>Registered By</h3>
-              <Cell>{returnDetail.registeredBy}</Cell>
-            </div>
-            <div>
               <h3>Party at Fault</h3>
               <Cell>{returnDetail.claimFault}</Cell>
+            </div>
+            <div>
+              <h3>Return reason</h3>
+              <Cell>{returnDetail.returnReason}</Cell>
             </div>
           </DetailGrid>
           <DetailGrid>
             <div>
-              <h3>Return reason</h3>
-              <Cell>{returnDetail.returnReason}</Cell>
+              <h3>Pickup</h3>
+              <Cell>
+                {(() => {
+                  const m = returnDetail.returnMethod?.toLowerCase() ?? "";
+                  if (
+                    m.includes("without pickup") ||
+                    m.includes("force refund")
+                  )
+                    return "Not Requested";
+                  if (m.includes("pickup")) return "Requested";
+                  return "-";
+                })()}
+              </Cell>
             </div>
             <div>
               <h3>Return Method</h3>
@@ -389,6 +400,12 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
               </Cell>
             </div>
           </DetailGrid>
+          <DetailGridSingle>
+            <div>
+              <h3>Registered By</h3>
+              <Cell>{returnDetail.registeredBy}</Cell>
+            </div>
+          </DetailGridSingle>
         </>
       )}
     </div>

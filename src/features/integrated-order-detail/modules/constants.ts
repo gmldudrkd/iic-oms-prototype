@@ -268,6 +268,13 @@ export const MODAL_CONFIGS = {
     closeButtonClassNames: "!text-primary",
     postButtonClassNames: "!text-error",
   },
+  keychain: {
+    text: "This order includes a keychain. Are you sure you want to proceed with the claim without including it?",
+    dialogCloseLabel: "Cancel",
+    dialogConfirmLabel: "Proceed",
+    closeButtonClassNames: "!text-primary",
+    postButtonClassNames: "!text-primary",
+  },
   // tracking_info: {
   //   text: "'Tracking information' has been entered. Are you sure you want to proceed with the claim without a pickup?",
   //   dialogCloseLabel: "Back",

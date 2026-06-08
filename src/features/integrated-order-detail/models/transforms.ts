@@ -140,6 +140,8 @@ export const transformRowsOrderedProductInfo = (
           `${productNamePrefix}${sub.productName ?? ""}`,
           subSeq,
         ),
+        sapCode: formatWithSequence((sub.productCode as string) ?? "", subSeq),
+        sapName: formatWithSequence((sub.productName as string) ?? "", subSeq),
         orderedQuantity: formatWithSequence(quantity, subSeq),
         shipmentQuantity: formatWithSequence(shipmentQuantity, subSeq),
         canceledQuantity: formatWithSequence(canceledQuantity, subSeq),
@@ -160,6 +162,8 @@ export const transformRowsOrderedProductInfo = (
         image: imageValue,
         skuCode: formatWithSequence(item.sku, headerSeq),
         productName: formatWithSequence(item.productName, headerSeq),
+        sapCode: formatWithSequence(item.productCode, headerSeq),
+        sapName: formatWithSequence(item.productName, headerSeq),
         orderedQuantity: formatWithSequence(item.orderedQuantity, headerSeq),
         shipmentQuantity: formatWithSequence(item.shipmentQuantity, headerSeq),
         canceledQuantity: formatWithSequence(item.canceledQuantity, headerSeq),
@@ -201,6 +205,8 @@ export const transformRowsOrderedProductInfo = (
         image: imageValue,
         skuCode: formatWithSequence(item.sku, mainSeq),
         productName: formatWithSequence(item.productName, mainSeq),
+        sapCode: formatWithSequence(item.productCode, mainSeq),
+        sapName: formatWithSequence(item.productName, mainSeq),
         orderedQuantity: formatWithSequence(item.orderedQuantity, mainSeq),
         shipmentQuantity: formatWithSequence(item.shipmentQuantity, mainSeq),
         canceledQuantity: formatWithSequence(item.canceledQuantity, mainSeq),
@@ -229,6 +235,13 @@ export const transformRowsOrderedProductInfo = (
         image: imageValue,
         skuCode: formatWithSequence(item.sku, singleSeq),
         productName: formatWithSequence(item.productName, singleSeq),
+        // 기프트카드 상품인 경우 상품명 아래 노출할 시리얼번호
+        serialNo:
+          ((item as unknown as Record<string, unknown>).giftCardSerial as
+            | string
+            | undefined) ?? null,
+        sapCode: formatWithSequence(item.productCode, singleSeq),
+        sapName: formatWithSequence(item.productName, singleSeq),
         orderedQuantity: formatWithSequence(item.orderedQuantity, singleSeq),
         shipmentQuantity: formatWithSequence(item.shipmentQuantity, singleSeq),
         canceledQuantity: formatWithSequence(item.canceledQuantity, singleSeq),
@@ -253,6 +266,8 @@ export const transformRowsOrderedProductInfo = (
     skuCode: "",
     image: null,
     productName: "배송비",
+    sapCode: "",
+    sapName: "",
     orderedQuantity: `^`,
     shipmentQuantity: `^`,
     canceledQuantity: `^`,
@@ -281,6 +296,12 @@ export const transformRowsPaymentInfo = (
   const payments = data.payments.map((payment, index) => {
     const paidAmount = payment.paidAmount ?? 0;
     const taxAmount = payment.taxAmount ?? 0;
+    // 기프트카드 결제건은 note에 시리얼번호가 들어가며 클릭 가능하게 노출
+    const note =
+      ((payment as unknown as Record<string, unknown>).note as
+        | string
+        | undefined) ?? null;
+    const isGiftCardSerial = payment.method === "GIFT_CARD" && !!note;
     return {
       id: `${payment.transactionNo}-${index}`,
       no: index + 1,
@@ -288,7 +309,8 @@ export const transformRowsPaymentInfo = (
       type: "Payment",
       method: payment.method,
       tid: payment.transactionNo,
-      note: null,
+      note,
+      noteClickable: isGiftCardSerial,
       tax: taxAmount,
       net: paidAmount - taxAmount,
       amount: paidAmount,
@@ -1368,7 +1390,12 @@ export const transformLogHistoryDetail = (
   timezone: string,
 ) => {
   if (!data)
-    return { orderHistories: [], returnHistories: [], exchangeHistories: [] };
+    return {
+      orderHistories: [],
+      returnHistories: [],
+      exchangeHistories: [],
+      timelineHistories: [],
+    };
   const getSapIf = (sapIf: { result: string; resultAt: string }[]) => {
     return sapIf.length > 0
       ? sapIf.map((item) => {
@@ -1384,9 +1411,15 @@ export const transformLogHistoryDetail = (
 
   const orderHistories = data.orderHistories.map((item) => {
     const isShipmentStatus = item.shipmentStatus !== null ? true : false;
+    const record = item as unknown as Record<string, unknown>;
     return {
       seq: isShipmentStatus ? item.sequence : "-",
+      no: isShipmentStatus
+        ? ((record.shipmentNo as string) ?? "-")
+        : ((record.originOrderNo as string) ?? "-"),
       timeStamp: getLocalTime(item.updatedAt, timezone),
+      sortAt: item.updatedAt,
+      type: "Order",
       sapIf: getSapIf(item.sapResults),
       updatedStatus: {
         status: isShipmentStatus
@@ -1394,6 +1427,7 @@ export const transformLogHistoryDetail = (
           : (item.status?.description ?? ""),
         groupStatus: isShipmentStatus ? "shipping" : "order",
       },
+      event: item.event?.description ?? item.event?.name ?? "-",
     };
   });
 
@@ -1401,12 +1435,19 @@ export const transformLogHistoryDetail = (
     data.returnHistories !== null
       ? data.returnHistories.map((item) => ({
           seq: item.sequence,
+          no:
+            ((item as unknown as Record<string, unknown>).returnNo as string) ??
+            "-",
           timeStamp: getLocalTime(item.updatedAt, timezone),
+          sortAt: item.updatedAt,
+          type: "Return",
           sapIf: getSapIf(item.sapResults),
           updatedStatus: {
             status: item.status?.description ?? "",
             groupStatus: "return",
           },
+          // OrderHistoryReturnResponse 타입에는 event 없음 → status 기반 fallback
+          event: item.status?.description ?? "-",
         }))
       : [];
 
@@ -1414,19 +1455,41 @@ export const transformLogHistoryDetail = (
     data.exchangeHistories !== null
       ? data.exchangeHistories.map((item) => ({
           seq: item.sequence,
+          no:
+            ((item as unknown as Record<string, unknown>).exchangeNo as
+              | string
+              | undefined) ??
+            ((item as unknown as Record<string, unknown>).originOrderNo as
+              | string
+              | undefined) ??
+            "-",
           timeStamp: getLocalTime(item.updatedAt, timezone),
+          sortAt: item.updatedAt,
+          type: "Exchange",
           sapIf: getSapIf(item.sapResults),
           updatedStatus: {
             status: item.status?.description ?? "",
             groupStatus: "exchange",
           },
+          event: item.event?.description ?? item.event?.name ?? "-",
         }))
       : [];
+
+  // 시간순 통합 타임라인: 타입 상관없이 updatedAt 기준 정렬
+  const timelineHistories = [
+    ...orderHistories,
+    ...returnHistories,
+    ...exchangeHistories,
+  ]
+    .slice()
+    .sort((a, b) => new Date(a.sortAt).getTime() - new Date(b.sortAt).getTime())
+    .map((item, index) => ({ ...item, seq: index + 1 }));
 
   return {
     orderHistories,
     returnHistories,
     exchangeHistories,
+    timelineHistories,
   };
 };
 
