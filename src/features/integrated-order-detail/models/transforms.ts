@@ -1410,7 +1410,9 @@ export const transformLogHistoryDetail = (
   };
 
   const orderHistories = data.orderHistories.map((item) => {
-    const isShipmentStatus = item.shipmentStatus !== null ? true : false;
+    // shipmentStatus 필드가 존재할 때만 배송 단위 상태로 취급
+    // (필드가 없으면 undefined이므로 !== null 비교로는 잘못 true가 됨)
+    const isShipmentStatus = !!item.shipmentStatus;
     const record = item as unknown as Record<string, unknown>;
     return {
       seq: isShipmentStatus ? item.sequence : "-",

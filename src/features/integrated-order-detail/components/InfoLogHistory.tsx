@@ -59,13 +59,6 @@ export default function InfoLogHistory() {
     return "default";
   };
 
-  const typeChipColor = (type: string): ChipProps["color"] => {
-    if (type === "Order") return "primary";
-    if (type === "Return") return "warning";
-    if (type === "Exchange") return "success";
-    return "default";
-  };
-
   return (
     <div className="flex flex-col gap-[24px]">
       {/* Timeline | By Type 탭 */}
@@ -117,12 +110,7 @@ export default function InfoLogHistory() {
                     >
                       <TableCell>{row.no}</TableCell>
                       <TableCell>{row.timeStamp}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={row.type}
-                          color={typeChipColor(row.type)}
-                        />
-                      </TableCell>
+                      <TableCell>{row.type}</TableCell>
                       <TableCell>
                         {row.updatedStatus.status && (
                           <Chip
