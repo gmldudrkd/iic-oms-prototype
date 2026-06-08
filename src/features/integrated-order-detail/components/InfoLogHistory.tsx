@@ -23,33 +23,6 @@ import { useTimezoneStore } from "@/shared/stores/useTimezoneStore";
 
 type LogViewMode = "timeline" | "by-type";
 
-interface SapIfEntry {
-  sap: string;
-  if: string;
-  resultAt: string;
-}
-
-/** SAP I/F 셀 렌더링: "{interface} / {result}  {resultAt}" 형식 */
-const renderSapIf = (sapIf: SapIfEntry[]) => {
-  if (!sapIf || sapIf.length === 0) return "-";
-  return (
-    <div className="flex flex-col gap-[4px]">
-      {sapIf.map((entry, index) => (
-        <div key={index} className="flex items-center gap-[8px]">
-          <span>
-            {entry.sap} / <span className="text-primary">{entry.if}</span>
-          </span>
-          {entry.resultAt && (
-            <span className="text-[13px] text-text-disabled">
-              {entry.resultAt}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
-
 export default function InfoLogHistory() {
   const { orderId } = useParams();
   const { timezone } = useTimezoneStore();
@@ -121,8 +94,8 @@ export default function InfoLogHistory() {
                   <TableCell width="20%">#</TableCell>
                   <TableCell width="18%">TimeStamp (KST)</TableCell>
                   <TableCell width="100px">Type</TableCell>
-                  <TableCell width="30%">SAP I/F</TableCell>
                   <TableCell width="18%">Updated Status</TableCell>
+                  <TableCell width="30%">Event</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -150,7 +123,6 @@ export default function InfoLogHistory() {
                           color={typeChipColor(row.type)}
                         />
                       </TableCell>
-                      <TableCell>{renderSapIf(row.sapIf)}</TableCell>
                       <TableCell>
                         {row.updatedStatus.status && (
                           <Chip
@@ -159,6 +131,7 @@ export default function InfoLogHistory() {
                           />
                         )}
                       </TableCell>
+                      <TableCell>{row.event}</TableCell>
                     </TableRow>
                   ))
                 )}
@@ -217,7 +190,7 @@ export default function InfoLogHistory() {
 interface LogRow {
   no: string;
   timeStamp: string;
-  sapIf: SapIfEntry[];
+  event: string;
   updatedStatus: { status: string; groupStatus: string };
 }
 
@@ -237,8 +210,8 @@ const LogTable = ({
           <TableRow>
             <TableCell width="25%">#</TableCell>
             <TableCell width="20%">TimeStamp (KST)</TableCell>
-            <TableCell width="35%">SAP I/F</TableCell>
             <TableCell width="20%">Updated Status</TableCell>
+            <TableCell width="35%">Event</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -260,7 +233,6 @@ const LogTable = ({
               >
                 <TableCell>{row.no}</TableCell>
                 <TableCell>{row.timeStamp}</TableCell>
-                <TableCell>{renderSapIf(row.sapIf)}</TableCell>
                 <TableCell>
                   {row.updatedStatus.status && (
                     <Chip
@@ -269,6 +241,7 @@ const LogTable = ({
                     />
                   )}
                 </TableCell>
+                <TableCell>{row.event}</TableCell>
               </TableRow>
             ))
           )}
