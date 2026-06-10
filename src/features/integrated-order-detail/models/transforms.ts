@@ -291,21 +291,20 @@ export const transformRowsPaymentInfo = (
   const payments = data.payments.map((payment, index) => {
     const paidAmount = payment.paidAmount ?? 0;
     const taxAmount = payment.taxAmount ?? 0;
-    // 기프트카드 결제건은 note에 시리얼번호가 들어가며 클릭 가능하게 노출
-    const note =
-      ((payment as unknown as Record<string, unknown>).note as
+    // 기프트카드 결제건은 TID 자리에 클릭 가능한 시리얼번호를 노출
+    const giftCardSerial =
+      ((payment as unknown as Record<string, unknown>).giftCardSerial as
         | string
         | undefined) ?? null;
-    const isGiftCardSerial = payment.method === "GIFT_CARD" && !!note;
+    const isGiftCardSerial = payment.method === "GIFT_CARD" && !!giftCardSerial;
     return {
       id: `${payment.transactionNo}-${index}`,
       no: index + 1,
       occurredAt: getLocalTime(payment.paidAt, timezone),
       type: "Payment",
       method: payment.method,
-      tid: payment.transactionNo,
-      note,
-      noteClickable: isGiftCardSerial,
+      tid: isGiftCardSerial ? giftCardSerial : payment.transactionNo,
+      tidClickable: isGiftCardSerial,
       tax: taxAmount,
       net: paidAmount - taxAmount,
       amount: paidAmount,

@@ -233,16 +233,15 @@ export const LIST_COLUMNS_PAYMENT: GridColDef[] = [
     },
   },
   { field: "method", headerName: "Method", minWidth: 150, flex: 0.5 },
-  { field: "tid", headerName: "TID", minWidth: 150, flex: 2 },
   {
-    field: "note",
-    headerName: "Note",
+    field: "tid",
+    headerName: "TID",
     minWidth: 150,
     flex: 2,
     renderCell: (params: GridRenderCellParams) => {
       if (params.value === null || params.value === undefined) return "-";
-      // 기프트카드 결제건의 시리얼번호는 클릭 가능한 링크로 노출
-      if (params.row.noteClickable) {
+      // 기프트카드 결제건은 TID 자리에 클릭 가능한 시리얼번호로 노출
+      if (params.row.tidClickable) {
         return <GiftCardSerialLink serial={String(params.value)} />;
       }
       return params.value;
