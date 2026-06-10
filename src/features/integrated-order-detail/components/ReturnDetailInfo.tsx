@@ -125,6 +125,11 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
 
   const isReceived = returnData.status.name === "RECEIVED";
 
+  // FORCE REFUND 여부 (Return Method에 "force refund" 포함)
+  const isForceRefund = (returnDetail.returnMethod ?? "")
+    .toLowerCase()
+    .includes("force refund");
+
   return (
     <div className="mx-[24px] rounded-[5px] border border-outlined bg-white">
       {/* title */}
@@ -138,6 +143,15 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
           <IconArrowDropDownFilled className="rotate-[270deg]" />
         )}
         <p className="text-[16px] font-bold">#{returnData.returnNo}</p>
+        {isForceRefund && (
+          <Chip
+            size="small"
+            variant="filled"
+            label="FORCE REFUND"
+            color="default"
+            className="ml-auto"
+          />
+        )}
       </button>
 
       {isExpanded && (
@@ -210,7 +224,7 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
             </div>
             <div>
               <h3>Return Method</h3>
-              <Cell>{returnDetail.returnMethod}</Cell>
+              <Cell>{isForceRefund ? "-" : returnDetail.returnMethod}</Cell>
             </div>
           </DetailGrid>
           <DetailGridSingle>
