@@ -148,7 +148,7 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
             size="small"
             variant="filled"
             label="FORCE REFUND"
-            color="default"
+            color="secondary"
             className="ml-auto"
           />
         )}
