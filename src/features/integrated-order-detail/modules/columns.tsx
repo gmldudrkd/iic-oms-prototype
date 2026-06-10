@@ -60,23 +60,8 @@ export const LIST_COLUMNS_PRODUCT: GridColDef[] = [
     headerName: "Product Name",
     flex: 2,
     minWidth: 200,
-    renderCell: (params: GridRenderCellParams) => {
-      const serial = params.row.serialNo as string | null | undefined;
-      // 기프트카드 상품: 상품명 아래 줄에 () 안 시리얼번호를 클릭 가능하게 노출
-      if (serial) {
-        const name = String(params.row.productName ?? "").split("^")[0];
-        const display = !name || name === "null" ? "-" : name;
-        return (
-          <div key={params.row.id} className="flex flex-col justify-center">
-            <span>{display}</span>
-            <span className="text-[13px] text-text-secondary">
-              (<GiftCardSerialLink serial={serial} />)
-            </span>
-          </div>
-        );
-      }
-      return renderCellSpanningNullCheck(params, "productName");
-    },
+    renderCell: (params: GridRenderCellParams) =>
+      renderCellSpanningNullCheck(params, "productName"),
   },
   {
     field: "sapCode",

@@ -235,11 +235,6 @@ export const transformRowsOrderedProductInfo = (
         image: imageValue,
         skuCode: formatWithSequence(item.sku, singleSeq),
         productName: formatWithSequence(item.productName, singleSeq),
-        // 기프트카드 상품인 경우 상품명 아래 노출할 시리얼번호
-        serialNo:
-          ((item as unknown as Record<string, unknown>).giftCardSerial as
-            | string
-            | undefined) ?? null,
         sapCode: formatWithSequence(item.productCode, singleSeq),
         sapName: formatWithSequence(item.productName, singleSeq),
         orderedQuantity: formatWithSequence(item.orderedQuantity, singleSeq),
