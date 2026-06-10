@@ -25,6 +25,10 @@ import ChangeChannelSendStatusAlerts, {
 import ChangeChannelSendStatusDialog from "@/features/stock/overview/components/channel-send-status/ChangeChannelSendStatusDialog";
 import PreOrderSettingAlerts from "@/features/stock/overview/components/pre-order-setting/PreOrderSettingAlerts";
 import PreOrderSettingDialog from "@/features/stock/overview/components/pre-order-setting/PreOrderSettingDialog";
+import SendAvailableQtyAlerts, {
+  AlertType as SendAvailableQtyAlertType,
+} from "@/features/stock/overview/components/send-available-qty/SendAvailableQtyAlerts";
+import SendAvailableQtyDialog from "@/features/stock/overview/components/send-available-qty/SendAvailableQtyDialog";
 import StockTransferAlerts, {
   AlertType,
 } from "@/features/stock/overview/components/stock-transfer/StockTransferAlerts";
@@ -34,6 +38,7 @@ import useChangeChannelSendStatusValidation from "@/features/stock/overview/hook
 import useChannelStockSettingColumns from "@/features/stock/overview/hooks/channel-stock/useChannelStockSettingColumns";
 import { usePreOrderSettingDialog } from "@/features/stock/overview/hooks/pre-order-setting/usePreOrderSettingDialog";
 import usePreOrderSettingValidation from "@/features/stock/overview/hooks/pre-order-setting/usePreOrderSettingValidation";
+import useSendAvailableQtyValidation from "@/features/stock/overview/hooks/send-available-qty/useSendAvailableQtyValidation";
 import useStockTransferValidation from "@/features/stock/overview/hooks/stock-transfer/useStockTransferValidation";
 import { ChannelStockData } from "@/features/stock/overview/models/transforms";
 import {
@@ -72,13 +77,17 @@ function ChannelStockDataGrid({
     stockTransfer: AlertType;
     changeChannelSendStatus: ChangeChannelSendStatusAlertType;
     preOrderSetting: AlertType;
+    sendAvailableQty: SendAvailableQtyAlertType;
   }>({
     stockTransfer: null,
     changeChannelSendStatus: null,
     preOrderSetting: null,
+    sendAvailableQty: null,
   });
 
   const [openStockTransferDialog, setOpenStockTransferDialog] = useState(false);
+  const [openSendAvailableQtyDialog, setOpenSendAvailableQtyDialog] =
+    useState(false);
 
   const {
     open: openChangeChannelSendStatusDialog,
@@ -162,6 +171,9 @@ function ChannelStockDataGrid({
 
   // Validation 로직
   const { validateStockTransfer } = useStockTransferValidation({
+    selectedChannelRows,
+  });
+  const { validateSendAvailableQty } = useSendAvailableQtyValidation({
     selectedChannelRows,
   });
   const { validatePreOrderSetting } = usePreOrderSettingValidation({
@@ -282,6 +294,20 @@ function ChannelStockDataGrid({
 
     setOpenStockTransferDialog(true);
   }, [validateStockTransfer]);
+
+  // Send Available Qty Dialog 열기
+  const handleOpenSendAvailableQtyDialog = useCallback(() => {
+    const validationError = validateSendAvailableQty();
+
+    if (validationError) {
+      return setActiveAlert((prev) => ({
+        ...prev,
+        sendAvailableQty: validationError,
+      }));
+    }
+
+    setOpenSendAvailableQtyDialog(true);
+  }, [validateSendAvailableQty]);
 
   // Change Channel Send Status Dialog 열기
   const handleOpenChangeChannelSendStatusDialog = useCallback(() => {
@@ -413,6 +439,13 @@ function ChannelStockDataGrid({
             >
               Pre-order Setting
             </Button>
+            <Button
+              variant="contained"
+              startIcon={<SendIcon />}
+              onClick={handleOpenSendAvailableQtyDialog}
+            >
+              Send Available Qty
+            </Button>
           </Box>
         </Box>
 
@@ -471,6 +504,12 @@ function ChannelStockDataGrid({
         setOpen={setOpenStockTransferDialog}
       />
 
+      <SendAvailableQtyDialog
+        rows={selectedChannelRows}
+        open={openSendAvailableQtyDialog}
+        setOpen={setOpenSendAvailableQtyDialog}
+      />
+
       <ChangeChannelSendStatusDialog
         offPeriod={offPeriod}
         setOffPeriod={setOffPeriod}
@@ -510,6 +549,13 @@ function ChannelStockDataGrid({
         activeAlert={activeAlert.preOrderSetting}
         onClose={() =>
           setActiveAlert({ ...activeAlert, preOrderSetting: null })
+        }
+      />
+
+      <SendAvailableQtyAlerts
+        activeAlert={activeAlert.sendAvailableQty}
+        onClose={() =>
+          setActiveAlert({ ...activeAlert, sendAvailableQty: null })
         }
       />
     </>

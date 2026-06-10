@@ -902,6 +902,70 @@ const mockStockDashboard = {
   totalPages: 1,
 };
 
+// --- Channel Stock Dashboard Mock (GM KR) ---
+// 채널: GM_Official_INT(20%) / GM_Official_KR(80%), 전 품목 0 수량 → OUT_OF_STOCK, Channel Send ON
+const KR_STOCK_PRODUCTS = (
+  [
+    ["S11000000", "11000000", "SMART ALIO-01", "8809639024362"],
+    ["S11000001", "11000001", "SMART ALIO-01", "8809639021828"],
+    ["S11000002", "11000002", "SMART ALIO-C1", "8809639021835"],
+    ["S11000003", "11000003", "DAY-01 OPT", "8809639023860"],
+    ["S11000004", "11000004", "DAY-B4 OPT", "8809639023877"],
+    ["S11000005", "11000005", "GATTA-01", "8809639021927"],
+    ["S11000006", "11000006", "HAVANA-01", "8809639022009"],
+    ["S11000007", "11000007", "HAVANA-B4", "8809639022016"],
+  ] as const
+).map(([sku, sap, name, upc]) => ({
+  productType: { name: "SINGLE", description: "Single" },
+  sku,
+  skuName: name,
+  products: [
+    {
+      sku,
+      productCode: sap,
+      productName: name,
+      upcCode: upc,
+      unitQuantity: 1,
+      onlineQuantity: 0,
+      onlineMovementQuantity: 0,
+      safetyQuantity: 0,
+      undistributedQuantity: 0,
+      channelStocks: [
+        {
+          channel: { name: "GM_OFFICIAL_INT", description: "GM_Official_INT" },
+          rate: 20,
+          distributedQuantity: 0,
+          preorderQuantity: 0,
+          usedQuantity: 0,
+          shippedQuantity: 0,
+          availableQuantity: 0,
+          channelSendStatus: "ON",
+        },
+        {
+          channel: { name: "GM_OFFICIAL_KR", description: "GM_Official_KR" },
+          rate: 80,
+          distributedQuantity: 0,
+          preorderQuantity: 0,
+          usedQuantity: 0,
+          shippedQuantity: 0,
+          availableQuantity: 0,
+          channelSendStatus: "ON",
+        },
+      ],
+    },
+  ],
+}));
+
+const mockStockDashboardKR = {
+  data: KR_STOCK_PRODUCTS,
+  isFirst: true,
+  isLast: false,
+  pageNumber: 0,
+  pageSize: 100,
+  totalCount: 4958,
+  totalPages: 50,
+};
+
 // --- Distribution Setting Mock ---
 const mockDistributionSetting = [
   {
@@ -952,6 +1016,18 @@ const mockUserPermissions = {
               name: "GENTLE_MONSTER_OFFICIAL_CA",
               description: "GM Official CA",
             },
+          ],
+        },
+      ],
+    },
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      corporations: [
+        {
+          name: "KR",
+          channels: [
+            { name: "GM_OFFICIAL_INT", description: "GM_Official_INT" },
+            { name: "GM_OFFICIAL_KR", description: "GM_Official_KR" },
           ],
         },
       ],
@@ -3184,7 +3260,11 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
   }
 
   // Channel detail / list
-  if (path.includes("/channels") || path.includes("/channel")) {
+  // 단, "/stocks/channel-stock-overview" 같은 stock 경로는 제외 (stock 분기에서 처리)
+  if (
+    (path.includes("/channels") || path.includes("/channel")) &&
+    !path.includes("stock")
+  ) {
     if (path.match(/\/channels\/\d+$/) || path.match(/\/channel\/\d+$/)) {
       return mockChannelList[0];
     }
@@ -3196,6 +3276,8 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
     if (path.includes("/history")) return mockStockHistory;
     if (path.includes("/distribution") || path.includes("/setting"))
       return mockDistributionSetting;
+    // GM KR(법인 KR) 선택 시 KR 채널 재고 데이터 반환 (쿼리스트링은 url에서 확인)
+    if (url.includes("corporation=KR")) return mockStockDashboardKR;
     return mockStockDashboard;
   }
 
