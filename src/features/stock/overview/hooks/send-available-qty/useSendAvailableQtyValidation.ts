@@ -3,7 +3,10 @@ import { useMemo } from "react";
 
 import { AlertType } from "@/features/stock/overview/components/send-available-qty/SendAvailableQtyAlerts";
 
-import { ChannelStockResponseChannelSendStatusEnum } from "@/shared/generated/oms/types/Stock";
+import {
+  ChannelStockResponseChannelSendStatusEnum,
+  StockDashboardRequestProductTypeEnum,
+} from "@/shared/generated/oms/types/Stock";
 
 // 외부 채널 API 부하 우려로 한 번에 전송 가능한 SKU 최대 개수
 export const MAX_SEND_SKU_COUNT = 100;
@@ -15,6 +18,16 @@ interface UseSendAvailableQtyValidationProps {
 export default function useSendAvailableQtyValidation({
   selectedChannelRows,
 }: UseSendAvailableQtyValidationProps) {
+  // 모든 선택 항목이 Single 제품 타입인지 (번들 전송 불가)
+  const isProductTypeSingle = useMemo(
+    () =>
+      selectedChannelRows.every(
+        (row) =>
+          row.productType === StockDashboardRequestProductTypeEnum.SINGLE,
+      ),
+    [selectedChannelRows],
+  );
+
   // 단일 채널 선택 여부
   const isChannelSingle = useMemo(() => {
     const checkedChannelNames = new Set(
@@ -44,6 +57,11 @@ export default function useSendAvailableQtyValidation({
       return "noItemsSelected";
     }
 
+    // 번들 전송 불가 (Single 제품만 가능)
+    if (!isProductTypeSingle) {
+      return "singleOnly";
+    }
+
     // 한 번에 하나의 채널에만 전송 가능
     if (!isChannelSingle) {
       return "multiChannelSelected";
@@ -63,6 +81,7 @@ export default function useSendAvailableQtyValidation({
   };
 
   return {
+    isProductTypeSingle,
     isChannelSingle,
     isEveryChannelSendStatusOn,
     selectedSkuCount,

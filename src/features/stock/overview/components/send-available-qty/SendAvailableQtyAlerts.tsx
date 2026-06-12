@@ -6,6 +6,7 @@ import AlertDialog from "@/shared/components/dialog/AlertDialog";
 
 export type AlertType =
   | "noItemsSelected"
+  | "singleOnly"
   | "multiChannelSelected"
   | "channelSendStatusOff"
   | "maxSkuExceeded"
@@ -25,6 +26,10 @@ const ALERT_CONFIGS: Record<
 > = {
   noItemsSelected: {
     content: "Please select a product.",
+    confirmLabel: "OK",
+  },
+  singleOnly: {
+    content: "Only products with Product Type ‘Single’ can be selected.",
     confirmLabel: "OK",
   },
   multiChannelSelected: {

@@ -427,6 +427,13 @@ function ChannelStockDataGrid({
             </Button>
             <Button
               variant="contained"
+              startIcon={<SendIcon />}
+              onClick={handleOpenSendAvailableQtyDialog}
+            >
+              Send Available Qty
+            </Button>
+            <Button
+              variant="contained"
               startIcon={<SwapHorizIcon />}
               onClick={handleOpenChangeChannelSendStatusDialog}
             >
@@ -438,13 +445,6 @@ function ChannelStockDataGrid({
               onClick={handleOpenPreOrderSettingDialogWithValidation}
             >
               Pre-order Setting
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<SendIcon />}
-              onClick={handleOpenSendAvailableQtyDialog}
-            >
-              Send Available Qty
             </Button>
           </Box>
         </Box>

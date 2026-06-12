@@ -172,14 +172,15 @@ export default function SendAvailableQtyDialog({
           <Box display="flex" justifyContent="flex-end" mt="20px">
             <Typography fontSize="12px" color={red[500]} fontWeight="bold">
               ⚠️ Clicking &apos;Save&apos; sends the selected SKUs&apos;
-              Available Qty to the channel.
+              Available Qty to the channel. If the Available Qty is negative, 0
+              will be sent instead.
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleSave} variant="contained" color="primary">
-            Save
+            Send
           </Button>
         </DialogActions>
       </Dialog>
