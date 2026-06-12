@@ -956,8 +956,50 @@ const KR_STOCK_PRODUCTS = (
   ],
 }));
 
+// Available Qty가 음수(oversold)인 케이스 1건 - 빨간색 표기 및 "0 전송" 동작 확인용
+const KR_STOCK_PRODUCT_NEGATIVE = {
+  productType: { name: "SINGLE", description: "Single" },
+  sku: "S11000008",
+  skuName: "VEIN-01 OPT",
+  products: [
+    {
+      sku: "S11000008",
+      productCode: "11000008",
+      productName: "VEIN-01 OPT",
+      upcCode: "8809639022023",
+      unitQuantity: 1,
+      onlineQuantity: 0,
+      onlineMovementQuantity: 0,
+      safetyQuantity: 0,
+      undistributedQuantity: 0,
+      channelStocks: [
+        {
+          channel: { name: "GM_OFFICIAL_INT", description: "GM_Official_INT" },
+          rate: 20,
+          distributedQuantity: 3,
+          preorderQuantity: 0,
+          usedQuantity: 5,
+          shippedQuantity: 0,
+          availableQuantity: -2,
+          channelSendStatus: "ON",
+        },
+        {
+          channel: { name: "GM_OFFICIAL_KR", description: "GM_Official_KR" },
+          rate: 80,
+          distributedQuantity: 5,
+          preorderQuantity: 0,
+          usedQuantity: 15,
+          shippedQuantity: 0,
+          availableQuantity: -10,
+          channelSendStatus: "ON",
+        },
+      ],
+    },
+  ],
+};
+
 const mockStockDashboardKR = {
-  data: KR_STOCK_PRODUCTS,
+  data: [...KR_STOCK_PRODUCTS, KR_STOCK_PRODUCT_NEGATIVE],
   isFirst: true,
   isLast: false,
   pageNumber: 0,
