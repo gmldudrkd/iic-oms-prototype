@@ -1680,7 +1680,7 @@ const mockGiftCardPaidOrderDetail = {
   payments: [
     {
       currency: "KRW",
-      method: "GIFT_CARD",
+      method: "GIFTCARD",
       giftCardSerial: "F9D1-06DH-RYAV",
       paidAmount: 300000,
       paidAt: yesterday,

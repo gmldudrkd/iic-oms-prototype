@@ -296,7 +296,7 @@ export const transformRowsPaymentInfo = (
       ((payment as unknown as Record<string, unknown>).giftCardSerial as
         | string
         | undefined) ?? null;
-    const isGiftCardSerial = payment.method === "GIFT_CARD" && !!giftCardSerial;
+    const isGiftCardSerial = payment.method === "GIFTCARD" && !!giftCardSerial;
     return {
       id: `${payment.transactionNo}-${index}`,
       no: index + 1,
