@@ -144,13 +144,12 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
         )}
         <p className="text-[16px] font-bold">#{returnData.returnNo}</p>
         {isForceRefund && (
-          <Chip
-            size="small"
-            variant="filled"
-            label="FORCE REFUND"
-            color="secondary"
-            className="ml-auto"
-          />
+          <span
+            className="ml-auto rounded-[4px] px-[10px] py-[5px] text-[13px] font-bold leading-none text-white"
+            style={{ backgroundColor: "#B23A00" }}
+          >
+            FORCE REFUND
+          </span>
         )}
       </button>
 
@@ -217,7 +216,14 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
                     m.includes("force refund")
                   )
                     return "Not Requested";
-                  if (m.includes("pickup")) return "Requested";
+                  const s = returnData.status.name;
+                  if (
+                    m.includes("pickup") ||
+                    s === "PICKUP_REQUESTED" ||
+                    s === "PICKUP_ONGOING" ||
+                    s === "RECEIVED"
+                  )
+                    return "Requested";
                   return "-";
                 })()}
               </Cell>
@@ -263,80 +269,100 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
                     </>
                   )}
 
-                  {buttonConditions.changeToCancel && (
-                    <>
-                      <Button
-                        color="primary"
-                        size="small"
-                        onClick={() => setOpen("CHANGE_TO_CANCEL_PARTIAL")}
-                      >
-                        Cancel Return
-                      </Button>
-                      <ModalBump
-                        open={open === "CHANGE_TO_CANCEL_PARTIAL"}
-                        setOpen={(open) =>
-                          setOpen(open ? "CHANGE_TO_CANCEL_PARTIAL" : null)
-                        }
-                        text="If canceled, the return process will stop, and the order will stay as it is. This action does not notify the WMS to cancel the pickup — it only updates the return status in the OMS."
-                        dialogCloseLabel="Keep Return"
-                        dialogConfirmLabel="Cancel Return"
-                        handleClose={() => setOpen(null)}
-                        handlePost={() =>
-                          mutateCancelReturn(returnData.returnId)
-                        }
-                        closeButtonClassNames="!text-default"
-                        postButtonClassNames="!text-error"
-                      />
-                    </>
-                  )}
+                  {/* Refund - 항상 노출, 환불 가능 조건이 아니면 비활성화 */}
+                  <Button
+                    color="primary"
+                    size="small"
+                    disabled={!buttonConditions.refund}
+                    onClick={() => {
+                      handleResetGrades();
+                      setOpen(isReceived ? "REFUND" : "REFUND_PRECONFIRM");
+                    }}
+                  >
+                    Refund
+                  </Button>
 
-                  {buttonConditions.refund && (
-                    <>
-                      <Button
-                        color="primary"
-                        size="small"
-                        onClick={() => {
-                          handleResetGrades();
-                          setOpen(isReceived ? "REFUND" : "REFUND_PRECONFIRM");
-                        }}
-                      >
-                        Refund
-                      </Button>
-                      <ModalBump
-                        open={open === "REFUND_PRECONFIRM"}
-                        setOpen={(isOpen) =>
-                          setOpen(isOpen ? "REFUND_PRECONFIRM" : null)
-                        }
-                        text="This claim is not yet marked as received in the system. If the parcel has actually arrived and inspection is complete, you may proceed. Do you want to complete the inspection?"
-                        dialogCloseLabel="Cancel"
-                        dialogConfirmLabel="Confirm"
-                        handleClose={() => setOpen(null)}
-                        handlePost={() => setOpen("REFUND")}
-                        closeButtonClassNames="!text-default"
+                  {/* Cancel Return - 항상 노출 */}
+                  <Button
+                    color="primary"
+                    size="small"
+                    onClick={() =>
+                      setOpen(
+                        returnData.status.name === "PICKUP_ONGOING"
+                          ? "CANCEL_RETURN_WAREHOUSE"
+                          : "CHANGE_TO_CANCEL_PARTIAL",
+                      )
+                    }
+                  >
+                    Cancel Return
+                  </Button>
+
+                  {/* 일반 취소 경고 */}
+                  <ModalBump
+                    open={open === "CHANGE_TO_CANCEL_PARTIAL"}
+                    setOpen={(open) =>
+                      setOpen(open ? "CHANGE_TO_CANCEL_PARTIAL" : null)
+                    }
+                    text="If canceled, the return process will stop, and the order will stay as it is. This action does not notify the WMS to cancel the pickup — it only updates the return status in the OMS."
+                    dialogCloseLabel="Keep Return"
+                    dialogConfirmLabel="Cancel Return"
+                    handleClose={() => setOpen(null)}
+                    handlePost={() => mutateCancelReturn(returnData.returnId)}
+                    closeButtonClassNames="!text-default"
+                    postButtonClassNames="!text-error"
+                  />
+
+                  {/* Pickup Ongoing 상태에서의 취소 경고 */}
+                  <ModalBump
+                    open={open === "CANCEL_RETURN_WAREHOUSE"}
+                    setOpen={(open) =>
+                      setOpen(open ? "CANCEL_RETURN_WAREHOUSE" : null)
+                    }
+                    text={
+                      "The return item has already been dropped off by the customer and is currently being received at the warehouse.\nIf you cancel this return, you'll need to re-register it later using the tracking number.\nDo you want to continue?"
+                    }
+                    dialogCloseLabel="Cancel"
+                    dialogConfirmLabel="Continue"
+                    handleClose={() => setOpen(null)}
+                    handlePost={() => mutateCancelReturn(returnData.returnId)}
+                    closeButtonClassNames="!text-default"
+                    postButtonClassNames="!text-primary"
+                  />
+
+                  {/* Refund 관련 모달 */}
+                  <ModalBump
+                    open={open === "REFUND_PRECONFIRM"}
+                    setOpen={(isOpen) =>
+                      setOpen(isOpen ? "REFUND_PRECONFIRM" : null)
+                    }
+                    text="This claim is not yet marked as received in the system. If the parcel has actually arrived and inspection is complete, you may proceed. Do you want to complete the inspection?"
+                    dialogCloseLabel="Cancel"
+                    dialogConfirmLabel="Confirm"
+                    handleClose={() => setOpen(null)}
+                    handlePost={() => setOpen("REFUND")}
+                    closeButtonClassNames="!text-default"
+                  />
+                  <ContentDialog
+                    open={open === "REFUND"}
+                    setOpen={(isOpen) => setOpen(isOpen ? "REFUND" : null)}
+                    dialogTitle="반품 Grading"
+                    maxWidth="sm"
+                    dialogContent={
+                      <RefundGradingContent
+                        items={returnData.items}
+                        grades={grades}
+                        onGradeChange={handleGradeChange}
+                        onSelectAllGrade={handleSelectAllGrade}
+                        onReset={handleResetGrades}
                       />
-                      <ContentDialog
-                        open={open === "REFUND"}
-                        setOpen={(isOpen) => setOpen(isOpen ? "REFUND" : null)}
-                        dialogTitle="반품 Grading"
-                        maxWidth="sm"
-                        dialogContent={
-                          <RefundGradingContent
-                            items={returnData.items}
-                            grades={grades}
-                            onGradeChange={handleGradeChange}
-                            onSelectAllGrade={handleSelectAllGrade}
-                            onReset={handleResetGrades}
-                          />
-                        }
-                        dialogCloseLabel="Cancel"
-                        dialogConfirmLabel="Confirm"
-                        handleClose={() => setOpen(null)}
-                        handlePost={() => setOpen(null)}
-                        buttonDisable={!allGraded}
-                        variant="outlined"
-                      />
-                    </>
-                  )}
+                    }
+                    dialogCloseLabel="Cancel"
+                    dialogConfirmLabel="Confirm"
+                    handleClose={() => setOpen(null)}
+                    handlePost={() => setOpen(null)}
+                    buttonDisable={!allGraded}
+                    variant="outlined"
+                  />
                 </div>
               </Cell>
             </div>
