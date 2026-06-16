@@ -286,31 +286,17 @@ export default function ReturnDetailInfo({ returnData, corporation }: Props) {
                   <Button
                     color="primary"
                     size="small"
-                    onClick={() =>
-                      setOpen(
-                        returnData.status.name === "PICKUP_ONGOING"
-                          ? "CANCEL_RETURN_WAREHOUSE"
-                          : "CHANGE_TO_CANCEL_PARTIAL",
-                      )
-                    }
+                    onClick={() => {
+                      // Pickup Ongoing은 창고 수령 안내 경고, 그 외는 바로 취소 처리
+                      if (returnData.status.name === "PICKUP_ONGOING") {
+                        setOpen("CANCEL_RETURN_WAREHOUSE");
+                      } else {
+                        mutateCancelReturn(returnData.returnId);
+                      }
+                    }}
                   >
                     Cancel Return
                   </Button>
-
-                  {/* 일반 취소 경고 */}
-                  <ModalBump
-                    open={open === "CHANGE_TO_CANCEL_PARTIAL"}
-                    setOpen={(open) =>
-                      setOpen(open ? "CHANGE_TO_CANCEL_PARTIAL" : null)
-                    }
-                    text="If canceled, the return process will stop, and the order will stay as it is. This action does not notify the WMS to cancel the pickup — it only updates the return status in the OMS."
-                    dialogCloseLabel="Keep Return"
-                    dialogConfirmLabel="Cancel Return"
-                    handleClose={() => setOpen(null)}
-                    handlePost={() => mutateCancelReturn(returnData.returnId)}
-                    closeButtonClassNames="!text-default"
-                    postButtonClassNames="!text-error"
-                  />
 
                   {/* Pickup Ongoing 상태에서의 취소 경고 */}
                   <ModalBump
