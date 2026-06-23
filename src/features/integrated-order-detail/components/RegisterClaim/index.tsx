@@ -185,7 +185,8 @@ export default function RegisterClaim({ open, setOpen }: Props) {
     setSelectedRows([]);
 
     // 그 다음 rows 업데이트
-    if (claimType === RESHIPMENT) {
+    // Reshipment/Exchange는 SKU Code 단위로 분리(separated)해 노출
+    if (claimType === RESHIPMENT || claimType === EXCHANGE) {
       if (viewMode === "grouped") {
         const initialRows = transformRowsClaimOrder(data);
         setRows(initialRows);

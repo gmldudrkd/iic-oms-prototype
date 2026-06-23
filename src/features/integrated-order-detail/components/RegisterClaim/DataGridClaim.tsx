@@ -160,6 +160,8 @@ export default function DataGridClaim({
 
   const columns = useMemo(() => {
     if (columnsProp) return columnsProp;
+    // Reshipment만 Ordered Qty 포함 분리형 컬럼 사용
+    // (Exchange는 SKU 분리 row + Ordered Qty 없는 기본 컬럼)
     if (claimType === RESHIPMENT) {
       return viewMode === "grouped"
         ? LIST_COLUMNS_REGISTER(renderSelectCell)
