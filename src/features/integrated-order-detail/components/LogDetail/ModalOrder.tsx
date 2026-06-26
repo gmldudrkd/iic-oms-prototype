@@ -103,6 +103,27 @@ export default function ModalOrder() {
       },
     },
     {
+      status: "Shipment Awaiting",
+      chipColor: "primary",
+      description: "Stock assigned, awaiting external shipment label issuance",
+      editRecipient: {
+        available: true,
+      },
+      entireCancel: {
+        available: true,
+      },
+      itemCancel: {
+        available: true,
+      },
+      qtyCancel: {
+        available: true,
+      },
+      claimableType: {
+        text: "Order Cancel",
+        available: true,
+      },
+    },
+    {
       status: "Partial Shipment Requested",
       chipColor: "primary",
       description: "Partially requested for shipment",
