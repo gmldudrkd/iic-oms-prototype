@@ -142,9 +142,16 @@ export default function SearchForm({
       | ExchangeSearchRequestChannelTypesEnum[]
       | ReshipmentSearchRequestChannelTypesEnum[];
 
+    // "All" 센티넬 값은 API로 전송하지 않고, 선택된 채널이 없으면 전체 채널로 대체
+    const cleanedChannelTypes = (channelTypes ?? []).filter(
+      (channel: string) => channel !== "All",
+    );
+    const selectedChannelTypes =
+      cleanedChannelTypes.length > 0 ? cleanedChannelTypes : allChannelTypes;
+
     if (group === "order") {
       newParams = {
-        channelTypes: channelTypes.length > 0 ? channelTypes : allChannelTypes,
+        channelTypes: selectedChannelTypes,
         from: dayjs(period?.[0]).tz(timezone).toISOString(),
         to: dayjs(period?.[1]).tz(timezone).toISOString(),
         orderStatuses: statusFilter,
@@ -176,7 +183,7 @@ export default function SearchForm({
 
     if (group === "return") {
       newParams = {
-        channelTypes: channelTypes.length > 0 ? channelTypes : allChannelTypes,
+        channelTypes: selectedChannelTypes,
         from: dayjs(period?.[0]).tz(timezone).toISOString(),
         to: dayjs(period?.[1]).tz(timezone).toISOString(),
         returnStatuses: statusFilter,
@@ -203,7 +210,7 @@ export default function SearchForm({
 
     if (group === "exchange") {
       newParams = {
-        channelTypes: channelTypes.length > 0 ? channelTypes : allChannelTypes,
+        channelTypes: selectedChannelTypes,
         from: dayjs(period?.[0]).tz(timezone).toISOString(),
         to: dayjs(period?.[1]).tz(timezone).toISOString(),
         exchangeStatuses: statusFilter,
@@ -230,7 +237,7 @@ export default function SearchForm({
 
     if (group === "reshipment") {
       newParams = {
-        channelTypes: channelTypes.length > 0 ? channelTypes : allChannelTypes,
+        channelTypes: selectedChannelTypes,
         from: dayjs(period?.[0]).tz(timezone).toISOString(),
         to: dayjs(period?.[1]).tz(timezone).toISOString(),
         reshipmentStatuses: statusFilter,
@@ -269,10 +276,10 @@ export default function SearchForm({
 
   const onReset = () => {
     reset();
-    setValue(
-      "channelTypes",
-      channelTypesList.map((channel) => channel.value),
-    );
+    setValue("channelTypes", [
+      "All",
+      ...channelTypesList.map((channel) => channel.value),
+    ]);
   };
 
   return (
@@ -320,6 +327,8 @@ export default function SearchForm({
                 name="channelTypes"
                 labelName="Channel Filter"
                 selectList={channelTypesList}
+                enableAllOption
+                allowIndividualToggle
                 selectProps={{ multiple: true }}
               />
             </FormControl>

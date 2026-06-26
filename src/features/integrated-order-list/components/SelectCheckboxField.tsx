@@ -9,12 +9,14 @@ export function SelectCheckboxField({
   selectList,
   selectProps,
   enableAllOption,
+  allowIndividualToggle,
   labelName,
 }: {
   name: string;
   selectList: SelectItem[];
   selectProps: SelectProps;
   enableAllOption?: boolean;
+  allowIndividualToggle?: boolean;
   labelName: string;
 }) {
   const { control } = useFormContext();
@@ -33,6 +35,7 @@ export function SelectCheckboxField({
             placeholder={"Select"}
             name={name}
             enableAllOption={enableAllOption}
+            allowIndividualToggle={allowIndividualToggle}
             selectProps={{
               ...selectProps,
             }}

@@ -38,6 +38,11 @@ interface CustomSelectCheckboxProps<
   selectProps?: SelectProps;
   label?: string;
   enableAllOption?: boolean;
+  /**
+   * "ALL" 선택 시에도 개별 옵션을 비활성화하지 않고, 개별 토글(부분 선택)을 허용한다.
+   * (Brand & Corp 셀렉터와 동일한 동작)
+   */
+  allowIndividualToggle?: boolean;
 }
 
 const CustomSelectCheckboxInner = <
@@ -57,6 +62,7 @@ const CustomSelectCheckboxInner = <
     onSelectChange,
     selectProps,
     enableAllOption = false,
+    allowIndividualToggle = false,
   } = props;
 
   const {
@@ -67,34 +73,44 @@ const CustomSelectCheckboxInner = <
     control,
   });
 
+  const optionValues = React.useMemo(
+    () => selectList.map((option) => String(option.value)),
+    [selectList],
+  );
+
+  // 전체 선택 여부: "All" 센티넬이 있거나 모든 개별 옵션이 선택된 경우
+  const isAllSelected =
+    selectedValues?.includes("All") ||
+    (optionValues.length > 0 &&
+      optionValues.every((value) => selectedValues?.includes(value)));
+
+  // 일부만 선택된 상태 (ALL 체크박스 indeterminate 표시용)
+  const isIndeterminate =
+    !isAllSelected &&
+    Array.isArray(selectedValues) &&
+    selectedValues.some((value) => value !== "All");
+
   const handleChange = (event: SelectChangeEvent<unknown>) => {
     const selected = event.target.value as string[];
 
     if (enableAllOption) {
-      const wasAllSelected = selectedValues.includes("All");
-      const isAllSelected = selected.includes("All");
+      const tokenToggled =
+        selected.includes("All") !== selectedValues.includes("All");
 
-      if (isAllSelected) {
-        // "All" 체크 -> 전체 선택
-        const optionValues = selectList.map((option) => option.value);
-        onChange(wasAllSelected ? [] : ["All", ...optionValues]);
+      // "ALL" 행을 클릭한 경우: 전체 선택 <-> 전체 해제 토글
+      if (tokenToggled) {
+        onChange(isAllSelected ? [] : ["All", ...optionValues]);
         return;
       }
 
-      // "All" 체크 해제 -> 빈 배열 반환
-      if (wasAllSelected && !isAllSelected) {
-        onChange([]);
-        return;
-      }
-
-      // 모든 옵션 선택 시 자동으로 All 선택
-      // if (
-      //   selected.length === selectList.length &&
-      //   !selectedValues.includes("All")
-      // ) {
-      //   onChange([...selected, "All"]);
-      //   return;
-      // }
+      // 개별 옵션 토글: 모든 옵션이 선택되면 "All" 센티넬을 다시 부여
+      const subset = selected.filter((item) => item !== "All");
+      const coversAll =
+        optionValues.length > 0 &&
+        optionValues.every((value) => subset.includes(value));
+      onChange(coversAll ? ["All", ...optionValues] : subset);
+      onSelectChange?.(event);
+      return;
     }
 
     const filtered = selected.filter((item) => item !== "All");
@@ -123,7 +139,7 @@ const CustomSelectCheckboxInner = <
       }
 
       if (Array.isArray(selected)) {
-        if (selected.includes("All")) return "All";
+        if (selected.includes("All")) return "ALL";
 
         // 선택된 항목이 하나일 때는 해당 라벨만 표시
         if (selected.length === 1) {
@@ -169,10 +185,13 @@ const CustomSelectCheckboxInner = <
 
       const isAllOptionSelected = selectedValues.includes("All");
 
+      // allowIndividualToggle: ALL이 선택돼도 개별 옵션을 비활성화하지 않음
       const isDisabled =
         itemValue === "All"
           ? itemDisabled
-          : isAllOptionSelected || itemDisabled;
+          : allowIndividualToggle
+            ? itemDisabled
+            : isAllOptionSelected || itemDisabled;
 
       return (
         <MenuItem
@@ -190,15 +209,8 @@ const CustomSelectCheckboxInner = <
         </MenuItem>
       );
     },
-    [selectedValues],
+    [selectedValues, allowIndividualToggle],
   );
-
-  const handleAllClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const wasSelected = selectedValues.includes("All");
-    const newValue = wasSelected ? [] : ["All"];
-    onChange(newValue);
-  };
 
   return (
     <FormControl variant="outlined">
@@ -219,10 +231,9 @@ const CustomSelectCheckboxInner = <
           <MenuItem
             value="All"
             sx={{ "&": { borderTop: "1px solid #e0e0e0" } }}
-            onClick={handleAllClick}
           >
-            <Checkbox checked={selectedValues.includes("All")} />
-            All
+            <Checkbox checked={isAllSelected} indeterminate={isIndeterminate} />
+            <ListItemText primary="ALL" />
           </MenuItem>
         )}
       </Select>

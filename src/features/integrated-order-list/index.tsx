@@ -132,10 +132,10 @@ export default function IntegratedOrderList({
 
   // channelTypes 변경 시 검색 폼 업데이트
   useEffect(() => {
-    methods.setValue(
-      "channelTypes",
-      channelTypes.map((channel) => channel.value) as never[],
-    );
+    methods.setValue("channelTypes", [
+      "All",
+      ...channelTypes.map((channel) => channel.value),
+    ] as never[]);
 
     setParams((prev) => ({
       ...prev,
