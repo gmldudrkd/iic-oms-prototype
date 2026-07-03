@@ -192,6 +192,16 @@ export const GROUPED_STATUS_FILTER_RESHIPMENT = [
   { label: "Canceled", value: "CANCELED" },
 ];
 
+// Serial Print (AC Card 출력) 사용 조건
+// - 자가물류를 사용하고 AC Card 를 OMS 에서 출력하는 법인 [GM AU]
+export const SERIAL_PRINT_CHANNELS = [
+  "GENTLE_MONSTER_OFFICIAL_AU",
+  "GM_Official_AU",
+];
+export const SERIAL_PRINT_SHIPMENT_STATUS = ["Picked", "Packed", "Shipped"];
+export const SERIAL_PRINT_URL =
+  "https://crcode.gentlemonster.com/print_view_oms_new.php?on_country=AU";
+
 // GROUPED_CONFIG
 export const GROUPED_CONFIG = {
   order: {

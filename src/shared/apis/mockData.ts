@@ -12,12 +12,12 @@ const threeDaysAgo = new Date(Date.now() - 259200000).toISOString();
 const mockOrderList = {
   data: [
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "NUFLAAT", description: "NUF" },
       channelType: {
-        name: "NUFLAAT_OFFICIAL",
-        description: "Nuflaat Official",
+        name: "NUF_Official_KR",
+        description: "NUF_Official_KR",
       },
-      corporation: "US",
+      corporation: "KR",
       orderId: "ORD-20250201-001",
       orderType: { name: "NORMAL", description: "Normal" },
       receiveMethod: "Delivery",
@@ -40,12 +40,12 @@ const mockOrderList = {
       status: { name: "COMPLETED", description: "Completed" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "ATIISSU", description: "ATS" },
       channelType: {
-        name: "ATIISSU_OFFICIAL",
-        description: "Atiissu Official",
+        name: "ATS_Official_KR",
+        description: "ATS_Official_KR",
       },
-      corporation: "US",
+      corporation: "KR",
       orderId: "ORD-20250201-002",
       orderType: { name: "NORMAL", description: "Normal" },
       receiveMethod: "Delivery",
@@ -69,12 +69,12 @@ const mockOrderList = {
       status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
       channelType: {
-        name: "GENTLE_MONSTER_OFFICIAL_US",
-        description: "GM Official US",
+        name: "GM_Official_KR",
+        description: "GM_Official_KR",
       },
-      corporation: "US",
+      corporation: "KR",
       orderId: "ORD-20250201-003",
       orderType: { name: "NORMAL", description: "Normal" },
       receiveMethod: "Delivery",
@@ -95,12 +95,12 @@ const mockOrderList = {
       status: { name: "PENDING", description: "Pending" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "NUFLAAT", description: "NUF" },
       channelType: {
-        name: "GENTLE_MONSTER_OFFICIAL_CA",
-        description: "GM Official CA",
+        name: "NUF_Official_KR",
+        description: "NUF_Official_KR",
       },
-      corporation: "CA",
+      corporation: "KR",
       orderId: "ORD-20250201-004",
       orderType: { name: "NORMAL", description: "Normal" },
       tags: "Pre-order",
@@ -123,12 +123,12 @@ const mockOrderList = {
       status: { name: "COMPLETED", description: "Completed" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
       channelType: {
-        name: "GENTLE_MONSTER_OFFICIAL_CA",
-        description: "GM Official CA",
+        name: "GM_KAKAO_KR",
+        description: "GM_KAKAO_KR",
       },
-      corporation: "CA",
+      corporation: "KR",
       orderId: "ORD-20250201-005",
       orderType: { name: "NORMAL", description: "Normal" },
       receiveMethod: "Delivery",
@@ -149,12 +149,12 @@ const mockOrderList = {
       status: { name: "COLLECTED", description: "Collected" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "ATIISSU", description: "ATS" },
       channelType: {
-        name: "ATIISSU_OFFICIAL",
-        description: "Atiissu Official",
+        name: "ATS_Official_KR",
+        description: "ATS_Official_KR",
       },
-      corporation: "US",
+      corporation: "KR",
       orderId: "ORD-20250201-006",
       orderType: { name: "NORMAL", description: "Normal" },
       receiveMethod: "Delivery",
@@ -175,12 +175,12 @@ const mockOrderList = {
       status: { name: "PENDING", description: "Pending" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "NUFLAAT", description: "NUF" },
       channelType: {
-        name: "NUFLAAT_OFFICIAL",
-        description: "Nuflaat Official",
+        name: "NUF_Official_KR",
+        description: "NUF_Official_KR",
       },
-      corporation: "US",
+      corporation: "KR",
       orderId: "ORD-20250201-007",
       orderType: { name: "NORMAL", description: "Normal" },
       receiveMethod: "Store Pickup",
@@ -201,10 +201,10 @@ const mockOrderList = {
       status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
       channelType: {
-        name: "GENTLE_MONSTER_OFFICIAL_US",
-        description: "GM Official US",
+        name: "GM_Official_US",
+        description: "GM_Official_US",
       },
       corporation: "US",
       orderId: "ORD-20250201-008",
@@ -228,12 +228,12 @@ const mockOrderList = {
       status: { name: "COMPLETED", description: "Completed" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
       channelType: {
-        name: "GENTLE_MONSTER_OFFICIAL_KR",
-        description: "GM Official KR",
+        name: "GM_Official_INT",
+        description: "GM_Official_INT",
       },
-      corporation: "US",
+      corporation: "KR",
       orderId: "ORD-20250201-009",
       orderType: { name: "NORMAL", description: "Normal" },
       receiveMethod: "Delivery",
@@ -256,12 +256,12 @@ const mockOrderList = {
       status: { name: "COMPLETED", description: "Completed" },
     },
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
       channelType: {
-        name: "GENTLE_MONSTER_OFFICIAL_KR",
-        description: "GM Official KR",
+        name: "GM_Official_INT",
+        description: "GM_Official_INT",
       },
-      corporation: "US",
+      corporation: "KR",
       orderId: "ORD-20250201-010",
       orderType: { name: "NORMAL", description: "Normal" },
       receiveMethod: "Delivery",
@@ -283,12 +283,91 @@ const mockOrderList = {
       ],
       status: { name: "COMPLETED", description: "Completed" },
     },
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_AU",
+        description: "GM_Official_AU",
+      },
+      corporation: "AU",
+      orderId: "ORD-20250201-011",
+      orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "olivia.brown@example.com",
+      ordererName: "Olivia Brown",
+      ordererPhone: "+61-555-0111",
+      originOrderNo: "GM-2025020111",
+      recipientName: "Olivia Brown",
+      recipientPhone: "+61-555-0111",
+      shipments: [
+        {
+          shipmentId: "SHP-011",
+          shipmentNo: "SHIP-20250201-011",
+          status: { name: "PICKED", description: "Picked" },
+        },
+      ],
+      status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
+    },
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_AU",
+        description: "GM_Official_AU",
+      },
+      corporation: "AU",
+      orderId: "ORD-20250201-012",
+      orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "william.jones@example.com",
+      ordererName: "William Jones",
+      ordererPhone: "+61-555-0112",
+      originOrderNo: "GM-2025020112",
+      recipientName: "William Jones",
+      recipientPhone: "+61-555-0112",
+      shipments: [
+        {
+          shipmentId: "SHP-012",
+          shipmentNo: "SHIP-20250201-012",
+          status: { name: "PICKED", description: "Picked" },
+        },
+      ],
+      status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
+    },
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_AU",
+        description: "GM_Official_AU",
+      },
+      corporation: "AU",
+      orderId: "ORD-20250201-013",
+      orderType: { name: "NORMAL", description: "Normal" },
+      receiveMethod: "Delivery",
+      orderedAt: twoDaysAgo,
+      ordererEmail: "emma.wilson@example.com",
+      ordererName: "Emma Wilson",
+      ordererPhone: "+61-555-0113",
+      originOrderNo: "GM-2025020113",
+      recipientName: "Emma Wilson",
+      recipientPhone: "+61-555-0113",
+      shipments: [
+        {
+          shipmentId: "SHP-013",
+          shipmentNo: "SHIP-20250201-013",
+          status: { name: "DELIVERED", description: "Delivered" },
+          trackingNo: "1Z999AA10123456713",
+        },
+      ],
+      status: { name: "COMPLETED", description: "Completed" },
+    },
   ],
   isFirst: true,
   isLast: true,
   pageNumber: 0,
   pageSize: 25,
-  totalCount: 10,
+  totalCount: 13,
   totalPages: 1,
 };
 
@@ -1037,39 +1116,48 @@ const mockDistributionSetting = [
 const mockUserPermissions = {
   brands: [
     {
-      brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-      corporations: [
-        {
-          name: "US",
-          channels: [
-            {
-              name: "GENTLE_MONSTER_OFFICIAL_US",
-              description: "GM Official US",
-            },
-            { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
-            { name: "ATIISSU_OFFICIAL", description: "Atiissu Official" },
-            { name: "ATIISSU_TEST", description: "Atiissu Test" },
-          ],
-        },
-        {
-          name: "CA",
-          channels: [
-            {
-              name: "GENTLE_MONSTER_OFFICIAL_CA",
-              description: "GM Official CA",
-            },
-          ],
-        },
-      ],
-    },
-    {
       brand: { name: "GENTLE_MONSTER", description: "GM" },
       corporations: [
         {
           name: "KR",
           channels: [
-            { name: "GM_OFFICIAL_INT", description: "GM_Official_INT" },
-            { name: "GM_OFFICIAL_KR", description: "GM_Official_KR" },
+            { name: "GM_Official_KR", description: "GM_Official_KR" },
+            { name: "GM_Official_INT", description: "GM_Official_INT" },
+            { name: "GM_KAKAO_KR", description: "GM_KAKAO_KR" },
+          ],
+        },
+        {
+          name: "CA",
+          channels: [{ name: "GM_Official_CA", description: "GM_Official_CA" }],
+        },
+        {
+          name: "US",
+          channels: [{ name: "GM_Official_US", description: "GM_Official_US" }],
+        },
+        {
+          name: "AU",
+          channels: [{ name: "GM_Official_AU", description: "GM_Official_AU" }],
+        },
+      ],
+    },
+    {
+      brand: { name: "ATIISSU", description: "ATS" },
+      corporations: [
+        {
+          name: "KR",
+          channels: [
+            { name: "ATS_Official_KR", description: "ATS_Official_KR" },
+          ],
+        },
+      ],
+    },
+    {
+      brand: { name: "NUFLAAT", description: "NUF" },
+      corporations: [
+        {
+          name: "KR",
+          channels: [
+            { name: "NUF_Official_KR", description: "NUF_Official_KR" },
           ],
         },
       ],
@@ -1203,9 +1291,9 @@ const mockStockHistory = {
 
 // --- Order Detail Mock (OrderDetailResponse) ---
 const mockOrderDetail = {
-  brand: { name: "GENTLE_MONSTER", description: "Gentle Monster" },
-  channelType: { name: "NUFLAAT_OFFICIAL", description: "Nuflaat Official" },
-  corporation: "US",
+  brand: { name: "NUFLAAT", description: "NUF" },
+  channelType: { name: "NUF_Official_KR", description: "NUF_Official_KR" },
+  corporation: "KR",
   orderId: "ORD-20250201-001",
   orderType: { name: "NORMAL", description: "Normal" },
   orderedAt: yesterday,
@@ -1631,10 +1719,12 @@ const mockOrderDetail = {
 // Payment Info의 Method가 GIFT_CARD이고 Note에 기프트카드 시리얼번호가 들어감
 const mockGiftCardPaidOrderDetail = {
   ...mockOrderDetail,
+  brand: { name: "GENTLE_MONSTER", description: "GM" },
   channelType: {
-    name: "GENTLE_MONSTER_OFFICIAL_KR",
-    description: "GM Official KR",
+    name: "GM_Official_INT",
+    description: "GM_Official_INT",
   },
+  corporation: "KR",
   orderId: "ORD-20250201-009",
   originOrderNo: "GM-2025020109",
   purchaseNo: "PUR-009",
@@ -1753,10 +1843,12 @@ const mockGiftCardPaidOrderDetail = {
 // Payment는 일반주문과 동일, 상품이 기프트카드이며 상품명 아래 시리얼번호가 노출됨
 const mockGiftCardPurchaseOrderDetail = {
   ...mockOrderDetail,
+  brand: { name: "GENTLE_MONSTER", description: "GM" },
   channelType: {
-    name: "GENTLE_MONSTER_OFFICIAL_KR",
-    description: "GM Official KR",
+    name: "GM_Official_INT",
+    description: "GM_Official_INT",
   },
+  corporation: "KR",
   orderId: "ORD-20250201-010",
   originOrderNo: "GM-2025020110",
   purchaseNo: "PUR-010",
@@ -3359,7 +3451,25 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
 
   // Order list
   if (path.includes("/orders")) {
-    return mockOrderList;
+    // Channel Filter 적용: channelTypes 쿼리로 채널명(channelType.name) 기준 필터링
+    const queryString = url.split("?")[1] ?? "";
+    const channelTypes = new URLSearchParams(queryString).getAll(
+      "channelTypes",
+    );
+
+    if (channelTypes.length === 0) {
+      return mockOrderList;
+    }
+
+    const filtered = mockOrderList.data.filter((order) =>
+      channelTypes.includes(order.channelType.name),
+    );
+
+    return {
+      ...mockOrderList,
+      data: filtered,
+      totalCount: filtered.length,
+    };
   }
 
   // Return list

@@ -18,11 +18,17 @@ import {
 import { FormProvider, useForm } from "react-hook-form";
 
 import { ModalBulkCancel } from "@/features/integrated-order-list/components/ModalBulkCancel";
+import { ModalSerialPrint } from "@/features/integrated-order-list/components/ModalSerialPrint";
 import { transformGroupData } from "@/features/integrated-order-list/models/transforms";
 import { OrderGroup } from "@/features/integrated-order-list/models/types";
 import { IntegratedOrderRequest } from "@/features/integrated-order-list/models/types";
-import { GROUPED_CONFIG } from "@/features/integrated-order-list/modules/constants";
+import {
+  GROUPED_CONFIG,
+  SERIAL_PRINT_CHANNELS,
+  SERIAL_PRINT_SHIPMENT_STATUS,
+} from "@/features/integrated-order-list/modules/constants";
 
+import AlertDialog from "@/shared/components/dialog/AlertDialog";
 import TotalResult from "@/shared/components/text/TotalResult";
 import { COMMON_TABLE_PAGE_SIZE_OPTIONS } from "@/shared/constants";
 import { PageResponseExchangeResponse } from "@/shared/generated/oms/types/Exchange";
@@ -74,6 +80,11 @@ export default function DataGridWrap({
   // Bulk Cancel 모달 관리
   const [openBulkCancel, setOpenBulkCancel] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  // Serial Print 모달 관리
+  const [openSerialPrint, setOpenSerialPrint] = useState(false);
+  // Serial Print 조건 미충족 경고 모달 메시지
+  const [serialPrintAlert, setSerialPrintAlert] = useState<string | null>(null);
 
   const { currentTime } = useCurrentTime({
     isFetching,
@@ -177,6 +188,41 @@ export default function DataGridWrap({
     setOpenBulkCancel(true);
   };
 
+  // Serial Print 클릭 핸들러
+  // 비활성화 기준은 없고, 조건 미충족 주문이 선택된 채 클릭 시 경고창을 띄운다.
+  const handleSerialPrint = () => {
+    // 주문 선택은 필수
+    if (selectedRows.length === 0) {
+      setSerialPrintAlert("Please select at least one order.");
+      return;
+    }
+
+    // 채널 [GM_Official_AU] & Shipment 상태 [Picked, Packed, Shipped] 조건 검사
+    const isAllValid = selectedRows.every((row) => {
+      const isAuChannel = SERIAL_PRINT_CHANNELS.includes(
+        row.channelTypeName as string,
+      );
+      const shipmentStatuses = Array.isArray(row.shipmentStatus)
+        ? (row.shipmentStatus as string[])
+        : [];
+      const isShipmentValid =
+        shipmentStatuses.length > 0 &&
+        shipmentStatuses.every((status) =>
+          SERIAL_PRINT_SHIPMENT_STATUS.includes(status),
+        );
+      return isAuChannel && isShipmentValid;
+    });
+
+    if (!isAllValid) {
+      setSerialPrintAlert(
+        "Serial Print is available only for GM Official AU orders with shipment status Picked, Packed, or Shipped.",
+      );
+      return;
+    }
+
+    setOpenSerialPrint(true);
+  };
+
   return (
     <ThemeProvider theme={MUIDataGridTheme}>
       <div className="border-[1px] border-solid border-[#E0E0E0] bg-white p-[24px]">
@@ -230,6 +276,40 @@ export default function DataGridWrap({
                     refetchDashboard={refetchDashboard}
                   />
                 </FormProvider>
+              </>
+            )}
+
+            {/* Serial Print 버튼 (AC Card 출력) */}
+            {group === "order" && (
+              <>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleSerialPrint}
+                >
+                  Serial Print
+                </Button>
+                {/* Serial Print Modal */}
+                <ModalSerialPrint
+                  selectedRows={selectedRows}
+                  columns={GROUPED_CONFIG.order.bulkCancelColumns}
+                  open={openSerialPrint}
+                  setOpen={setOpenSerialPrint}
+                />
+                {/* Serial Print 조건 미충족 경고 모달 */}
+                {serialPrintAlert && (
+                  <AlertDialog
+                    isButton={false}
+                    open={true}
+                    setOpen={() => setSerialPrintAlert(null)}
+                    maxWidth="xs"
+                    dialogContent={serialPrintAlert}
+                    dialogConfirmLabel="OK"
+                    dialogContentProps={{ sx: { color: "black" } }}
+                    postButtonProps={{ color: "primary" }}
+                    handlePost={() => setSerialPrintAlert(null)}
+                  />
+                )}
               </>
             )}
           </div>
