@@ -77,7 +77,8 @@ export default function SearchForm({
     currentSearchKeyType === "skus" ||
     currentSearchKeyType === "returnNos" ||
     currentSearchKeyType === "exchangeNos" ||
-    currentSearchKeyType === "reshipmentNos";
+    currentSearchKeyType === "reshipmentNos" ||
+    currentSearchKeyType === "purchaseNo";
 
   const getStatusFilter = () => {
     switch (group) {
@@ -173,7 +174,10 @@ export default function SearchForm({
           searchKeyType === "shipmentNos"
             ? convertToArray(searchKeyword)
             : undefined,
-        purchaseNo: searchKeyType === "purchaseNo" ? searchKeyword : undefined,
+        purchaseNos:
+          searchKeyType === "purchaseNo"
+            ? convertToArray(searchKeyword)
+            : undefined,
         skus:
           searchKeyType === "skus" ? convertToArray(searchKeyword) : undefined,
         page: 0,
@@ -201,7 +205,10 @@ export default function SearchForm({
           searchKeyType === "returnNos"
             ? convertToArray(searchKeyword)
             : undefined,
-        purchaseNo: searchKeyType === "purchaseNo" ? searchKeyword : undefined,
+        purchaseNos:
+          searchKeyType === "purchaseNo"
+            ? convertToArray(searchKeyword)
+            : undefined,
         trackingNo: searchKeyType === "trackingNo" ? searchKeyword : undefined,
         page: 0,
         size: params.size,
@@ -228,7 +235,10 @@ export default function SearchForm({
           searchKeyType === "exchangeNos"
             ? convertToArray(searchKeyword)
             : undefined,
-        purchaseNo: searchKeyType === "purchaseNo" ? searchKeyword : undefined,
+        purchaseNos:
+          searchKeyType === "purchaseNo"
+            ? convertToArray(searchKeyword)
+            : undefined,
         trackingNo: searchKeyType === "trackingNo" ? searchKeyword : undefined,
         page: 0,
         size: params.size,
@@ -253,6 +263,10 @@ export default function SearchForm({
             : undefined,
         reshipmentNos:
           searchKeyType === "reshipmentNos"
+            ? convertToArray(searchKeyword)
+            : undefined,
+        purchaseNos:
+          searchKeyType === "purchaseNo"
             ? convertToArray(searchKeyword)
             : undefined,
         trackingNo: searchKeyType === "trackingNo" ? searchKeyword : undefined,

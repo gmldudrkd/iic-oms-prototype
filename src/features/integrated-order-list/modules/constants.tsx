@@ -109,6 +109,7 @@ export const SEARCH_KEY_TYPE_RESHIPMENT = [
   { label: "Orderer Email", value: "ordererEmail" },
   { label: "Orderer Phone", value: "ordererPhone" },
   { label: "Reshipment No", value: "reshipmentNos" },
+  { label: "Purchase No", value: "purchaseNo" },
   { label: "Tracking No", value: "trackingNo" },
 ];
 
