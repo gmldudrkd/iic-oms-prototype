@@ -59,6 +59,9 @@ export default function RegisterClaim({ open, setOpen }: Props) {
 
   const defaultAddressValues = useRecipientDefaultAddress();
 
+  // INT 채널(GM_Official_INT)은 픽업 요청 불가
+  const isIntChannel = data?.channelType?.name === "GM_Official_INT";
+
   // 폼 & 클레임 타입 로직
   const {
     methods,
@@ -79,6 +82,7 @@ export default function RegisterClaim({ open, setOpen }: Props) {
     showShipmentAddressForm,
   } = useRegisterClaimForm({
     brandName: data?.brand.name,
+    disablePickupRequest: isIntChannel,
   });
 
   // rows & summary
@@ -242,6 +246,7 @@ export default function RegisterClaim({ open, setOpen }: Props) {
               <PickupOption
                 pickupOption={pickupOption}
                 setPickupOption={setPickupOption}
+                disablePickupRequest={isIntChannel}
               />
             )}
             {showTrackingInfo && <TrackingInformation />}

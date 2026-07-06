@@ -39,11 +39,14 @@ const CLAIM_MODAL_CONFIG: Record<
 interface Props {
   brandName?: string;
   modalType?: ClaimModalType;
+  /** INT 채널 등 픽업 요청이 불가한 경우 true (Pickup Option 기본값을 "Do Not Request Pickup"으로) */
+  disablePickupRequest?: boolean;
 }
 
 export default function useRegisterClaimForm({
   brandName,
   modalType = "DEFAULT",
+  disablePickupRequest = false,
 }: Props) {
   const claimReasonList = getClaimReasonList(brandName);
 
@@ -64,7 +67,8 @@ export default function useRegisterClaimForm({
     useState<OrderEstimateRefundFeeRequestClaimTypeEnum>(
       CLAIM_MODAL_CONFIG[modalType].claimType,
     );
-  const [pickupOption, setPickupOption] = useState<boolean>(true);
+  const [pickupOption, setPickupOption] =
+    useState<boolean>(!disablePickupRequest);
 
   const reasonList =
     claimType === "EXCHANGE"
@@ -91,8 +95,8 @@ export default function useRegisterClaimForm({
   // 타입 변경 시 폼 & 옵션 초기화
   useEffect(() => {
     methods.reset();
-    setPickupOption(true);
-  }, [claimType, methods]);
+    setPickupOption(!disablePickupRequest);
+  }, [claimType, methods, disablePickupRequest]);
 
   // form validity
   const formValid =
