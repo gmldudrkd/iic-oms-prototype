@@ -17,7 +17,7 @@ import {
   DateRange,
 } from "@mui/x-date-pickers-pro";
 import { Dayjs } from "dayjs";
-import { ClipboardEvent, useCallback } from "react";
+import { ClipboardEvent, useCallback, useEffect, useMemo } from "react";
 import {
   Controller,
   FieldValues,
@@ -31,9 +31,11 @@ import {
   SEARCH_KEY_TYPE_OPTIONS,
   MULTI_SEARCH_KEY_TYPES,
   SHORTCUTS_ITEMS,
+  TITLE_PARTIAL_SEARCH_MIN_LENGTH,
 } from "@/features/promotion-list/modules/constants";
 
 import FormActions from "@/shared/components/form-elements/FormActions";
+import { availableChannelsFor } from "@/shared/constants/brandCorpChannels";
 import { useTimezoneStore } from "@/shared/stores/useTimezoneStore";
 import { useUserPermissionStore } from "@/shared/stores/useUserPermissionStore";
 
@@ -44,12 +46,20 @@ interface SearchFormProps {
 
 export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
   const methods = useFormContext();
-  const { control, handleSubmit, watch } = methods;
+  const {
+    control,
+    handleSubmit,
+    watch,
+    clearErrors,
+    formState: { errors },
+  } = methods;
   const { timezone } = useTimezoneStore();
   const { selectedPermission } = useUserPermissionStore();
 
   const searchKeyType = watch("searchKeyType");
   const isMultiSearch = MULTI_SEARCH_KEY_TYPES.includes(searchKeyType);
+  const isTitleSearch = searchKeyType === "title";
+  const keywordError = errors.searchKeyword?.message as string | undefined;
 
   const handlePaste = useCallback(
     (e: ClipboardEvent<HTMLDivElement>) => {
@@ -70,14 +80,23 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
     [isMultiSearch, methods],
   );
 
-  const channelTypesList = selectedPermission.flatMap((item) => {
-    return item.corporations.flatMap((corp) => {
-      return corp.channels.map((channel) => ({
-        label: channel.description,
-        value: channel.name,
-      }));
-    });
-  });
+  // 상단 헤더 Brand & Corp 선택에 따라 사용 가능한 채널만 노출 (등록 화면과 동일한 매핑)
+  const channelTypesList = useMemo(
+    () =>
+      availableChannelsFor(selectedPermission).map((name) => ({
+        label: name,
+        value: name,
+      })),
+    [selectedPermission],
+  );
+
+  // Brand & Corp 변경으로 선택 중인 채널이 목록에서 사라지면 선택 해제
+  const channel = watch("channel");
+  useEffect(() => {
+    if (channel && !channelTypesList.some((ch) => ch.value === channel)) {
+      methods.setValue("channel", "");
+    }
+  }, [channel, channelTypesList, methods]);
 
   const onSubmit: SubmitHandler<FieldValues> = () => {
     onSearch();
@@ -167,9 +186,6 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                 control={control}
                 render={({ field }) => (
                   <Select {...field} label="Status" displayEmpty notched>
-                    <MenuItem value="">
-                      <em>Select</em>
-                    </MenuItem>
                     {STATUS_OPTIONS.map((opt) => (
                       <MenuItem key={opt.value} value={opt.value}>
                         {opt.label}
@@ -190,9 +206,7 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                 control={control}
                 render={({ field }) => (
                   <Select {...field} label="Channel" displayEmpty notched>
-                    <MenuItem value="">
-                      <em>Select</em>
-                    </MenuItem>
+                    <MenuItem value="">All</MenuItem>
                     {channelTypesList.map((ch) => (
                       <MenuItem key={ch.value} value={ch.value}>
                         {ch.label}
@@ -213,13 +227,21 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                 render={({ field }) => (
                   <TextField
                     {...field}
+                    onChange={(e) => {
+                      if (keywordError) clearErrors("searchKeyword");
+                      field.onChange(e);
+                    }}
                     fullWidth
                     label="Search"
                     placeholder={
-                      isMultiSearch
-                        ? "Enter multiple keywords separated by line breaks"
-                        : "Enter a keyword to search"
+                      isTitleSearch
+                        ? `Partial match with ${TITLE_PARTIAL_SEARCH_MIN_LENGTH}+ characters, or multiple exact titles separated by line breaks`
+                        : isMultiSearch
+                          ? "Enter multiple keywords separated by line breaks"
+                          : "Enter a keyword to search"
                     }
+                    error={Boolean(keywordError)}
+                    helperText={keywordError}
                     multiline={isMultiSearch}
                     minRows={1}
                     maxRows={isMultiSearch ? 4 : 1}

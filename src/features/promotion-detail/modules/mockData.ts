@@ -15,7 +15,7 @@ function createExpiredDetail(id: number): PromotionDetail {
     triggerType: "Purchase Any Product",
     amount: null,
     amountCurrency: null,
-    triggerChannels: ["GM_KR_KAKAO", "GM_KR_NAVER", "GM_KR_SSG", "GM_KR_OFFICIAL"],
+    triggerChannels: ["GM_KR_KAKAO"],
     triggerProducts: [],
     rewardType: "Order Level",
     rewardProducts: [
@@ -53,6 +53,7 @@ export interface PromotionListItem {
 
 export function getMockPromotionList(): PromotionListItem[] {
   return [
+    { id: "995", title: "#995 2026 패키징 베네핏 이벤트 🎁", status: "Active", type: "Packaging Benefit", brand: "GM", corp: "KR" },
     { id: "999", title: "#999 2026 크리스마스 이벤트 🎅", status: "Active", type: "GWP", brand: "GM", corp: "KR" },
     { id: "998", title: "#998 2026 크리스마스 이브 이벤트...", status: "Upcoming", type: "GWP", brand: "GM", corp: "KR" },
     { id: "997", title: "#997 2026 할로윈 이벤트 🎃", status: "Draft", type: "GWP", brand: "TB", corp: "KR" },
@@ -61,6 +62,43 @@ export function getMockPromotionList(): PromotionListItem[] {
 }
 
 export const MOCK_PROMOTION_DETAIL: Record<string, PromotionDetail> = {
+  // Packaging Benefit: reward product 에 수량 정보 없이 무제한 증정 안내 문구 노출
+  "995": {
+    promotionNo: 995,
+    title: "2026 패키징 베네핏 이벤트 🎁",
+    status: "Active",
+
+    // General
+    type: "Packaging Benefit",
+    brand: "GM",
+    corp: "KR",
+    startDate: "2026-04-01 00:00:00",
+    endDate: "2026-05-01 00:00:00",
+    createdBy: "tam35",
+    reason: "패키징 프로모션",
+
+    // Trigger Detail (Packaging Benefit 은 Trigger Channel 멀티 선택 가능)
+    triggerType: "Purchase Any Product",
+    amount: null,
+    amountCurrency: null,
+    triggerChannels: ["GM_KR_KAKAO"],
+    triggerProducts: [],
+
+    // Reward Detail (수량 제한 없음)
+    rewardType: "Order Level",
+    rewardProducts: [
+      {
+        no: 1,
+        imageUrl: "",
+        skuCode: "C0000012",
+        productName: "Premium Gift Box Set A",
+        rewardQty: 1,
+        stockUseDedicated: null,
+        stockUseRemained: null,
+        stockUseAlertThreshold: null,
+      },
+    ],
+  },
   "999": {
     promotionNo: 999,
     title: "2026 크리스마스 이벤트 🎅",
@@ -79,20 +117,7 @@ export const MOCK_PROMOTION_DETAIL: Record<string, PromotionDetail> = {
     triggerType: "Purchase Specific Product or Label",
     amount: 70000,
     amountCurrency: "KRW",
-    triggerChannels: [
-      "GM_KR_KAKAO",
-      "GM_KR_SSG",
-      "GM_KR_OFFICIAL",
-      "GM_KR_NAVER",
-      "GM_KR_TIKTOK",
-      "GM_KR_INSTAGRAM",
-      "GM_KR_INSTAGRAM",
-      "GM_KR_INSTAGRAM",
-      "GM_KR_INSTAGRAM",
-      "GM_KR_INSTAGRAM",
-      "GM_KR_INSTAGRAM",
-      "GM_KR_INSTAGRAM",
-    ],
+    triggerChannels: ["GM_KR_KAKAO"],
     triggerProducts: [
       {
         no: 1,
@@ -150,7 +175,7 @@ export const MOCK_PROMOTION_DETAIL: Record<string, PromotionDetail> = {
     triggerType: "Purchase Over Amount Threshold",
     amount: 100000,
     amountCurrency: "KRW",
-    triggerChannels: ["GM_KR_KAKAO", "GM_KR_NAVER"],
+    triggerChannels: ["GM_KR_KAKAO"],
     triggerProducts: [],
 
     rewardType: "Product Level",
@@ -183,7 +208,7 @@ export const MOCK_PROMOTION_DETAIL: Record<string, PromotionDetail> = {
     triggerType: "Purchase Any Product",
     amount: null,
     amountCurrency: null,
-    triggerChannels: ["GM_KR_KAKAO", "GM_KR_NAVER", "GM_KR_SSG", "GM_KR_OFFICIAL"],
+    triggerChannels: ["GM_KR_KAKAO"],
     triggerProducts: [],
 
     rewardType: "Order Level",
@@ -214,7 +239,7 @@ export const MOCK_PROMOTION_DETAIL: Record<string, PromotionDetail> = {
     triggerType: "Purchase Specific Product Over Amount Threshold",
     amount: 50000,
     amountCurrency: "KRW",
-    triggerChannels: ["GM_KR_KAKAO", "GM_KR_NAVER", "GM_KR_SSG", "GM_KR_OFFICIAL"],
+    triggerChannels: ["GM_KR_KAKAO"],
     triggerProducts: [
       {
         no: 1,

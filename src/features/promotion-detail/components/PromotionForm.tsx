@@ -327,6 +327,12 @@ export default function PromotionForm({
   const triggerType = watch("triggerType") as TriggerType | "";
   const triggerChannels = watch("triggerChannels");
   const rewardProducts = watch("rewardProducts");
+  const promotionType = watch("type");
+
+  // Packaging Benefit: Trigger Channel 멀티 선택 / GWP: 단일 선택
+  const isSingleChannel = promotionType === "GWP";
+  // Packaging Benefit: Reward Product 의 수량 입력 필드 제거 (기간 내 무제한 증정)
+  const isPackagingBenefit = promotionType === "Packaging Benefit";
 
   const showAmount =
     triggerType !== "" &&
@@ -563,17 +569,20 @@ export default function PromotionForm({
     // Reward
     if (!v.rewardType) return false;
     if (rewardProducts.length === 0) return false;
-    // All reward products must have qty values filled
-    const hasIncompleteRewardQty = rewardProducts.some(
-      (p) =>
-        !p.rewardQty ||
-        p.rewardQty <= 0 ||
-        p.stockUseDedicated === null ||
-        p.stockUseDedicated === undefined ||
-        p.stockUseAlertThreshold === null ||
-        p.stockUseAlertThreshold === undefined,
-    );
-    if (hasIncompleteRewardQty) return false;
+    // Packaging Benefit 은 수량 제한이 없으므로 qty 완성도 검사 생략
+    if (v.type !== "Packaging Benefit") {
+      // All reward products must have qty values filled
+      const hasIncompleteRewardQty = rewardProducts.some(
+        (p) =>
+          !p.rewardQty ||
+          p.rewardQty <= 0 ||
+          p.stockUseDedicated === null ||
+          p.stockUseDedicated === undefined ||
+          p.stockUseAlertThreshold === null ||
+          p.stockUseAlertThreshold === undefined,
+      );
+      if (hasIncompleteRewardQty) return false;
+    }
     return true;
   }, [formValues, triggerModalItems, rewardProducts]);
 
@@ -766,8 +775,17 @@ export default function PromotionForm({
                           {...field}
                           displayEmpty
                           disabled={isFieldDisabled("type")}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            // Promotion Type 변경 시 Trigger Channel 초기화
+                            setValue("triggerChannels", []);
+                          }}
                           renderValue={(v) =>
-                            v || (
+                            v ? (
+                              (PROMOTION_TYPE_OPTIONS.find(
+                                (opt) => opt.value === v,
+                              )?.label ?? v)
+                            ) : (
                               <span style={{ color: "rgba(0,0,0,0.38)" }}>
                                 Please Select
                               </span>
@@ -1120,41 +1138,66 @@ export default function PromotionForm({
             </FormRow>
           )}
           <FormRow label="Trigger Channel" required>
-            <Autocomplete
-              multiple
-              size="small"
-              fullWidth
-              options={MOCK_CHANNEL_OPTIONS}
-              value={triggerChannels}
-              onChange={(_, newValue) => setValue("triggerChannels", newValue)}
-              disabled={isFieldDisabled("triggerChannels")}
-              disableCloseOnSelect
-              renderOption={(props, option, { selected }) => (
-                <li {...props}>
-                  <Checkbox size="small" checked={selected} sx={{ mr: 1 }} />
-                  {option}
-                </li>
-              )}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option + index}
-                    label={option}
-                    size="small"
-                    variant="outlined"
+            {isSingleChannel ? (
+              // GWP: 단일 선택
+              <Autocomplete
+                size="small"
+                fullWidth
+                options={MOCK_CHANNEL_OPTIONS}
+                value={triggerChannels[0] ?? null}
+                onChange={(_, newValue) =>
+                  setValue("triggerChannels", newValue ? [newValue] : [])
+                }
+                disabled={isFieldDisabled("triggerChannels")}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder={
+                      triggerChannels.length === 0 ? "Please Select" : ""
+                    }
                   />
-                ))
-              }
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder={
-                    triggerChannels.length === 0 ? "Please Select" : ""
-                  }
-                />
-              )}
-            />
+                )}
+              />
+            ) : (
+              // Packaging Benefit: 멀티 선택
+              <Autocomplete
+                multiple
+                size="small"
+                fullWidth
+                options={MOCK_CHANNEL_OPTIONS}
+                value={triggerChannels}
+                onChange={(_, newValue) =>
+                  setValue("triggerChannels", newValue)
+                }
+                disabled={isFieldDisabled("triggerChannels")}
+                disableCloseOnSelect
+                renderOption={(props, option, { selected }) => (
+                  <li {...props}>
+                    <Checkbox size="small" checked={selected} sx={{ mr: 1 }} />
+                    {option}
+                  </li>
+                )}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      {...getTagProps({ index })}
+                      key={option + index}
+                      label={option}
+                      size="small"
+                      variant="outlined"
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder={
+                      triggerChannels.length === 0 ? "Please Select" : ""
+                    }
+                  />
+                )}
+              />
+            )}
           </FormRow>
           {showTriggerProduct && (
             <FormRow label="Trigger Product" required>
@@ -1292,91 +1335,123 @@ export default function PromotionForm({
                   }}
                 >
                   {/* Header */}
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: "36px 1fr 90px 180px 36px",
-                      backgroundColor: "#e7e7e7",
-                      borderBottom: `1px solid ${BORDER_COLOR}`,
-                      px: 1.5,
-                      py: 0.75,
-                      gap: 1,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Box />
-                    <Typography
+                  {isPackagingBenefit ? (
+                    <Box
                       sx={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: "rgba(0,0,0,0.87)",
+                        display: "grid",
+                        gridTemplateColumns: "36px 1fr minmax(0, 1fr) 36px",
+                        backgroundColor: "#e7e7e7",
+                        borderBottom: `1px solid ${BORDER_COLOR}`,
+                        px: 1.5,
+                        py: 0.75,
+                        gap: 1,
+                        alignItems: "center",
                       }}
                     >
-                      Product
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: "rgba(0,0,0,0.87)",
-                      }}
-                    >
-                      Reward Qty
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: "rgba(0,0,0,0.87)",
-                      }}
-                    >
-                      Stock Use Qty
-                    </Typography>
-                    <Box />
-                  </Box>
-                  {/* Sub-header for stock columns */}
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: "36px 1fr 90px 90px 90px 36px",
-                      backgroundColor: "#e7e7e7",
-                      borderBottom: `1px solid ${BORDER_COLOR}`,
-                      px: 1.5,
-                      py: 0,
-                      gap: 1,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Box />
-                    <Box />
-                    <Box />
-                    <Typography
-                      sx={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "rgba(0,0,0,0.87)",
-                      }}
-                    >
-                      Dedicated
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "rgba(0,0,0,0.87)",
-                      }}
-                    >
-                      Alert
-                    </Typography>
-                    <Box />
-                  </Box>
+                      <Box />
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "rgba(0,0,0,0.87)",
+                        }}
+                      >
+                        Product
+                      </Typography>
+                      <Box />
+                      <Box />
+                    </Box>
+                  ) : (
+                    <>
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: "36px 1fr 90px 180px 36px",
+                          backgroundColor: "#e7e7e7",
+                          borderBottom: `1px solid ${BORDER_COLOR}`,
+                          px: 1.5,
+                          py: 0.75,
+                          gap: 1,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Box />
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "rgba(0,0,0,0.87)",
+                          }}
+                        >
+                          Product
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "rgba(0,0,0,0.87)",
+                          }}
+                        >
+                          Reward Qty
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "rgba(0,0,0,0.87)",
+                          }}
+                        >
+                          Stock Use Qty
+                        </Typography>
+                        <Box />
+                      </Box>
+                      {/* Sub-header for stock columns */}
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: "36px 1fr 90px 90px 90px 36px",
+                          backgroundColor: "#e7e7e7",
+                          borderBottom: `1px solid ${BORDER_COLOR}`,
+                          px: 1.5,
+                          py: 0,
+                          gap: 1,
+                          alignItems: "center",
+                        }}
+                      >
+                        <Box />
+                        <Box />
+                        <Box />
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: "rgba(0,0,0,0.87)",
+                          }}
+                        >
+                          Dedicated
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: "rgba(0,0,0,0.87)",
+                          }}
+                        >
+                          Alert
+                        </Typography>
+                        <Box />
+                      </Box>
+                    </>
+                  )}
                   {/* Rows */}
                   {rewardProducts.map((product, idx) => (
                     <Box
                       key={product.skuCode + idx}
                       sx={{
                         display: "grid",
-                        gridTemplateColumns: "36px 1fr 90px 90px 90px 36px",
+                        gridTemplateColumns: isPackagingBenefit
+                          ? "36px 1fr minmax(0, 1fr) 36px"
+                          : "36px 1fr 90px 90px 90px 36px",
                         px: 1.5,
                         py: 1,
                         gap: 1,
@@ -1409,87 +1484,108 @@ export default function PromotionForm({
                           {product.skuCode}
                         </Typography>
                       </Box>
-                      <Box>
-                        <TextField
-                          type="number"
-                          size="small"
-                          value={product.rewardQty}
-                          onChange={(e) =>
-                            handleUpdateRewardProduct(
-                              idx,
-                              "rewardQty",
-                              Number(e.target.value),
-                            )
-                          }
-                          disabled={!allEditable}
+                      {isPackagingBenefit ? (
+                        <Typography
                           sx={{
-                            width: 76,
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "#B2DDFF" },
-                              "&:hover fieldset": { borderColor: "#1570EF" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "#1570EF",
-                              },
-                            },
-                            "& input": { textAlign: "right", fontSize: 12 },
+                            fontSize: 12,
+                            color: "rgba(0,0,0,0.6)",
+                            textAlign: "right",
                           }}
-                          inputProps={{ min: 1 }}
-                        />
-                      </Box>
-                      <Box>
-                        <TextField
-                          type="number"
-                          size="small"
-                          value={product.stockUseDedicated ?? ""}
-                          onChange={(e) =>
-                            handleUpdateRewardProduct(
-                              idx,
-                              "stockUseDedicated",
-                              Number(e.target.value),
-                            )
-                          }
-                          disabled={false}
-                          sx={{
-                            width: 76,
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "#A9EFC5" },
-                              "&:hover fieldset": { borderColor: "#099250" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "#099250",
-                              },
-                            },
-                            "& input": { textAlign: "right", fontSize: 12 },
-                          }}
-                          inputProps={{ min: 0 }}
-                        />
-                      </Box>
-                      <Box>
-                        <TextField
-                          type="number"
-                          size="small"
-                          value={product.stockUseAlertThreshold ?? ""}
-                          onChange={(e) =>
-                            handleUpdateRewardProduct(
-                              idx,
-                              "stockUseAlertThreshold",
-                              Number(e.target.value),
-                            )
-                          }
-                          disabled={false}
-                          sx={{
-                            width: 76,
-                            "& .MuiOutlinedInput-root": {
-                              "& fieldset": { borderColor: "#FED7AA" },
-                              "&:hover fieldset": { borderColor: "#F97316" },
-                              "&.Mui-focused fieldset": {
-                                borderColor: "#F97316",
-                              },
-                            },
-                            "& input": { textAlign: "right", fontSize: 12 },
-                          }}
-                          inputProps={{ min: 0 }}
-                        />
-                      </Box>
+                        >
+                          Packaging Benefit type is provided without any
+                          quantity limit during the promotion period.
+                        </Typography>
+                      ) : (
+                        <>
+                          <Box>
+                            <TextField
+                              type="number"
+                              size="small"
+                              value={product.rewardQty}
+                              onChange={(e) =>
+                                handleUpdateRewardProduct(
+                                  idx,
+                                  "rewardQty",
+                                  Number(e.target.value),
+                                )
+                              }
+                              disabled={!allEditable}
+                              sx={{
+                                width: 76,
+                                "& .MuiOutlinedInput-root": {
+                                  "& fieldset": { borderColor: "#B2DDFF" },
+                                  "&:hover fieldset": {
+                                    borderColor: "#1570EF",
+                                  },
+                                  "&.Mui-focused fieldset": {
+                                    borderColor: "#1570EF",
+                                  },
+                                },
+                                "& input": { textAlign: "right", fontSize: 12 },
+                              }}
+                              inputProps={{ min: 1 }}
+                            />
+                          </Box>
+                          <Box>
+                            <TextField
+                              type="number"
+                              size="small"
+                              value={product.stockUseDedicated ?? ""}
+                              onChange={(e) =>
+                                handleUpdateRewardProduct(
+                                  idx,
+                                  "stockUseDedicated",
+                                  Number(e.target.value),
+                                )
+                              }
+                              disabled={false}
+                              sx={{
+                                width: 76,
+                                "& .MuiOutlinedInput-root": {
+                                  "& fieldset": { borderColor: "#A9EFC5" },
+                                  "&:hover fieldset": {
+                                    borderColor: "#099250",
+                                  },
+                                  "&.Mui-focused fieldset": {
+                                    borderColor: "#099250",
+                                  },
+                                },
+                                "& input": { textAlign: "right", fontSize: 12 },
+                              }}
+                              inputProps={{ min: 0 }}
+                            />
+                          </Box>
+                          <Box>
+                            <TextField
+                              type="number"
+                              size="small"
+                              value={product.stockUseAlertThreshold ?? ""}
+                              onChange={(e) =>
+                                handleUpdateRewardProduct(
+                                  idx,
+                                  "stockUseAlertThreshold",
+                                  Number(e.target.value),
+                                )
+                              }
+                              disabled={false}
+                              sx={{
+                                width: 76,
+                                "& .MuiOutlinedInput-root": {
+                                  "& fieldset": { borderColor: "#FED7AA" },
+                                  "&:hover fieldset": {
+                                    borderColor: "#F97316",
+                                  },
+                                  "&.Mui-focused fieldset": {
+                                    borderColor: "#F97316",
+                                  },
+                                },
+                                "& input": { textAlign: "right", fontSize: 12 },
+                              }}
+                              inputProps={{ min: 0 }}
+                            />
+                          </Box>
+                        </>
+                      )}
                       <Box>
                         {allEditable && (
                           <IconButton

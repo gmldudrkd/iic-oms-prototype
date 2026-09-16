@@ -12,21 +12,23 @@ export default function PromotionListPage() {
   const router = useRouter();
 
   const handleAddPromotion = useCallback(() => {
-    router.push("/promotion/promotion-list/add");
+    router.push("/promotion/promotion-list/add-v2");
   }, [router]);
 
   return (
     <>
       <div className="flex flex-col bg-white">
-        <div className="flex items-center justify-between px-[24px] pt-[24px]">
+        <div className="flex items-center justify-between px-[24px] pb-[16px] pt-[24px]">
           <Title text="Promotion List" variant="default" />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleAddPromotion}
-          >
-            + Add Promotion
-          </Button>
+          <div className="flex items-center gap-[8px]">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleAddPromotion}
+            >
+              + Add Promotion
+            </Button>
+          </div>
         </div>
       </div>
       <PromotionList />

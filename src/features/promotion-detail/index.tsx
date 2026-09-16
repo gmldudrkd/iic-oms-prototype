@@ -211,6 +211,8 @@ export default function PromotionDetail({
   const showTriggerProduct = SHOW_TRIGGER_PRODUCT_TYPES.includes(
     detail.triggerType,
   );
+  // Packaging Benefit: Reward Product 수량 정보 미노출, 무제한 증정 안내 문구 노출
+  const isPackagingBenefit = detail.type === "Packaging Benefit";
 
   const formatAmount = (amount: number | null, currency: string | null) => {
     if (amount == null) return "-";
@@ -438,63 +440,71 @@ export default function PromotionDetail({
                       <TableCell sx={{ fontWeight: 600, color: "rgba(0,0,0,0.87)" }}>
                         Product Name
                       </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: 600,
-                          textAlign: "right",
-                          color: "rgba(0,0,0,0.87)",
-                        }}
-                      >
-                        Reward Qty
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: 600,
-                          textAlign: "left",
-                          color: "rgba(0,0,0,0.87)",
-                          borderBottom: "none",
-                        }}
-                        colSpan={3}
-                      >
-                        Stock Use Qty
-                      </TableCell>
+                      {isPackagingBenefit ? (
+                        <TableCell sx={{ borderBottom: "none" }} />
+                      ) : (
+                        <>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              textAlign: "right",
+                              color: "rgba(0,0,0,0.87)",
+                            }}
+                          >
+                            Reward Qty
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              textAlign: "left",
+                              color: "rgba(0,0,0,0.87)",
+                              borderBottom: "none",
+                            }}
+                            colSpan={3}
+                          >
+                            Stock Use Qty
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
-                    <TableRow sx={{ backgroundColor: LABEL_BG }}>
-                      <TableCell colSpan={5} sx={{ borderBottom: "none", p: 0 }} />
-                      <TableCell
-                        sx={{
-                          fontWeight: 600,
-                          textAlign: "left",
-                          fontSize: 12,
-                          color: "rgba(0,0,0,0.6)",
-                          pt: 0,
-                        }}
-                      >
-                        Dedicated
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: 600,
-                          textAlign: "left",
-                          fontSize: 12,
-                          color: "rgba(0,0,0,0.6)",
-                          pt: 0,
-                        }}
-                      >
-                        Remained
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          fontWeight: 600,
-                          textAlign: "left",
-                          fontSize: 12,
-                          color: "rgba(0,0,0,0.6)",
-                          pt: 0,
-                        }}
-                      >
-                        Alert
-                      </TableCell>
-                    </TableRow>
+                    {!isPackagingBenefit && (
+                      <TableRow sx={{ backgroundColor: LABEL_BG }}>
+                        <TableCell colSpan={5} sx={{ borderBottom: "none", p: 0 }} />
+                        <TableCell
+                          sx={{
+                            fontWeight: 600,
+                            textAlign: "left",
+                            fontSize: 12,
+                            color: "rgba(0,0,0,0.6)",
+                            pt: 0,
+                          }}
+                        >
+                          Dedicated
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 600,
+                            textAlign: "left",
+                            fontSize: 12,
+                            color: "rgba(0,0,0,0.6)",
+                            pt: 0,
+                          }}
+                        >
+                          Remained
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 600,
+                            textAlign: "left",
+                            fontSize: 12,
+                            color: "rgba(0,0,0,0.6)",
+                            pt: 0,
+                          }}
+                        >
+                          Alert
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableHead>
                   <TableBody>
                     {detail.rewardProducts.map((product) => (
@@ -518,18 +528,33 @@ export default function PromotionDetail({
                         <TableCell sx={{ color: "rgba(0,0,0,0.87)" }}>
                           {product.productName}
                         </TableCell>
-                        <TableCell sx={{ textAlign: "right", color: "rgba(0,0,0,0.87)" }}>
-                          {product.rewardQty}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center", color: "rgba(0,0,0,0.87)" }}>
-                          {product.stockUseDedicated ?? "–"}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center", color: "rgba(0,0,0,0.87)" }}>
-                          {product.stockUseRemained ?? "–"}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "center", color: "rgba(0,0,0,0.87)" }}>
-                          {product.stockUseAlertThreshold ?? "–"}
-                        </TableCell>
+                        {isPackagingBenefit ? (
+                          <TableCell
+                            sx={{
+                              textAlign: "right",
+                              color: "rgba(0,0,0,0.6)",
+                              fontSize: 12,
+                            }}
+                          >
+                            Packaging Benefit type is provided without any
+                            quantity limit during the promotion period.
+                          </TableCell>
+                        ) : (
+                          <>
+                            <TableCell sx={{ textAlign: "right", color: "rgba(0,0,0,0.87)" }}>
+                              {product.rewardQty}
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "center", color: "rgba(0,0,0,0.87)" }}>
+                              {product.stockUseDedicated ?? "–"}
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "center", color: "rgba(0,0,0,0.87)" }}>
+                              {product.stockUseRemained ?? "–"}
+                            </TableCell>
+                            <TableCell sx={{ textAlign: "center", color: "rgba(0,0,0,0.87)" }}>
+                              {product.stockUseAlertThreshold ?? "–"}
+                            </TableCell>
+                          </>
+                        )}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -552,8 +577,9 @@ export default function PromotionDetail({
         dialogContent={
           <Box sx={{ pt: 1 }}>
             <Typography sx={{ fontSize: 14, mb: 2 }}>
-              Delete this promotion? This action is permanent and cannot be
-              undone. All related settings and data will be removed. Type{" "}
+              Delete this promotion? Its status changes to Deleted and it will
+              no longer be applied to any orders. The settings are kept for
+              reference but cannot be edited or restored. Type{" "}
               <strong>delete</strong> to confirm.
             </Typography>
             <TextField
