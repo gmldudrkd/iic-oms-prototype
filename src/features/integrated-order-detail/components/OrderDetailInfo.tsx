@@ -57,6 +57,16 @@ export default function OrderDetailInfo() {
     };
   }, [data]);
 
+  // TB KR의 Official이 아닌 외부 채널 주문은 Partly Confirmed 상태에서 Request Shipment 불가
+  const isTbKrExternalChannel =
+    data?.brand?.name === "TAMBURINS" &&
+    data?.corporation === "KR" &&
+    !data?.channelType?.name?.toLowerCase().includes("official");
+  const requestShipmentDisabledTooltip =
+    data?.status.name === PARTLY_CONFIRMED && isTbKrExternalChannel
+      ? "This feature is not supported for external channels."
+      : undefined;
+
   return (
     <OrderInfoWrapper title="Order Detail">
       <DetailGrid>
@@ -84,6 +94,7 @@ export default function OrderDetailInfo() {
                   open={open === "REQUEST_PARTIAL_SHIPMENT"}
                   setOpen={setOpen}
                   rows={rows}
+                  disabledTooltip={requestShipmentDisabledTooltip}
                 />
               )}
               {buttonConditions.registerClaim && (

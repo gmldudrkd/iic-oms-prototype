@@ -362,12 +362,58 @@ const mockOrderList = {
       ],
       status: { name: "COMPLETED", description: "Completed" },
     },
+    // TB KR 외부 채널(Naver) 부분 확정 주문 — Request Shipment 비활성화 확인용
+    {
+      brand: { name: "TAMBURINS", description: "TAM" },
+      channelType: {
+        name: "TAM_NAVER_KR",
+        description: "TAM_NAVER_KR",
+      },
+      corporation: "KR",
+      orderId: "ORD-20250201-019",
+      orderType: { name: "NORMAL", description: "Normal" },
+      tags: "",
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "seoyeon.kim@example.com",
+      ordererName: "Seoyeon Kim",
+      ordererPhone: "+82-10-5555-0119",
+      originOrderNo: "TB-2025020119",
+      purchaseNo: "PUR-019",
+      recipientName: "Seoyeon Kim",
+      recipientPhone: "+82-10-5555-0119",
+      shipments: [],
+      status: { name: "PARTLY_CONFIRMED", description: "Partly Confirmed" },
+    },
+    // TB KR Official 부분 확정 주문 — Request Shipment 활성화 비교용
+    {
+      brand: { name: "TAMBURINS", description: "TAM" },
+      channelType: {
+        name: "TAM_Official_KR",
+        description: "TAM_Official_KR",
+      },
+      corporation: "KR",
+      orderId: "ORD-20250201-020",
+      orderType: { name: "NORMAL", description: "Normal" },
+      tags: "",
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "minjun.lee@example.com",
+      ordererName: "Minjun Lee",
+      ordererPhone: "+82-10-5555-0120",
+      originOrderNo: "TB-2025020120",
+      purchaseNo: "PUR-020",
+      recipientName: "Minjun Lee",
+      recipientPhone: "+82-10-5555-0120",
+      shipments: [],
+      status: { name: "PARTLY_CONFIRMED", description: "Partly Confirmed" },
+    },
   ],
   isFirst: true,
   isLast: true,
   pageNumber: 0,
   pageSize: 25,
-  totalCount: 13,
+  totalCount: 15,
   totalPages: 1,
 };
 
@@ -3444,6 +3490,8 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
           fullName: listRow.recipientName,
           phone: listRow.recipientPhone.replace(/^\+\d+-/, ""),
         },
+        // Partly Confirmed는 아직 출고 요청 전이므로 Shipment 정보 없음
+        ...(listRow.status.name === "PARTLY_CONFIRMED" && { shipments: [] }),
       };
     }
     return mockOrderDetail;

@@ -1,4 +1,4 @@
-import { Button, MenuItem, Select } from "@mui/material";
+import { Button, MenuItem, Select, Tooltip } from "@mui/material";
 import {
   DataGridPro,
   GridColDef,
@@ -24,12 +24,15 @@ interface Props {
   setOpen: (open: string | null) => void;
   rows: GridRowModel[];
   buttonLabel?: string;
+  // 값이 있으면 버튼 비활성화 + 마우스 오버 시 해당 문구 툴팁 노출
+  disabledTooltip?: string;
 }
 export default function RequestShipment({
   open,
   setOpen,
   rows,
   buttonLabel = "Request Partial Shipment",
+  disabledTooltip,
 }: Props) {
   const { orderId } = useParams<{ orderId: string }>();
   const queryClient = useQueryClient();
@@ -146,14 +149,28 @@ export default function RequestShipment({
 
   return (
     <>
-      <Button
-        color="primary"
-        size="small"
-        onClick={() => setOpen("REQUEST_PARTIAL_SHIPMENT")}
-        disabled={isPatchPartialShipmentProcessing || isPending}
+      <Tooltip
+        title={disabledTooltip ?? ""}
+        disableHoverListener={!disabledTooltip}
+        slotProps={{
+          tooltip: {
+            sx: { maxWidth: "none", whiteSpace: "nowrap" },
+          },
+        }}
       >
-        {buttonLabel}
-      </Button>
+        <span>
+          <Button
+            color="primary"
+            size="small"
+            onClick={() => setOpen("REQUEST_PARTIAL_SHIPMENT")}
+            disabled={
+              !!disabledTooltip || isPatchPartialShipmentProcessing || isPending
+            }
+          >
+            {buttonLabel}
+          </Button>
+        </span>
+      </Tooltip>
       <ModalOrder
         open={open}
         setOpen={(open: boolean) =>
