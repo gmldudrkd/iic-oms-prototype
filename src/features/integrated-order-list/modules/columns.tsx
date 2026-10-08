@@ -66,7 +66,7 @@ export const COLUMNS_ORDER_LIST = [
     headerName: "Tags",
     flex: 1,
     minWidth: 140,
-    // Pre-Order / Promotion 등 주문 태그를 Chip으로 노출 (복수 태그 지원)
+    // Pre-Order / Promotion / Lens 등 주문 태그를 Chip으로 노출 (복수 태그 지원)
     renderCell: (params: GridRenderCellParams) => {
       const tags: string[] = Array.isArray(params.value)
         ? params.value

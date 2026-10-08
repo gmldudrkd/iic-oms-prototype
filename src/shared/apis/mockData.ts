@@ -575,12 +575,64 @@ const mockOrderList = {
       shipments: [],
       status: { name: "PARTLY_CONFIRMED", description: "Partly Confirmed" },
     },
+    // GM KR IE 변색렌즈 주문 — Lens 태그 (WMS 출고 요청 시 OrderType=LENS)
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_KR",
+        description: "GM_Official_KR",
+      },
+      corporation: "KR",
+      orderId: "ORD-20250201-021",
+      orderType: { name: "NORMAL", description: "Normal" },
+      tags: "Lens",
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "jiwoo.park@example.com",
+      ordererName: "Jiwoo Park",
+      ordererPhone: "+82-10-5555-0121",
+      originOrderNo: "GM-2025020121",
+      purchaseNo: "PUR-021",
+      recipientName: "Jiwoo Park",
+      recipientPhone: "+82-10-5555-0121",
+      shipments: [
+        {
+          shipmentId: "SHP-021",
+          shipmentNo: "SHIP-20250201-021",
+          status: { name: "PICKED", description: "Picked" },
+        },
+      ],
+      status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
+    },
+    // GM US IE 프리오더 + 변색렌즈 주문 — 복수 태그 (WMS 출고 요청 시 shipmentType=N_B2C_LENS)
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_US",
+        description: "GM_Official_US",
+      },
+      corporation: "US",
+      orderId: "ORD-20250201-022",
+      orderType: { name: "NORMAL", description: "Normal" },
+      tags: "Pre-Order, Lens",
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "liam.walker@example.com",
+      ordererName: "Liam Walker",
+      ordererPhone: "+1-555-0122",
+      originOrderNo: "GM-2025020122",
+      purchaseNo: "PUR-022",
+      recipientName: "Liam Walker",
+      recipientPhone: "+1-555-0122",
+      shipments: [],
+      status: { name: "COLLECTED", description: "Collected" },
+    },
   ],
   isFirst: true,
   isLast: true,
   pageNumber: 0,
   pageSize: 25,
-  totalCount: 20,
+  totalCount: 22,
   totalPages: 1,
 };
 
@@ -4120,7 +4172,7 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
   // Order list
   if (path.includes("/orders")) {
     // Channel Filter 적용: channelTypes 쿼리로 채널명(channelType.name) 기준 필터링
-    // Tags Filter 적용: tags 쿼리로 주문 태그(Pre-Order / Promotion) 기준 필터링
+    // Tags Filter 적용: tags 쿼리로 주문 태그(Pre-Order / Promotion / Lens) 기준 필터링
     const queryString = url.split("?")[1] ?? "";
     const searchParams = new URLSearchParams(queryString);
     const channelTypes = searchParams.getAll("channelTypes");

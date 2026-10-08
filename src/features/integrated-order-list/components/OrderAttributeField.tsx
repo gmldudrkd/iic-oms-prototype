@@ -11,7 +11,7 @@ import { useController, useFormContext } from "react-hook-form";
 
 type ReceiveMethod = "Delivery" | "Store Pickup";
 type OrderType = "Normal" | "Gift" | "RX" | "Lens Only";
-type OrderTag = "Pre-Order" | "Promotion";
+type OrderTag = "Pre-Order" | "Promotion" | "Lens";
 type OptionField = "receiveMethod" | "type" | "tags";
 
 interface AttributeOption {
@@ -39,6 +39,7 @@ const OPTIONS: AttributeOption[] = [
   { label: "Lens Only", group: "Type", field: "type" },
   { label: "Pre-Order", group: "Tags", field: "tags" },
   { label: "Promotion", group: "Tags", field: "tags" },
+  { label: "Lens", group: "Tags", field: "tags" },
 ];
 
 // ────────────────────────────────────────────────
