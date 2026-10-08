@@ -197,7 +197,7 @@ export default function DataGridWrap({
       return;
     }
 
-    // 채널 [GM_Official_AU] & Shipment 상태 [Picked, Packed, Shipped] 조건 검사
+    // 채널 [GM_Official_AU] & Shipment 중 [Picked, Packed, Shipped] 상태가 1개라도 있으면 선택 가능
     const isAllValid = selectedRows.every((row) => {
       const isAuChannel = SERIAL_PRINT_CHANNELS.includes(
         row.channelTypeName as string,
@@ -205,17 +205,15 @@ export default function DataGridWrap({
       const shipmentStatuses = Array.isArray(row.shipmentStatus)
         ? (row.shipmentStatus as string[])
         : [];
-      const isShipmentValid =
-        shipmentStatuses.length > 0 &&
-        shipmentStatuses.every((status) =>
-          SERIAL_PRINT_SHIPMENT_STATUS.includes(status),
-        );
-      return isAuChannel && isShipmentValid;
+      const hasPrintableShipment = shipmentStatuses.some((status) =>
+        SERIAL_PRINT_SHIPMENT_STATUS.includes(status),
+      );
+      return isAuChannel && hasPrintableShipment;
     });
 
     if (!isAllValid) {
       setSerialPrintAlert(
-        "Serial Print is available only for GM Official AU orders with shipment status Picked, Packed, or Shipped.",
+        "Serial Print is available only for GM Official AU orders with at least one shipment in Picked, Packed, or Shipped status.",
       );
       return;
     }
@@ -292,7 +290,6 @@ export default function DataGridWrap({
                 {/* Serial Print Modal */}
                 <ModalSerialPrint
                   selectedRows={selectedRows}
-                  columns={GROUPED_CONFIG.order.bulkCancelColumns}
                   open={openSerialPrint}
                   setOpen={setOpenSerialPrint}
                 />

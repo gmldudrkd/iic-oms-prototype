@@ -1,8 +1,9 @@
-import { GridRenderCellParams } from "@mui/x-data-grid-pro";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid-pro";
 
 import {
   renderCellForStatus,
   renderCellForShippingStatus,
+  renderCellForPrintable,
 } from "@/features/integrated-order-list/modules/renderCell";
 
 import {
@@ -64,13 +65,26 @@ export const COLUMNS_ORDER_LIST = [
     field: "tags",
     headerName: "Tags",
     flex: 1,
-    minWidth: 120,
+    minWidth: 140,
+    // Pre-Order / Promotion 등 주문 태그를 Chip으로 노출 (복수 태그 지원)
     renderCell: (params: GridRenderCellParams) => {
-      if (params.value) {
-        return renderCellForStatus({ value: params.value, color: "default" });
-      } else {
-        return null;
-      }
+      const tags: string[] = Array.isArray(params.value)
+        ? params.value
+        : params.value
+          ? [String(params.value)]
+          : [];
+
+      if (tags.length === 0) return null;
+
+      return (
+        <div className="flex flex-wrap items-center gap-[4px]">
+          {tags.map((tag) => (
+            <span key={tag}>
+              {renderCellForStatus({ value: tag, color: "default" })}
+            </span>
+          ))}
+        </div>
+      );
     },
   },
   {
@@ -429,6 +443,29 @@ export const COLUMNS_CANCEL_ORDER = [
       renderCellForStatus({ value: params.value, color: "order" }),
   },
 ];
+
+// Serial Print Modal 칼럼 (Shipment 단위로 노출)
+// 주문에 Shipment 가 1:N 으로 매핑되므로 Shipment 별로 상태/출력여부를 노출한다.
+export const COLUMNS_SERIAL_PRINT = [
+  { field: "orderNo", headerName: "Order No", flex: 1, minWidth: 140 },
+  { field: "shipmentNo", headerName: "Shipment No", flex: 1, minWidth: 160 },
+  {
+    field: "status",
+    headerName: "Current Status",
+    flex: 1,
+    minWidth: 140,
+    renderCell: (params: { value: string }) =>
+      renderCellForStatus({ value: params.value, color: "shipment" }),
+  },
+  {
+    field: "printable",
+    headerName: "Print Status",
+    flex: 1,
+    minWidth: 140,
+    renderCell: (params: { value: string }) =>
+      renderCellForPrintable({ value: params.value }),
+  },
+] as GridColDef[];
 
 // Bulk Cancel Return Modal 칼럼
 export const COLUMNS_CANCEL_RETURN = [

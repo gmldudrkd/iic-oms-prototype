@@ -66,6 +66,7 @@ export interface OrderRow {
   channel?: string;
   orderNo: string;
   orderDate: string;
+  tags?: string[];
   ordererName: string;
   ordererEmail: string;
   ordererPhone: string;

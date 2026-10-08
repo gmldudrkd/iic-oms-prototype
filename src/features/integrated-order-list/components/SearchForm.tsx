@@ -2,7 +2,12 @@ import { FormControl } from "@mui/material";
 import dayjs from "dayjs";
 import { isEqual } from "lodash";
 import { Dispatch, SetStateAction } from "react";
-import { FieldValues, SubmitHandler, useFormContext } from "react-hook-form";
+import {
+  FieldErrors,
+  FieldValues,
+  SubmitHandler,
+  useFormContext,
+} from "react-hook-form";
 
 import OrderAttributeField from "@/features/integrated-order-list/components/OrderAttributeField";
 import { PeriodPickerField } from "@/features/integrated-order-list/components/PeriodPickerField";
@@ -17,6 +22,7 @@ import {
   SEARCH_KEY_TYPE_RETURN,
   SEARCH_KEY_TYPE_EXCHANGE,
   SEARCH_KEY_TYPE_RESHIPMENT,
+  PERIOD_ERROR_MESSAGES,
 } from "@/features/integrated-order-list/modules/constants";
 
 import FormActions from "@/shared/components/form-elements/FormActions";
@@ -37,6 +43,7 @@ import {
   ReturnSearchRequest,
   ReturnSearchRequestChannelTypesEnum,
 } from "@/shared/generated/oms/types/Return";
+import useSnackbarStore from "@/shared/stores/useSnackbarStore";
 import { useTimezoneStore } from "@/shared/stores/useTimezoneStore";
 import { useUserPermissionStore } from "@/shared/stores/useUserPermissionStore";
 import { convertToArray } from "@/shared/utils/stringUtils";
@@ -66,6 +73,7 @@ export default function SearchForm({
 }: SearchFormProps) {
   const { handleSubmit, reset, watch, setValue } = useFormContext();
   const { timezone } = useTimezoneStore();
+  const { openSnackbar } = useSnackbarStore();
 
   // 현재 선택된 searchKeyType을 감시
   const currentSearchKeyType = watch("searchKeyType");
@@ -288,6 +296,17 @@ export default function SearchForm({
     }
   };
 
+  // Search 클릭 시 클라이언트 유효성 검사 실패 처리 - 자체 에러 알럿 노출
+  const onInvalid = (errors: FieldErrors) => {
+    const message =
+      (errors.period?.message as string) || PERIOD_ERROR_MESSAGES.required;
+
+    openSnackbar({
+      message,
+      severity: "error",
+    });
+  };
+
   const onReset = () => {
     reset();
     setValue("channelTypes", [
@@ -299,14 +318,14 @@ export default function SearchForm({
   return (
     <form
       className="flex items-start justify-between gap-[16px] py-[24px]"
-      onSubmit={handleSubmit(onSubmit as SubmitHandler<FieldValues>)}
+      onSubmit={handleSubmit(onSubmit as SubmitHandler<FieldValues>, onInvalid)}
     >
       <div className="search-form w-full">
         <div className="flex flex-wrap items-start gap-[16px]">
           {/* 날짜 검색 */}
           <div className="flex w-[260px] items-center gap-[8px]">
             <FormControl fullWidth>
-              <PeriodPickerField name="period" />
+              <PeriodPickerField name="period" enableValidation />
             </FormControl>
           </div>
           {/* 상태 검색 */}

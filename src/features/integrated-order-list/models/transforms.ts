@@ -31,6 +31,18 @@ const convertShippingText = (text: string | undefined): string => {
   return rest.length > 0 ? `${firstItem} 외 ${rest.length}` : firstItem;
 };
 
+// 주문 Tags(Pre-Order / Promotion 등)를 문자열·배열 어느 형태로 내려와도 배열로 정규화
+const toTagList = (value: unknown): string[] => {
+  if (Array.isArray(value))
+    return value.map((tag) => String(tag).trim()).filter(Boolean);
+  if (typeof value === "string")
+    return value
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+  return [];
+};
+
 export const transformOrderData = ({
   data,
   timezone,
@@ -42,14 +54,18 @@ export const transformOrderData = ({
       const hasValidShipments =
         Array.isArray(row.shipments) && row.shipments.length > 0;
 
+      // 스펙에 아직 반영되지 않은 필드(receiveMethod / tags) 접근용
+      const extraFields = row as unknown as Record<string, unknown>;
+
       return {
         id: row.orderId,
         orderId: row.orderId,
         brand: row.brand.description,
         corp: row.corporation,
         orderType: row.orderType.description,
-        receiveMethod:
-          (row as Record<string, unknown>).receiveMethod || "Delivery",
+        receiveMethod: extraFields.receiveMethod || "Delivery",
+        // Tags: 문자열("Promotion") 또는 배열(["Pre-Order", "Promotion"]) 모두 허용
+        tags: toTagList(extraFields.tags),
         channel: row.channelType.description,
         channelTypeName: row.channelType.name,
         orderNo: row.originOrderNo,

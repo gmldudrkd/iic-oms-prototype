@@ -103,7 +103,7 @@ const mockOrderList = {
       corporation: "KR",
       orderId: "ORD-20250201-004",
       orderType: { name: "NORMAL", description: "Normal" },
-      tags: "Pre-order",
+      tags: "Pre-Order",
       receiveMethod: "Store Pickup",
       orderedAt: twoDaysAgo,
       ordererEmail: "sarah.lee@example.com",
@@ -328,8 +328,16 @@ const mockOrderList = {
       recipientPhone: "+61-555-0112",
       shipments: [
         {
-          shipmentId: "SHP-012",
-          shipmentNo: "SHIP-20250201-012",
+          shipmentId: "SHP-012-1",
+          shipmentNo: "SHIP-20250201-001",
+          status: {
+            name: "PICKING_REQUESTED",
+            description: "Picking Requested",
+          },
+        },
+        {
+          shipmentId: "SHP-012-2",
+          shipmentNo: "SHIP-20250201-002",
           status: { name: "PICKED", description: "Picked" },
         },
       ],
@@ -358,6 +366,165 @@ const mockOrderList = {
           shipmentNo: "SHIP-20250201-013",
           status: { name: "DELIVERED", description: "Delivered" },
           trackingNo: "1Z999AA10123456713",
+        },
+      ],
+      status: { name: "COMPLETED", description: "Completed" },
+    },
+    {
+      brand: { name: "NUFLAAT", description: "NUF" },
+      channelType: {
+        name: "NUF_Official_KR",
+        description: "NUF_Official_KR",
+      },
+      corporation: "KR",
+      orderId: "ORD-20250201-014",
+      orderType: { name: "NORMAL", description: "Normal" },
+      // 프로모션(GWP/PACKAGE 증정)이 적용된 주문 → Tags 컬럼에 Promotion 노출
+      tags: "Promotion",
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "sora.kim@example.com",
+      ordererName: "Sora Kim",
+      ordererPhone: "+82-10-5555-0114",
+      originOrderNo: "NF-2025020114",
+      purchaseNo: "PUR-014",
+      recipientName: "Sora Kim",
+      recipientPhone: "+82-10-5555-0114",
+      shipments: [
+        {
+          shipmentId: "SHP-014",
+          shipmentNo: "SHIP-20250201-014",
+          status: {
+            name: "PICKING_REQUESTED",
+            description: "Picking Requested",
+          },
+          trackingNo: "600123456014",
+        },
+      ],
+      status: {
+        name: "SHIPMENT_REQUESTED",
+        description: "Shipment Requested",
+      },
+    },
+    // RX(처방전) 주문 - OMS 에서 시리얼(AC Card) 출력 불가
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_AU",
+        description: "GM_Official_AU",
+      },
+      corporation: "AU",
+      orderId: "ORD-20250201-015",
+      orderType: { name: "RX", description: "Rx" },
+      tags: "",
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "noah.taylor@example.com",
+      ordererName: "Noah Taylor",
+      ordererPhone: "+61-555-0115",
+      originOrderNo: "GM-2025020115",
+      recipientName: "Noah Taylor",
+      recipientPhone: "+61-555-0115",
+      shipments: [
+        {
+          shipmentId: "SHP-015",
+          shipmentNo: "SHIP-20250201-015",
+          status: { name: "PICKED", description: "Picked" },
+        },
+      ],
+      status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
+    },
+    // RX Type + Pre-Order 태그 주문 - Shipment 이 출력 가능 상태여도 RX 로 차단
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_AU",
+        description: "GM_Official_AU",
+      },
+      corporation: "AU",
+      orderId: "ORD-20250201-016",
+      orderType: { name: "RX", description: "Rx" },
+      tags: "Pre-Order",
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "ava.martin@example.com",
+      ordererName: "Ava Martin",
+      ordererPhone: "+61-555-0116",
+      originOrderNo: "GM-2025020116",
+      recipientName: "Ava Martin",
+      recipientPhone: "+61-555-0116",
+      shipments: [
+        {
+          shipmentId: "SHP-016-1",
+          shipmentNo: "SHIP-20250201-016-1",
+          status: { name: "PACKED", description: "Packed" },
+        },
+        {
+          shipmentId: "SHP-016-2",
+          shipmentNo: "SHIP-20250201-016-2",
+          status: { name: "SHIPPED", description: "Shipped" },
+          trackingNo: "1Z999AA10123456716",
+        },
+      ],
+      status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
+    },
+    // RX 주문 - 출력 불가 상태(Picking Requested)만 보유
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_AU",
+        description: "GM_Official_AU",
+      },
+      corporation: "AU",
+      orderId: "ORD-20250201-017",
+      orderType: { name: "RX", description: "Rx" },
+      tags: "",
+      receiveMethod: "Delivery",
+      orderedAt: twoDaysAgo,
+      ordererEmail: "lucas.white@example.com",
+      ordererName: "Lucas White",
+      ordererPhone: "+61-555-0117",
+      originOrderNo: "GM-2025020117",
+      recipientName: "Lucas White",
+      recipientPhone: "+61-555-0117",
+      shipments: [
+        {
+          shipmentId: "SHP-017",
+          shipmentNo: "SHIP-20250201-017",
+          status: {
+            name: "PICKING_REQUESTED",
+            description: "Picking Requested",
+          },
+        },
+      ],
+      status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
+    },
+    // 배송비를 계좌이체(DIRECT_DEPOSIT)로 환불한 반품 주문
+    {
+      brand: { name: "NUFLAAT", description: "NUF" },
+      channelType: {
+        name: "NUF_Official_KR",
+        description: "NUF_Official_KR",
+      },
+      corporation: "KR",
+      orderId: "ORD-20250201-018",
+      orderType: { name: "NORMAL", description: "Normal" },
+      tags: "",
+      receiveMethod: "Delivery",
+      orderedAt: threeDaysAgo,
+      ordererEmail: "jiwoo.park@example.com",
+      ordererName: "Jiwoo Park",
+      ordererPhone: "+82-10-5555-0118",
+      originOrderNo: "NF-2025020118",
+      purchaseNo: "PUR-018",
+      recipientName: "Jiwoo Park",
+      recipientPhone: "+82-10-5555-0118",
+      shipments: [
+        {
+          shipmentId: "SHP-018",
+          shipmentNo: "SHIP-20250201-018",
+          status: { name: "DELIVERED", description: "Delivered" },
+          trackingNo: "600123456018",
         },
       ],
       status: { name: "COMPLETED", description: "Completed" },
@@ -413,7 +580,7 @@ const mockOrderList = {
   isLast: true,
   pageNumber: 0,
   pageSize: 25,
-  totalCount: 15,
+  totalCount: 20,
   totalPages: 1,
 };
 
@@ -1586,9 +1753,9 @@ const mockOrderDetail = {
       id: "SHP-001",
       shipmentNo: "SHIP-20250201-001",
       wmsNo: "WMS-001",
-      status: { name: "SHIPPED", description: "Shipped" },
-      event: "SHIP",
-      shippedAt: now,
+      status: { name: "PICKING_REQUESTED", description: "Picking Requested" },
+      event: "PICK_REQUEST",
+      shippedAt: null,
       updatedAt: now,
       trackingUrl: "",
       cancelReason: "",
@@ -1757,8 +1924,145 @@ const mockOrderDetail = {
         },
       ],
     },
+    {
+      id: "SHP-002",
+      shipmentNo: "SHIP-20250201-002",
+      wmsNo: "WMS-002",
+      status: { name: "PICKED", description: "Picked" },
+      event: "PICK",
+      shippedAt: null,
+      updatedAt: now,
+      trackingUrl: "",
+      cancelReason: "",
+      recipient: {
+        fullName: "John Doe",
+        firstName: "John",
+        lastName: "Doe",
+        phone: "555-0101",
+        phoneCountryNo: "+1",
+        address: {
+          line1: "123 Main Street",
+          line2: "Apt 4B",
+          city: "New York",
+          state: "NY",
+          postalCode: "10001",
+          countryType: "US",
+        },
+      },
+      delivery: {
+        carrierCode: "UPS",
+        trackingNo: "",
+        deliveryType: "STANDARD",
+      },
+      deliveries: [],
+      items: [
+        {
+          shipmentItemId: "SI-101",
+          orderItemId: "OI-001",
+          originItemId: "ORIG-001",
+          sku: "B00000041",
+          productCode: "00000041",
+          productName: "웨이브 스푼&포크 듀오 세트",
+          thumbnailUrl: "",
+          sequence: 1,
+          shipmentQuantity: 1,
+          shippedQuantity: 1,
+          canceledQuantity: 0,
+          components: [
+            {
+              sku: "S16000239",
+              productCode: "16000239",
+              productName: "기프트 박스",
+              category: "Packaging",
+              price: 2000,
+              quantity: 1,
+            },
+          ],
+          products: [
+            {
+              sku: "S17000077",
+              productCode: "17000077",
+              productName: "웨이브 스푼",
+              category: "Tableware",
+              price: 15000,
+              quantity: 2,
+            },
+            {
+              sku: "S17000071",
+              productCode: "17000071",
+              productName: "웨이브 포크",
+              category: "Tableware",
+              price: 9000,
+              quantity: 2,
+            },
+          ],
+        },
+      ],
+    },
   ],
   refundPayments: [],
+};
+
+// --- 배송비를 계좌이체로 환불한 주문 상세 ---
+// 반품(환불) 시 고객이 부담한 배송비를 계좌이체(DIRECT_DEPOSIT)로 별도 환불
+// → Payment Info 에 DIRECT_DEPOSIT Refund 라인이 1건 추가됨
+const mockDirectDepositOrderDetail = {
+  ...mockOrderDetail,
+  orderId: "ORD-20250201-018",
+  originOrderNo: "NF-2025020118",
+  purchaseNo: "PUR-018",
+  orderedAt: threeDaysAgo,
+  orderer: {
+    ...mockOrderDetail.orderer,
+    fullName: "Jiwoo Park",
+    firstName: "Jiwoo",
+    lastName: "Park",
+    email: "jiwoo.park@example.com",
+    phone: "10-5555-0118",
+    phoneCountryNo: "+82",
+  },
+  payments: [
+    {
+      currency: "KRW",
+      method: "NAVER_PAY",
+      paidAmount: 620000,
+      paidAt: threeDaysAgo,
+      shippingFee: 0,
+      taxAmount: 0,
+      dutyAmount: 0,
+      transactionNo: "01a0320c-c5a5-16b4-57d6-80a3ed24f9c1",
+    },
+  ],
+  refundPayments: [
+    {
+      createdBy: "cs.manager",
+      reason: "PRODUCT_DEFECT",
+      refundPayments: [
+        {
+          currency: "KRW",
+          method: "NAVER_PAY",
+          refundAmount: 620000,
+          refundAt: yesterday,
+          shippingFee: 0,
+          taxAmount: 0,
+          dutyAmount: 0,
+          transactionNo: "01a0320c-c5a5-16b4-57d6-80a3ed24f9c1",
+        },
+        {
+          currency: "KRW",
+          method: "DIRECT_DEPOSIT",
+          refundAmount: 3000,
+          refundAt: now,
+          // 계좌이체 환불 금액은 전액 배송비
+          shippingFee: 3000,
+          taxAmount: 0,
+          dutyAmount: 0,
+          transactionNo: "DD-20250201-018",
+          note: "Shipping fee",
+        },
+      ],
+    },
+  ],
 };
 
 // --- 기프트카드로 결제한 주문 상세 (Paid with Gift Card) ---
@@ -2003,6 +2307,310 @@ const mockGiftCardPurchaseOrderDetail = {
           canceledQuantity: 0,
           products: [],
           components: [],
+        },
+      ],
+    },
+  ],
+  refundPayments: [],
+};
+
+// --- 프로모션 증정 주문 상세 (제품당 PACKAGE + 주문당 GWP·증정품) ---
+// Ordered Product Info / Shipment Info의 Category 컬럼 확인용 주문
+// - 0원 제품은 Category = PACKAGE, 그 외는 SUNGLASS
+// - isGwp: true 인 제품은 Category = GWP (Product Name 에 별도 태그 없음)
+// - 응답에 category(PERFUME/PACKAGE/SUNGLASS)가 명시되면 가격 판별보다 우선 적용
+// - 주문 Tags = Promotion (Order Detail 의 Order Type 옆 · 리스트 Tags 컬럼에 노출)
+// - No.1/2: 주문 제품 2개, 각각 제품당 PACKAGE 보유 (제품에 매칭된 패키지 → 하위 "└" row, Category = PACKAGE)
+// - No.3  : 주문당 GWP (제품과 같은 레벨, Category = GWP)
+// - No.4  : 주문당 증정 HAIR PERFUME 80ML RIBBON (0원, category "PERFUME" 명시)
+const mockPromotionOrderDetail = {
+  ...mockOrderDetail,
+  brand: { name: "NUFLAAT", description: "NUF" },
+  channelType: { name: "NUF_Official_KR", description: "NUF_Official_KR" },
+  corporation: "KR",
+  orderId: "ORD-20250201-014",
+  originOrderNo: "NF-2025020114",
+  purchaseNo: "PUR-014",
+  orderType: { name: "NORMAL", description: "Normal" },
+  tags: "Promotion",
+  status: { name: "SHIPMENT_REQUESTED", description: "Shipment Requested" },
+  shippingFee: 0,
+  orderer: {
+    fullName: "Sora Kim",
+    firstName: "Sora",
+    lastName: "Kim",
+    email: "sora.kim@example.com",
+    phone: "10-5555-0114",
+    phoneCountryNo: "82",
+  },
+  recipient: {
+    fullName: "Sora Kim",
+    firstName: "Sora",
+    lastName: "Kim",
+    phone: "10-5555-0114",
+    phoneCountryNo: "82",
+    deliveryMessage: "부재 시 경비실에 맡겨주세요",
+    address: {
+      line1: "강남대로 123",
+      line2: "5층",
+      city: "서울",
+      state: "서울특별시",
+      postalCode: "06134",
+      countryType: "KR",
+    },
+  },
+  items: [
+    // 주문 제품 1 + 제품당 PACKAGE(하위 "└" row, 0원 → Category = PACKAGE)
+    {
+      orderItemId: "OI-014-1",
+      originItemId: "ORIG-014-1",
+      sku: "12001154",
+      productCode: "12001154",
+      productName: "[N]PERFUME BALM CHAMO",
+      upcCode: "8809123456014",
+      thumbnailUrl: "",
+      sequence: 1,
+      orderedQuantity: 1,
+      shipmentQuantity: 1,
+      shippedQuantity: 0,
+      canceledQuantity: 0,
+      returnedQuantity: 0,
+      reshippedQuantity: 0,
+      allocateQuantity: 1,
+      price: 45000,
+      subTotal: 45000,
+      products: [],
+      components: [
+        {
+          sku: "32001154",
+          productCode: "32001154",
+          productName: "[N]PERFUME BALM BOX",
+          category: "Packaging",
+          price: 0,
+          quantity: 1,
+          shipmentQuantity: 1,
+          canceledQuantity: 0,
+          returnedQuantity: 0,
+          reshippedQuantity: 0,
+        },
+      ],
+    },
+    // 주문 제품 2 + 제품당 PACKAGE(하위 "└" row, 0원 → Category = PACKAGE)
+    {
+      orderItemId: "OI-014-2",
+      originItemId: "ORIG-014-2",
+      sku: "12001160",
+      productCode: "12001160",
+      productName: "[N]PERFUME BALM CEDAR",
+      upcCode: "8809123456017",
+      thumbnailUrl: "",
+      sequence: 2,
+      orderedQuantity: 1,
+      shipmentQuantity: 1,
+      shippedQuantity: 0,
+      canceledQuantity: 0,
+      returnedQuantity: 0,
+      reshippedQuantity: 0,
+      allocateQuantity: 1,
+      price: 45000,
+      subTotal: 45000,
+      products: [],
+      components: [
+        {
+          sku: "32001154",
+          productCode: "32001154",
+          productName: "[N]PERFUME BALM BOX",
+          category: "Packaging",
+          price: 0,
+          quantity: 1,
+          shipmentQuantity: 1,
+          canceledQuantity: 0,
+          returnedQuantity: 0,
+          reshippedQuantity: 0,
+        },
+      ],
+    },
+    // 주문당 GWP
+    {
+      orderItemId: "OI-014-3",
+      originItemId: "ORIG-014-3",
+      sku: "12002509",
+      productCode: "12002509",
+      productName: "HAIR PERFUME SUMMER TAILS_2ML",
+      upcCode: "8809123456015",
+      thumbnailUrl: "",
+      sequence: 3,
+      orderedQuantity: 1,
+      shipmentQuantity: 1,
+      shippedQuantity: 0,
+      canceledQuantity: 0,
+      returnedQuantity: 0,
+      reshippedQuantity: 0,
+      allocateQuantity: 1,
+      price: 0,
+      subTotal: 0,
+      products: [],
+      components: [],
+      isGwp: true,
+    },
+    // 주문당 증정 (0원이지만 향수 제품이므로 category를 PERFUME으로 명시)
+    {
+      orderItemId: "OI-014-4",
+      originItemId: "ORIG-014-4",
+      sku: "32002519",
+      productCode: "32002519",
+      productName: "HAIR PERFUME 80ML RIBBON",
+      upcCode: "8809123456016",
+      thumbnailUrl: "",
+      sequence: 4,
+      orderedQuantity: 1,
+      shipmentQuantity: 1,
+      shippedQuantity: 0,
+      canceledQuantity: 0,
+      returnedQuantity: 0,
+      reshippedQuantity: 0,
+      allocateQuantity: 1,
+      price: 0,
+      subTotal: 0,
+      products: [],
+      components: [],
+      category: "PERFUME",
+    },
+  ],
+  payments: [
+    {
+      currency: "KRW",
+      method: "CREDIT_CARD",
+      paidAmount: 90000,
+      paidAt: yesterday,
+      shippingFee: 0,
+      taxAmount: 8182,
+      dutyAmount: 0,
+      transactionNo: "TXN-20250201-014",
+    },
+  ],
+  shipments: [
+    {
+      id: "SHP-014",
+      shipmentNo: "SHIP-20250201-014",
+      wmsNo: "WMS-014",
+      status: { name: "PICKING_REQUESTED", description: "Picking Requested" },
+      event: "PICK_REQUEST",
+      shippedAt: null,
+      updatedAt: now,
+      trackingUrl: "",
+      cancelReason: "",
+      recipient: {
+        fullName: "Sora Kim",
+        firstName: "Sora",
+        lastName: "Kim",
+        phone: "10-5555-0114",
+        phoneCountryNo: "82",
+        deliveryMessage: "부재 시 경비실에 맡겨주세요",
+        address: {
+          line1: "강남대로 123",
+          line2: "5층",
+          city: "서울",
+          state: "서울특별시",
+          postalCode: "06134",
+          countryType: "KR",
+        },
+      },
+      delivery: {
+        carrierCode: "CJ",
+        trackingNo: "600123456014",
+        deliveryType: "STANDARD",
+      },
+      deliveries: [
+        {
+          trackingNo: "600123456014",
+          trackingUrl: "https://www.cjlogistics.com/ko/tool/parcel/tracking",
+        },
+      ],
+      items: [
+        // 주문 제품 1 + 제품당 PACKAGE(하위 "└" row)
+        {
+          shipmentItemId: "SI-014-1",
+          orderItemId: "OI-014-1",
+          originItemId: "ORIG-014-1",
+          sku: "12001154",
+          productCode: "12001154",
+          productName: "[N]PERFUME BALM CHAMO",
+          thumbnailUrl: "",
+          sequence: 1,
+          shipmentQuantity: 1,
+          shippedQuantity: 0,
+          canceledQuantity: 0,
+          products: [],
+          components: [
+            {
+              sku: "32001154",
+              productCode: "32001154",
+              productName: "[N]PERFUME BALM BOX",
+              category: "Packaging",
+              price: 0,
+              quantity: 1,
+            },
+          ],
+        },
+        // 주문 제품 2 + 제품당 PACKAGE(하위 "└" row)
+        {
+          shipmentItemId: "SI-014-2",
+          orderItemId: "OI-014-2",
+          originItemId: "ORIG-014-2",
+          sku: "12001160",
+          productCode: "12001160",
+          productName: "[N]PERFUME BALM CEDAR",
+          thumbnailUrl: "",
+          sequence: 2,
+          shipmentQuantity: 1,
+          shippedQuantity: 0,
+          canceledQuantity: 0,
+          products: [],
+          components: [
+            {
+              sku: "32001154",
+              productCode: "32001154",
+              productName: "[N]PERFUME BALM BOX",
+              category: "Packaging",
+              price: 0,
+              quantity: 1,
+            },
+          ],
+        },
+        // 주문당 GWP
+        {
+          shipmentItemId: "SI-014-3",
+          orderItemId: "OI-014-3",
+          originItemId: "ORIG-014-3",
+          sku: "12002509",
+          productCode: "12002509",
+          productName: "HAIR PERFUME SUMMER TAILS_2ML",
+          thumbnailUrl: "",
+          sequence: 3,
+          shipmentQuantity: 1,
+          shippedQuantity: 0,
+          canceledQuantity: 0,
+          products: [],
+          components: [],
+          isGwp: true,
+        },
+        // 주문당 증정 (category PERFUME 명시)
+        {
+          shipmentItemId: "SI-014-4",
+          orderItemId: "OI-014-4",
+          originItemId: "ORIG-014-4",
+          sku: "32002519",
+          productCode: "32002519",
+          productName: "HAIR PERFUME 80ML RIBBON",
+          thumbnailUrl: "",
+          sequence: 4,
+          shipmentQuantity: 1,
+          shippedQuantity: 0,
+          canceledQuantity: 0,
+          products: [],
+          components: [],
+          category: "PERFUME",
         },
       ],
     },
@@ -3460,6 +4068,12 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
       return mockGiftCardPaidOrderDetail;
     if (orderId?.toLowerCase() === "ord-20250201-010")
       return mockGiftCardPurchaseOrderDetail;
+    // 프로모션 증정 주문(제품당/주문당 GWP·PACKAGE) 전용 상세 데이터
+    if (orderId?.toLowerCase() === "ord-20250201-014")
+      return mockPromotionOrderDetail;
+    // 배송비를 계좌이체(DIRECT_DEPOSIT)로 환불한 주문
+    if (orderId?.toLowerCase() === "ord-20250201-018")
+      return mockDirectDepositOrderDetail;
     const listRow = (mockOrderList.content ?? mockOrderList.data)?.find(
       (r: { orderId: string }) =>
         r.orderId.toLowerCase() === orderId?.toLowerCase(),
@@ -3492,6 +4106,12 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
         },
         // Partly Confirmed는 아직 출고 요청 전이므로 Shipment 정보 없음
         ...(listRow.status.name === "PARTLY_CONFIRMED" && { shipments: [] }),
+        // TB 주문은 TB 제품(퍼퓸 밤 + 패키지, GWP, 증정) 구성으로 노출
+        ...(listRow.brand.name === "TAMBURINS" && {
+          items: mockPromotionOrderDetail.items,
+          payments: mockPromotionOrderDetail.payments,
+          shippingFee: mockPromotionOrderDetail.shippingFee,
+        }),
       };
     }
     return mockOrderDetail;
@@ -3500,18 +4120,29 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
   // Order list
   if (path.includes("/orders")) {
     // Channel Filter 적용: channelTypes 쿼리로 채널명(channelType.name) 기준 필터링
+    // Tags Filter 적용: tags 쿼리로 주문 태그(Pre-Order / Promotion) 기준 필터링
     const queryString = url.split("?")[1] ?? "";
-    const channelTypes = new URLSearchParams(queryString).getAll(
-      "channelTypes",
-    );
+    const searchParams = new URLSearchParams(queryString);
+    const channelTypes = searchParams.getAll("channelTypes");
+    const tags = searchParams.getAll("tags");
 
-    if (channelTypes.length === 0) {
+    if (channelTypes.length === 0 && tags.length === 0) {
       return mockOrderList;
     }
 
-    const filtered = mockOrderList.data.filter((order) =>
-      channelTypes.includes(order.channelType.name),
-    );
+    const filtered = mockOrderList.data.filter((order) => {
+      const matchedChannel =
+        channelTypes.length === 0 ||
+        channelTypes.includes(order.channelType.name);
+      const orderTags = String(
+        (order as { tags?: string }).tags ?? "",
+      ).toLowerCase();
+      const matchedTags =
+        tags.length === 0 ||
+        tags.some((tag) => orderTags.includes(tag.toLowerCase()));
+
+      return matchedChannel && matchedTags;
+    });
 
     return {
       ...mockOrderList,

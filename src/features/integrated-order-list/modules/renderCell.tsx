@@ -60,6 +60,18 @@ export const renderCellForShippingStatus = (params: { value: string[] }) => {
   );
 };
 
+// Serial Print 출력여부 (Printable / Not Printable)
+export const renderCellForPrintable = (params: { value: string }) => {
+  const isPrintable = params.value === "Printable";
+  return (
+    <Chip
+      label={params.value}
+      color={isPrintable ? "success" : "default"}
+      size="small"
+    />
+  );
+};
+
 export const returnGradeRenderCell = (params: GridRenderCellParams) => {
   return (
     <div className="flex flex-col">

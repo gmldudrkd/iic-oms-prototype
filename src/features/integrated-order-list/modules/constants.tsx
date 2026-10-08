@@ -200,6 +200,8 @@ export const SERIAL_PRINT_CHANNELS = [
   "GM_Official_AU",
 ];
 export const SERIAL_PRINT_SHIPMENT_STATUS = ["Picked", "Packed", "Shipped"];
+// RX(처방전) 주문은 OMS 에서 시리얼(AC Card) 출력이 불가하다.
+export const SERIAL_PRINT_BLOCKED_ORDER_TYPE = "RX";
 export const SERIAL_PRINT_URL =
   "https://crcode.gentlemonster.com/print_view_oms_new.php?on_country=AU";
 
@@ -259,4 +261,36 @@ export const GROUPED_CONFIG = {
     bulkCancelConfirmLabel: null,
     ableBulkCancelStatus: null,
   },
+};
+
+// 검색 폼 Period 최대 조회 기간 (일)
+export const PERIOD_MAX_DAYS = 180;
+
+// 검색 폼 Period 에러 메시지
+export const PERIOD_ERROR_MESSAGES = {
+  required: "Please select a search period.",
+  exceedMaxDays: `The search period cannot exceed ${PERIOD_MAX_DAYS} days.`,
+} as const;
+
+/**
+ * Period(기간) 검색 값 유효성 검사
+ * - 시작일/종료일이 비어 있으면 required 에러
+ * - 기간이 PERIOD_MAX_DAYS를 초과하면 exceedMaxDays 에러
+ * @returns 에러 메시지 (유효한 경우 null)
+ */
+export const validatePeriod = (value: DateRange<Dayjs> | undefined) => {
+  const [start, end] = value ?? [null, null];
+
+  if (!start?.isValid() || !end?.isValid()) {
+    return PERIOD_ERROR_MESSAGES.required;
+  }
+
+  // 시작일/종료일을 모두 포함한 일수로 계산 (예: 오늘~오늘 = 1일)
+  const days = end.startOf("day").diff(start.startOf("day"), "day") + 1;
+
+  if (days > PERIOD_MAX_DAYS) {
+    return PERIOD_ERROR_MESSAGES.exceedMaxDays;
+  }
+
+  return null;
 };
