@@ -63,6 +63,11 @@ export const REWARD_BASIS_OPTIONS: { value: RewardBasis; label: string }[] = [
   { value: "per_qty", label: "Per product quantity" },
 ];
 
+// Target = Order Amount 구간 — 프로모션 등록 화면(PromotionFormV2)과 동일한 최대 개수·색상
+export const MAX_AMOUNT_RANGES = 5;
+const RANGE_COLORS = ["#1F6FE5", "#7C3AED", "#C2410C", "#0F766E", "#BE185D"];
+export const rangeColor = (i: number) => RANGE_COLORS[i % RANGE_COLORS.length];
+
 export const REWARD_TYPE_OPTIONS: { value: RewardType; label: string }[] = [
   { value: "default", label: "Default Gift" },
   { value: "option", label: "Option Select" },
@@ -97,7 +102,7 @@ export const TEMPLATE_TYPE_FILTER_OPTIONS: {
 // 템플릿 목록 검색 키 (Promotion List 의 Search 키 중 템플릿에 있는 항목만)
 export const TEMPLATE_SEARCH_KEY_TYPE_OPTIONS = [
   { label: "Title", value: "title" },
-  { label: "GWP Name", value: "gwpName" },
+  { label: "Reward Product Name", value: "rewardName" },
   { label: "Reward SAP Code", value: "rewardSapCode" },
   { label: "Target Product Name", value: "targetProductName" },
   { label: "Target SAP Code", value: "targetSapCode" },

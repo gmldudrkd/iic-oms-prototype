@@ -20,6 +20,15 @@ export interface TemplateProduct {
   price: number;
 }
 
+// Target = Order Amount 의 주문 금액 구간 — 하한 포함(≤), 상한 미포함(<). 무제한은 마지막 구간만 가능
+// 구간별로 증정할 Reward 제품(SAP)만 저장하고, 재고 수량은 생성된 프로모션의 Shared SKU Inventory 에서 입력한다
+export interface TemplateAmountRange {
+  min: number;
+  max: number;
+  unlimited: boolean;
+  rewards: string[];
+}
+
 export interface PromotionTemplate {
   id: number;
   name: string;
@@ -29,12 +38,14 @@ export interface PromotionTemplate {
   tmode: TargetMode;
   basis: PurchaseBasis;
   skus: string[];
-  minAmount: number;
+  // Target = Order Amount 일 때만 사용
+  amountRanges: TemplateAmountRange[];
   qty: number;
   rewardBasis: RewardBasis;
   multiplier: number;
   // Reward
   rewardType: RewardType;
+  // Order Amount 는 모든 구간의 Reward 제품을 합친 목록(중복 제거) — 카드·검색 표기용
   rewards: string[];
   createdBy: string;
   createdAt: string;

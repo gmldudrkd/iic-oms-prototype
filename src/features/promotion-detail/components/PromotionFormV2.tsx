@@ -27,6 +27,10 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -37,7 +41,11 @@ import {
 } from "@/features/promotion-detail/modules/constants";
 import {
   MOCK_PROMOTIONS,
+  PromotionRangeReward,
+  PromotionRewardProduct,
   PromotionRow,
+  PromotionTargetProduct,
+  createPromotion,
 } from "@/features/promotion-list/modules/mockData";
 import TemplatePickerDialog from "@/features/promotion-template/components/TemplatePickerDialog";
 import {
@@ -49,7 +57,10 @@ import { createTemplate } from "@/features/promotion-template/modules/mockData";
 import type { PromotionTemplate } from "@/features/promotion-template/modules/types";
 
 import AlertDialog from "@/shared/components/dialog/AlertDialog";
-import { channelsFor } from "@/shared/constants/brandCorpChannels";
+import {
+  brandCorpKeysOf,
+  channelsFor,
+} from "@/shared/constants/brandCorpChannels";
 import useSnackbarStore from "@/shared/stores/useSnackbarStore";
 import { useUserPermissionStore } from "@/shared/stores/useUserPermissionStore";
 
@@ -74,6 +85,7 @@ const TEXT_SECONDARY = "rgba(0,0,0,0.6)";
 const TEXT_TERTIARY = "rgba(0,0,0,0.4)";
 
 // ---- mock data (참고 HTML 기준) ----
+// sap: SAP Code(8자리 숫자) · modelCode: ModelPack2(제품 유형명, 예: Perfume / Lotion)
 interface Product {
   id: string;
   name: string;
@@ -87,120 +99,120 @@ const PRODUCTS: Product[] = [
     id: "p1",
     name: "Ten Perfume 50ml",
     price: 32000,
-    sap: "TAM-PF-050",
-    modelCode: "MDL-PF-050",
+    sap: "12000231",
+    modelCode: "Perfume",
     category: "Fragrance",
   },
   {
     id: "p2",
     name: "Cica Hand Cream 30ml",
     price: 18000,
-    sap: "TAM-HC-030",
-    modelCode: "MDL-HC-030",
+    sap: "12000232",
+    modelCode: "Hand Cream",
     category: "Hand Care",
   },
   {
     id: "p3",
     name: "Perfume Balm 6.5g",
     price: 42000,
-    sap: "TAM-PB-006",
-    modelCode: "MDL-PB-006",
+    sap: "12000233",
+    modelCode: "Perfume Balm",
     category: "Fragrance",
   },
   {
     id: "p4",
     name: "Body Perfume Mist 100ml",
     price: 45000,
-    sap: "TAM-BD-100",
-    modelCode: "MDL-BD-100",
+    sap: "12000234",
+    modelCode: "Body Mist",
     category: "Body",
   },
   {
     id: "p5",
     name: "Perfume Gift Set",
     price: 89000,
-    sap: "TAM-GF-001",
-    modelCode: "MDL-GF-001",
+    sap: "12000235",
+    modelCode: "Gift Set",
     category: "Gift Set",
   },
   {
     id: "p6",
     name: "Hand Perfume 30ml",
     price: 28000,
-    sap: "TAM-HP-030",
-    modelCode: "MDL-HP-030",
+    sap: "12000236",
+    modelCode: "Hand Perfume",
     category: "Hand Care",
   },
   {
     id: "p7",
     name: "Shower Perfume Gel 300ml",
     price: 34000,
-    sap: "TAM-BD-300",
-    modelCode: "MDL-BD-300",
+    sap: "12000237",
+    modelCode: "Shower Gel",
     category: "Body",
   },
   {
     id: "p8",
     name: "Perfume Hand Wash 250ml",
     price: 26000,
-    sap: "TAM-HC-250",
-    modelCode: "MDL-HC-250",
+    sap: "12000238",
+    modelCode: "Hand Wash",
     category: "Hand Care",
   },
   {
     id: "p9",
     name: "Mini Perfume Trio 6.5ml×3",
     price: 52000,
-    sap: "TAM-GF-003",
-    modelCode: "MDL-GF-003",
+    sap: "12000239",
+    modelCode: "Gift Set",
     category: "Gift Set",
   },
   {
     id: "p10",
-    name: "Cica Balm 30ml",
+    name: "Cica Lotion 30ml",
     price: 24000,
-    sap: "TAM-HC-031",
-    modelCode: "MDL-HC-031",
+    sap: "12000240",
+    modelCode: "Lotion",
     category: "Hand Care",
   },
   {
     id: "pk1",
     name: "Basic Gift Wrap",
     price: 3000,
-    sap: "TAM-PKG-001",
-    modelCode: "MDL-PKG-001",
+    sap: "32000241",
+    modelCode: "Package",
     category: "Package",
   },
   {
     id: "pk2",
     name: "Premium Gift Box",
     price: 8000,
-    sap: "TAM-PKG-002",
-    modelCode: "MDL-PKG-002",
+    sap: "32000242",
+    modelCode: "Package",
     category: "Package",
   },
   {
     id: "pk3",
     name: "Season Limited Package",
     price: 12000,
-    sap: "TAM-PKG-003",
-    modelCode: "MDL-PKG-003",
+    sap: "32000243",
+    modelCode: "Package",
     category: "Package",
   },
   {
     id: "pk4",
     name: "Classic Satin Ribbon",
     price: 2000,
-    sap: "TAM-PKG-004",
-    modelCode: "MDL-PKG-004",
+    sap: "32000244",
+    modelCode: "Package",
     category: "Package",
   },
   {
     id: "pk5",
     name: "Handwritten Message Card",
     price: 1500,
-    sap: "TAM-PKG-005",
-    modelCode: "MDL-PKG-005",
+    sap: "32000245",
+    modelCode: "Package",
     category: "Package",
   },
 ];
@@ -247,9 +259,10 @@ const makeRange = (min = 0, max = 0, unlimited = false): AmountRange => ({
   unlimited,
 });
 
-// Reward 재고는 (구간, 제품) 조합마다 따로 관리한다
-const invKeyOf = (productId: string, rangeId?: string) =>
-  rangeId ? `${rangeId}::${productId}` : productId;
+// Reward 재고는 SKU(제품) 단위로 한 번만 관리한다.
+// Target = Order Amount 라도 구간별로는 "어떤 제품을 주는지"만 정하고,
+// 수량(Total/Sold/Alert)은 모든 구간이 같은 재고 풀(Shared SKU Inventory)을 공유한다.
+// → inventory 의 키는 항상 제품 id 하나다.
 
 // Reward 제품 재고 입력 필드 (remaining = total - sold 로 자동 계산)
 const INVENTORY_FIELDS = ["total", "sold", "remaining", "alert"] as const;
@@ -272,6 +285,34 @@ interface Inventory {
   sold: number;
   alert: number;
 }
+
+// 어떤 Reward 목록(전체 / 구간별)에서도 더 이상 쓰지 않는 SKU 는 재고에서 제거한다
+// (Shared SKU Inventory: "Removing a SKU from every range removes it from inventory")
+const pruneInventory = (
+  inventory: Record<string, Inventory>,
+  rewardProducts: SelectedProduct[],
+  rangeRewards: Record<string, SelectedProduct[]>,
+) => {
+  const used = new Set([
+    ...rewardProducts.map((p) => p.id),
+    ...Object.values(rangeRewards)
+      .flat()
+      .map((p) => p.id),
+  ]);
+  const next: Record<string, Inventory> = {};
+  Object.entries(inventory).forEach(([k, v]) => {
+    if (used.has(k)) next[k] = v;
+  });
+  return next;
+};
+
+// Remaining 표시 색상: 미설정(Total 0) 회색 / 소진 빨강 / Alert 이하 주황 / 정상 파랑
+const remainingTone = (total: number, remaining: number, alert: number) => {
+  if (!total) return { color: TEXT_SECONDARY, border: BORDER_STRONG };
+  if (remaining <= 0) return { color: DANGER, border: "#F1B4B4" };
+  if (remaining <= alert) return { color: WARNING, border: "#F3D9A4" };
+  return { color: BRAND, border: BRAND_TINT };
+};
 
 interface FormState {
   name: string;
@@ -307,9 +348,10 @@ const roundToCurrency = (n: number, c: CurrencyInfo) => {
   return Math.round((Number(n) || 0) * f) / f;
 };
 
-// 구간 표기: ">= 50,000 ~ < 100,000" / ">= 200,000 ~ Unlimited"
+// 구간 표기: "KRW 50,000 ≤ ~ < KRW 100,000" / "KRW 200,000 ≤ ~ Unlimited"
+// (입력 행과 같은 순서 — 하한 ≤ 주문 금액 < 상한)
 const rangeText = (r: AmountRange, c: CurrencyInfo) =>
-  `≥ ${formatMoney(r.min, c)} ~ ${
+  `${formatMoney(r.min, c)} ≤ ~ ${
     r.unlimited ? "Unlimited" : `< ${formatMoney(r.max, c)}`
   }`;
 
@@ -322,15 +364,39 @@ const SEARCH_FIELD_OPTIONS: { value: SearchField; label: string }[] = [
 ];
 const fieldValue = (p: Product, field: SearchField) =>
   field === "sap" ? p.sap : field === "modelCode" ? p.modelCode : p.name;
-// 줄바꿈으로 구분된 복수 키워드 중 하나라도 매칭되면 노출 (선택한 기준 필드 기준)
-const matchProduct = (p: Product, field: SearchField, q: string) => {
-  const keywords = (q || "")
+// 줄바꿈으로 구분된 키워드 목록 (공백 제거, 빈 줄 제외)
+const parseKeywords = (q: string) =>
+  (q || "")
     .split("\n")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
-  if (keywords.length === 0) return true;
+// 제품 검색 규칙 (선택한 기준 필드 기준)
+// - 키워드 없음: 결과 없음 (검색해야 제품 정보 노출, 디폴트 목록 없음)
+// - Product Name: 키워드 1개 → 부분일치 / 2개 이상 → 각 키워드 정확일치 OR
+// - SAP Code · ModelPack2: 키워드 수와 무관하게 항상 정확일치 (OR)
+const isExactOnlyField = (field: SearchField) => field !== "name";
+const matchProduct = (p: Product, field: SearchField, q: string) => {
+  const keywords = parseKeywords(q);
+  if (keywords.length === 0) return false;
   const v = fieldValue(p, field).toLowerCase();
-  return keywords.some((kw) => v.includes(kw));
+  if (isExactOnlyField(field)) return keywords.some((kw) => v === kw);
+  if (keywords.length === 1) return v.includes(keywords[0]);
+  return keywords.some((kw) => v === kw);
+};
+// 검색 기준별 placeholder
+const searchPlaceholder = (field: SearchField) =>
+  isExactOnlyField(field)
+    ? "Exact match · enter one or more keywords (line breaks)"
+    : "1 keyword: partial match · 2+ keywords (line breaks): exact match";
+// 검색 기준별 매칭 방식 안내 문구
+const matchModeText = (field: SearchField, keywordCount: number) => {
+  if (isExactOnlyField(field))
+    return keywordCount === 1
+      ? "Exact match · 1 keyword"
+      : `Exact match (OR) · ${keywordCount} keywords`;
+  return keywordCount === 1
+    ? "Partial match · 1 keyword"
+    : `Exact match (OR) · ${keywordCount} keywords`;
 };
 // "YYYY-MM-DD" / "YYYY-MM-DDTHH:mm" 둘 다 처리
 const parseDate = (s: string) => {
@@ -345,8 +411,8 @@ const fmtDate = (dt: Date) => {
   const base = `${dt.getFullYear()}. ${String(dt.getMonth() + 1).padStart(2, "0")}. ${String(
     dt.getDate(),
   ).padStart(2, "0")}`;
-  // 진행바 라벨에도 항상 시간(HH:mm) 표기
-  return `${base} ${String(dt.getHours()).padStart(2, "0")}:${String(dt.getMinutes()).padStart(2, "0")}`;
+  // 시(hour) 단위로만 설정 가능 → 분은 항상 00 으로 표기
+  return `${base} ${String(dt.getHours()).padStart(2, "0")}:00`;
 };
 
 const DAY = 86400000;
@@ -576,6 +642,41 @@ const inputSx = {
   },
 };
 
+// 시(hour) 단위 일시 선택 — 값은 datetime-local 형식("YYYY-MM-DDTHH:00")
+const HOUR_VALUE_FORMAT = "YYYY-MM-DDTHH:00";
+function HourDateTimePicker({
+  value,
+  onChange,
+  disabled,
+  min,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+  min?: string;
+}) {
+  const parsed = value ? dayjs(value) : null;
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DateTimePicker
+        value={parsed && parsed.isValid() ? parsed : null}
+        onChange={(v) =>
+          onChange(
+            v && v.isValid() ? v.startOf("hour").format(HOUR_VALUE_FORMAT) : "",
+          )
+        }
+        views={["year", "month", "day", "hours"]}
+        format="YYYY. MM. DD HH:[00]"
+        ampm={false}
+        localeText={{ fieldHoursPlaceholder: () => "HH" }}
+        minDateTime={min ? dayjs(min) : undefined}
+        disabled={disabled}
+        slotProps={{ textField: { fullWidth: true, sx: inputSx } }}
+      />
+    </LocalizationProvider>
+  );
+}
+
 // 제품 검색 블록
 function SearchBlock({
   label,
@@ -590,7 +691,6 @@ function SearchBlock({
   onAddAll,
   clearCount,
   onClearAll,
-  currency,
 }: {
   label: string;
   note: string;
@@ -604,9 +704,10 @@ function SearchBlock({
   onAddAll: () => void;
   clearCount?: number;
   onClearAll?: () => void;
-  currency: CurrencyInfo;
 }) {
   const shown = matches.slice(0, 8);
+  const keywordCount = parseKeywords(query).length;
+  const hasQuery = keywordCount > 0;
   return (
     <Box
       sx={{
@@ -675,16 +776,20 @@ function SearchBlock({
           )}
         </Box>
       </Box>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
-        <Typography sx={{ fontSize: 11, color: TEXT_TERTIARY }}>
-          {note}
-        </Typography>
-        {subNote && (
-          <Typography sx={{ fontSize: 11, color: TEXT_TERTIARY }}>
-            {subNote}
-          </Typography>
-        )}
-      </Box>
+      {(note || subNote) && (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
+          {note && (
+            <Typography sx={{ fontSize: 11, color: TEXT_TERTIARY }}>
+              {note}
+            </Typography>
+          )}
+          {subNote && (
+            <Typography sx={{ fontSize: 11, color: TEXT_TERTIARY }}>
+              {subNote}
+            </Typography>
+          )}
+        </Box>
+      )}
       {/* 검색 기준 선택 + 복수 키워드(줄바꿈 구분) 입력 */}
       <Box sx={{ display: "flex", gap: 1, alignItems: "stretch" }}>
         <Select
@@ -710,7 +815,7 @@ function SearchBlock({
         <TextField
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Enter multiple keywords separated by line breaks"
+          placeholder={searchPlaceholder(field)}
           size="small"
           fullWidth
           multiline
@@ -737,6 +842,11 @@ function SearchBlock({
           }}
         />
       </Box>
+      {hasQuery && (
+        <Typography sx={{ fontSize: 11, color: TEXT_TERTIARY }}>
+          {matchModeText(field, keywordCount)}
+        </Typography>
+      )}
       <Box
         sx={{
           display: "flex",
@@ -775,15 +885,11 @@ function SearchBlock({
                 >
                   {p.name}
                 </Typography>
+                {/* 검색 결과에는 제품명 · SAP Code · ModelPack2 만 노출 */}
                 <Typography sx={{ fontSize: 11, color: TEXT_TERTIARY }}>
-                  {p.sap} · {p.modelCode} · {p.category}
+                  {p.sap} · {p.modelCode}
                 </Typography>
               </Box>
-              <Typography
-                sx={{ flex: "none", color: TEXT_TERTIARY, fontSize: 12 }}
-              >
-                {formatMoney(p.price, currency)}
-              </Typography>
               <AddIcon sx={{ fontSize: 16, color: BRAND }} />
             </Box>
           ))
@@ -796,7 +902,9 @@ function SearchBlock({
               color: TEXT_TERTIARY,
             }}
           >
-            No results found.
+            {hasQuery
+              ? "No results found."
+              : "Enter a keyword to search products."}
           </Box>
         )}
       </Box>
@@ -918,8 +1026,9 @@ const toISO = (s: string) => {
   if (!s) return "";
   const [datePart, timePart = ""] = s.trim().split(/\s+/);
   const d = datePart.replace(/\./g, "-");
-  const hm = timePart.slice(0, 5) || "00:00";
-  return `${d}T${hm}`;
+  // 시(hour) 단위만 사용 → 분은 00 으로 절삭
+  const hh = timePart.slice(0, 2) || "00";
+  return `${d}T${hh}:00`;
 };
 
 interface EditData {
@@ -957,11 +1066,13 @@ const loadEditData = (row: PromotionRow): EditData => {
     const range = makeRange(rr.min, rr.max, !!rr.unlimited);
     amountRanges.push(range);
     rangeRewards[range.id] = rr.products.map((rp) => {
-      inventory[invKeyOf(rp.skuCode, range.id)] = {
-        total: rp.total ?? 0,
-        sold: rp.sold ?? 0,
-        alert: rp.alert ?? 0,
-      };
+      // 재고는 SKU 단위 공유 — 여러 구간에 같은 SKU 가 있으면 먼저 조회된 값을 사용
+      if (!inventory[rp.skuCode])
+        inventory[rp.skuCode] = {
+          total: rp.total ?? 0,
+          sold: rp.sold ?? 0,
+          alert: rp.alert ?? 0,
+        };
       return {
         id: rp.skuCode,
         name: rp.productName,
@@ -973,19 +1084,28 @@ const loadEditData = (row: PromotionRow): EditData => {
   const channels: Record<string, boolean> = {};
   (row.triggerChannels ?? []).forEach((c) => (channels[c] = true));
   // Target = Specific Product 로 저장된 프로모션은 대상 제품까지 복원
-  const targets: SelectedProduct[] = (row.targetProducts ?? []).map((tp) => ({
+  const toSelected = (tp: PromotionTargetProduct): SelectedProduct => ({
     id: tp.id,
     name: tp.productName,
     price: tp.price,
     category: tp.category,
-  }));
+  });
+  const targets: SelectedProduct[] = (row.targetProducts ?? []).map(toSelected);
+  const excludeTargets: SelectedProduct[] = (row.excludedProducts ?? []).map(
+    toSelected,
+  );
   return {
     status: row.status,
     channelsList: Array.from(new Set(row.triggerChannels ?? [])),
     form: {
       name: row.title,
-      goal: GOALS[0],
-      goalCustom: "",
+      // 저장된 Goal 복원 — 목록에 없는 값은 직접 입력(custom)으로
+      goal: !row.goal
+        ? GOALS[0]
+        : GOALS.includes(row.goal)
+          ? row.goal
+          : "__custom__",
+      goalCustom: row.goal && !GOALS.includes(row.goal) ? row.goal : "",
       promoType: isPkgRow ? "package" : "gwp",
       start: toISO(row.startDate),
       end: toISO(row.endDate),
@@ -995,13 +1115,16 @@ const loadEditData = (row: PromotionRow): EditData => {
         : targets.length
           ? "products"
           : "allProducts",
-      productMatch: "any",
-      buyQty: 1,
+      productMatch: row.purchaseBasis === "ALL" ? "all" : "any",
+      buyQty: row.purchaseQuantity ?? 1,
       // Packaging Benefit 은 Reward Basis 가 Per product quantity 로 고정
-      rewardBasis: isPkgRow ? "product" : "order",
+      rewardBasis:
+        isPkgRow || row.rewardBasis === "PER_PRODUCT_QUANTITY"
+          ? "product"
+          : "order",
       rewardGive: "default",
       targets,
-      excludeTargets: [],
+      excludeTargets,
       rewardProducts: isAmount ? [] : rewardProducts,
       inventory,
       amountRanges: isAmount ? amountRanges : [makeRange(0, 0, true)],
@@ -1078,6 +1201,9 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
   const selectedPermission = useUserPermissionStore(
     (s) => s.selectedPermission,
   );
+  const setSelectedPermission = useUserPermissionStore(
+    (s) => s.setSelectedPermission,
+  );
 
   // 금액 표기 통화: add 는 상단 헤더에서 선택한 법인(국가), edit 은 저장 시점의 법인 기준
   // (프로모션 화면은 Brand & Corp 단일 선택이지만, 다중 선택 상태로 진입해도 첫 법인을 사용)
@@ -1134,15 +1260,22 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
   // Brand & Corp 변경으로 통화가 바뀌었는데 이미 금액이 입력돼 있으면 재확인 안내
   const amountRangesRef = useRef(form.amountRanges);
   amountRangesRef.current = form.amountRanges;
+  // Brand & Corp 변경 취소로 통화가 되돌아가는 경우는 재확인 안내를 띄우지 않음
+  const suppressCurrencyNoticeRef = useRef(false);
   useEffect(() => {
     if (prevCurrencyRef.current === currency.code) return;
     prevCurrencyRef.current = currency.code;
     if (mode === "edit") return;
-    setCurrencyChanged(
-      amountRangesRef.current.some(
-        (r) => r.min > 0 || (!r.unlimited && r.max > 0),
-      ),
-    );
+    if (suppressCurrencyNoticeRef.current) {
+      suppressCurrencyNoticeRef.current = false;
+      setCurrencyChanged(false);
+    } else {
+      setCurrencyChanged(
+        amountRangesRef.current.some(
+          (r) => r.min > 0 || (!r.unlimited && r.max > 0),
+        ),
+      );
+    }
     // 통화별 허용 소수점에 맞춰 입력값을 정리 (예: USD 150.5 -> KRW 151)
     setForm((prev) => ({
       ...prev,
@@ -1169,6 +1302,90 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
     setSimRewardChoice((prev) => (ids.has(prev) ? prev : ""));
   }, [form.rewardProducts, form.rangeRewards]);
 
+  // add 모드: 상단 헤더 Brand & Corp 변경 시 채널·통화 기준이 바뀌므로 입력 정보 초기화 여부를 확인(Confirm / Cancel)
+  // - Confirm: 입력 정보를 초기화하고 변경된 Brand & Corp 로 진행
+  // - Cancel : 헤더 Brand & Corp 선택을 변경 전으로 되돌리고 입력 정보 유지
+  const brandCorpKeys = useMemo(
+    () => brandCorpKeysOf(selectedPermission).join(","),
+    [selectedPermission],
+  );
+  const prevBrandCorpRef = useRef(brandCorpKeys);
+  // 변경 전 헤더 선택 / 입력값 스냅샷 (Cancel 시 복원)
+  const prevPermissionRef = useRef(selectedPermission);
+  const formSnapshotRef = useRef<FormState | null>(null);
+  const simChannelSnapshotRef = useRef("");
+  const formRef = useRef(form);
+  formRef.current = form;
+  const simChannelRef = useRef(simChannel);
+  simChannelRef.current = simChannel;
+  const [brandCorpDialogOpen, setBrandCorpDialogOpen] = useState(false);
+  // edit 모드(저장된 프로모션): Brand & Corp 변경 불가 안내
+  const [brandCorpLockedOpen, setBrandCorpLockedOpen] = useState(false);
+  useEffect(() => {
+    if (prevBrandCorpRef.current === brandCorpKeys) return;
+    const prev = prevBrandCorpRef.current;
+    prevBrandCorpRef.current = brandCorpKeys;
+    // 초기 진입 시 스토어가 localStorage 에서 채워지는 전환(빈 값 → 값)은 변경으로 보지 않음
+    if (!prev) {
+      prevPermissionRef.current = selectedPermission;
+      return;
+    }
+    // edit 모드: 저장된 프로모션은 Brand & Corp 변경 불가 → 헤더 선택을 즉시 되돌리고 안내
+    if (mode === "edit") {
+      prevBrandCorpRef.current = prev;
+      setSelectedPermission(prevPermissionRef.current);
+      setBrandCorpLockedOpen(true);
+      return;
+    }
+    // 확인 대기 중 재변경 시에는 최초 스냅샷 유지
+    if (!brandCorpDialogOpen) {
+      formSnapshotRef.current = formRef.current;
+      simChannelSnapshotRef.current = simChannelRef.current;
+    }
+    setBrandCorpDialogOpen(true);
+  }, [
+    brandCorpKeys,
+    mode,
+    selectedPermission,
+    brandCorpDialogOpen,
+    setSelectedPermission,
+  ]);
+
+  const confirmBrandCorpChange = () => {
+    setBrandCorpDialogOpen(false);
+    prevPermissionRef.current = selectedPermission;
+    formSnapshotRef.current = null;
+    setForm({
+      ...makeEmptyForm(),
+      // 변경된 Brand & Corp 의 첫 채널을 기본 선택
+      channels: availableChannels[0] ? { [availableChannels[0]]: true } : {},
+    });
+    setTargetQuery("");
+    setExcludeQuery("");
+    setRewardQuery("");
+    setRangeRewardQuery({});
+    setRangeRewardField({});
+    setCart({});
+    setSimRewardChoice("");
+    setSimSearch("");
+    setCurrencyChanged(false);
+  };
+
+  const cancelBrandCorpChange = () => {
+    setBrandCorpDialogOpen(false);
+    const snapshot = formSnapshotRef.current;
+    formSnapshotRef.current = null;
+    // 헤더 선택을 변경 전으로 되돌린다 (되돌리는 전환은 변경으로 감지하지 않도록 키를 미리 맞춤)
+    prevBrandCorpRef.current = brandCorpKeysOf(prevPermissionRef.current).join(
+      ",",
+    );
+    suppressCurrencyNoticeRef.current = true;
+    setSelectedPermission(prevPermissionRef.current);
+    if (snapshot) setForm(snapshot);
+    if (simChannelSnapshotRef.current)
+      setSimChannel(simChannelSnapshotRef.current);
+  };
+
   const patch = (p: Partial<FormState>) =>
     setForm((prev) => ({ ...prev, ...p }));
 
@@ -1181,6 +1398,39 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
 
   const invOf = (id: string) =>
     form.inventory[id] ?? { total: 0, sold: 0, alert: 0 };
+
+  // Order Amount: 구간 전체에서 쓰이는 고유 SKU 목록 (= Shared SKU Inventory 의 행)
+  // usedIn 은 해당 SKU 를 증정하는 구간 index 목록 (구간 순서대로)
+  const sharedSkus = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        sap: string;
+        category?: string;
+        usedIn: number[];
+      }
+    >();
+    form.amountRanges.forEach((r, i) => {
+      (form.rangeRewards[r.id] ?? []).forEach((p) => {
+        const cur = map.get(p.id);
+        if (cur) {
+          cur.usedIn.push(i);
+          return;
+        }
+        map.set(p.id, {
+          id: p.id,
+          name: p.name,
+          // 제품 DB 에 없는 SKU(수정 진입 시 복원된 skuCode)는 id 를 그대로 노출
+          sap: PRODUCTS.find((x) => x.id === p.id)?.sap ?? p.id,
+          category: p.category,
+          usedIn: [i],
+        });
+      });
+    });
+    return Array.from(map.values());
+  }, [form.amountRanges, form.rangeRewards]);
 
   const targetMatches = useMemo(
     () =>
@@ -1361,11 +1611,17 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
         };
       const rangeRewards = { ...prev.rangeRewards };
       delete rangeRewards[removed.id];
-      const inventory: Record<string, Inventory> = {};
-      Object.entries(prev.inventory).forEach(([k, v]) => {
-        if (!k.startsWith(`${removed.id}::`)) inventory[k] = v;
-      });
-      return { ...prev, amountRanges: ranges, rangeRewards, inventory };
+      // 삭제된 구간에서만 쓰던 SKU 는 Shared SKU Inventory 에서도 제거
+      return {
+        ...prev,
+        amountRanges: ranges,
+        rangeRewards,
+        inventory: pruneInventory(
+          prev.inventory,
+          prev.rewardProducts,
+          rangeRewards,
+        ),
+      };
     });
 
   // 무제한(상한 없음)은 마지막 구간에서만 토글 가능
@@ -1381,15 +1637,11 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
     });
 
   // ---- Reward 제품 mutations (rangeId 를 주면 해당 금액 구간에만 적용) ----
-  const withRewardInv = (
-    prev: FormState,
-    items: SelectedProduct[],
-    rangeId?: string,
-  ) => {
+  // 재고는 SKU 단위로 공유되므로 다른 구간에서 이미 등록한 SKU 면 기존 수량을 그대로 쓴다
+  const withRewardInv = (prev: FormState, items: SelectedProduct[]) => {
     const inventory = { ...prev.inventory };
     items.forEach((it) => {
-      const key = invKeyOf(it.id, rangeId);
-      if (!inventory[key]) inventory[key] = { total: 0, sold: 0, alert: 0 };
+      if (!inventory[it.id]) inventory[it.id] = { total: 0, sold: 0, alert: 0 };
     });
     return inventory;
   };
@@ -1402,7 +1654,7 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
   const addRewardAll = (list: Product[], rangeId?: string) =>
     setForm((prev) => {
       const items = list.map(toSelected);
-      const inventory = withRewardInv(prev, items, rangeId);
+      const inventory = withRewardInv(prev, items);
       if (!rangeId)
         return {
           ...prev,
@@ -1427,22 +1679,37 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
           ...prev,
           rewardProducts: prev.rewardProducts.filter((_, idx) => idx !== i),
         };
+      const rangeRewards = {
+        ...prev.rangeRewards,
+        [rangeId]: (prev.rangeRewards[rangeId] ?? []).filter(
+          (_, idx) => idx !== i,
+        ),
+      };
+      // 모든 구간에서 빠진 SKU 는 Shared SKU Inventory 에서도 제거
       return {
         ...prev,
-        rangeRewards: {
-          ...prev.rangeRewards,
-          [rangeId]: (prev.rangeRewards[rangeId] ?? []).filter(
-            (_, idx) => idx !== i,
-          ),
-        },
+        rangeRewards,
+        inventory: pruneInventory(
+          prev.inventory,
+          prev.rewardProducts,
+          rangeRewards,
+        ),
       };
     });
   const clearRewards = (rangeId?: string) =>
-    setForm((prev) =>
-      rangeId
-        ? { ...prev, rangeRewards: { ...prev.rangeRewards, [rangeId]: [] } }
-        : { ...prev, rewardProducts: [] },
-    );
+    setForm((prev) => {
+      if (!rangeId) return { ...prev, rewardProducts: [] };
+      const rangeRewards = { ...prev.rangeRewards, [rangeId]: [] };
+      return {
+        ...prev,
+        rangeRewards,
+        inventory: pruneInventory(
+          prev.inventory,
+          prev.rewardProducts,
+          rangeRewards,
+        ),
+      };
+    });
 
   const cartAdd = (id: string, d: number) =>
     setCart((prev) => ({ ...prev, [id]: Math.max(0, (prev[id] || 0) + d) }));
@@ -1484,18 +1751,29 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
     // Order Amount: 장바구니 금액이 속한 구간 index (없으면 -1)
     let matchedRangeIdx = -1;
     if (form.condMode === "products") {
+      // Any: 대상 제품 수량을 합산해 Purchase Quantity 이상이면 충족
+      //      (A,B 각 1개 · Purchase Quantity 2 → 충족)
+      // All: 대상 제품 각각이 Purchase Quantity 이상이어야 충족
+      const totalQty = form.targets.reduce((s, t) => s + (cart[t.id] || 0), 0);
       const present = form.targets.filter((t) => (cart[t.id] || 0) >= bq);
       const ok =
         form.productMatch === "all"
           ? form.targets.length > 0 && present.length === form.targets.length
-          : present.length > 0;
+          : form.targets.length > 0 && totalQty >= bq;
       condMet = ok;
-      const qq = present.reduce((s, t) => s + (cart[t.id] || 0), 0);
+      // Per product quantity: Any 는 대상 수량 합계, All 은 기준 충족 제품 수량 합계
+      const qq =
+        form.productMatch === "all"
+          ? present.reduce((s, t) => s + (cart[t.id] || 0), 0)
+          : totalQty;
       rewardMult = ok && form.rewardBasis === "product" ? Math.max(1, qq) : 1;
       checks.push({
         ok,
         label: "Target product condition",
-        detail: `${form.productMatch === "all" ? "All items" : "Any item"} (each ≥ ${bq}): ${present.length} / ${form.targets.length} met`,
+        detail:
+          form.productMatch === "all"
+            ? `All items (each ≥ ${bq}): ${present.length} / ${form.targets.length} met`
+            : `Any items (total ≥ ${bq}): ${totalQty} / ${bq} met`,
       });
     } else if (form.condMode === "amount") {
       // 주문 금액이 속한 구간을 찾아 그 구간의 Reward 만 적용한다
@@ -1549,8 +1827,9 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
       detail: string;
     }[] = [];
     // 증정되는 상품은 Reward 영역 제품 기준. 선택 정보에 따라 다르게 표시.
+    // (Order Amount 여도 재고는 SKU 단위 공유 풀에서 차감)
     const rewardDetailOf = (id: string) => {
-      const inv = invOf(invKeyOf(id, simRangeId));
+      const inv = invOf(id);
       const remain = Math.max(0, inv.total - inv.sold);
       return isPkg
         ? `Given without quantity limit${rewardMult > 1 ? ` · ${rewardMult}` : ""}`
@@ -1678,13 +1957,154 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
     ).slice(0, 6);
   }, [simSearch, cart]);
 
+  const openSnackbar = useSnackbarStore((s) => s.openSnackbar);
   const goBack = () => router.push("/promotion/promotion-list");
+
+  // datetime-local("YYYY-MM-DDTHH:mm") → 리스트 저장 형식("YYYY.MM.DD HH:mm:ss")
+  const toListDate = (iso: string) => {
+    if (!iso) return "";
+    const [d, t = "00:00"] = iso.split("T");
+    return `${d.replace(/-/g, ".")} ${t.slice(0, 5)}:00`;
+  };
+
+  // 현재 입력값 → 리스트 행 (신규 등록 저장용)
+  const buildRow = (
+    status: PromotionRow["status"],
+    overrides: Partial<Pick<FormState, "always">> = {},
+  ): Omit<PromotionRow, "id"> => {
+    const f = { ...form, ...overrides };
+    const permission = selectedPermission.find(
+      (item) => item.corporations?.length,
+    );
+    const brand = permission?.brand?.description ?? "";
+    const corp = permission?.corporations?.[0]?.name ?? "";
+    const isAmount = f.condMode === "amount";
+    const isProducts = f.condMode === "products";
+    const toReward = (p: SelectedProduct): PromotionRewardProduct => {
+      const inv = f.inventory[p.id] ?? { total: 0, sold: 0, alert: 0 };
+      return {
+        productName: p.name,
+        skuCode: p.id,
+        total: inv.total,
+        sold: inv.sold,
+        alert: inv.alert,
+      };
+    };
+    const toTarget = (p: SelectedProduct): PromotionTargetProduct => ({
+      id: p.id,
+      productName: p.name,
+      price: p.price,
+      category: p.category ?? "-",
+    });
+    const rangeRewards: PromotionRangeReward[] = isAmount
+      ? f.amountRanges.map((r) => ({
+          label: r.unlimited
+            ? `≥ ${r.min.toLocaleString()}`
+            : `${r.min.toLocaleString()} ~ ${r.max.toLocaleString()}`,
+          min: r.min,
+          max: r.unlimited ? Number.MAX_SAFE_INTEGER : r.max,
+          unlimited: r.unlimited,
+          products: (f.rangeRewards[r.id] ?? []).map(toReward),
+        }))
+      : [];
+    const rewardProducts = isAmount
+      ? rangeRewards.flatMap((r) => r.products)
+      : f.rewardProducts.map(toReward);
+    const targetProducts = isProducts ? f.targets.map(toTarget) : [];
+    const excludedProducts = f.excludeTargets.map(toTarget);
+    const rewardBasisCode =
+      f.rewardBasis === "product" ? "PER_PRODUCT_QUANTITY" : "PER_ORDER";
+    const now = dayjs().format("YYYY.MM.DD HH:mm:ss");
+    return {
+      brand,
+      corp,
+      title: f.name.trim(),
+      goal: f.goal === "__custom__" ? f.goalCustom.trim() : f.goal,
+      status,
+      promotionType: f.promoType === "package" ? "PACKAGE" : "GWP",
+      triggerType: isAmount
+        ? "Purchase Over Amount Threshold"
+        : isProducts
+          ? "Purchase Specific Product or Label"
+          : "Purchase Any Product",
+      triggerChannels: availableChannels.filter((c) => f.channels[c]),
+      trigger: isAmount
+        ? `Order Amount ≥ ${(f.amountRanges[0]?.min ?? 0).toLocaleString()}`
+        : isProducts && targetProducts.length
+          ? targetProducts.map((t) => t.productName).join(", ")
+          : "Purchase Any Product",
+      targetProducts: targetProducts.length ? targetProducts : undefined,
+      purchaseBasis: isProducts
+        ? f.productMatch === "all"
+          ? "ALL"
+          : "ANY"
+        : undefined,
+      purchaseQuantity: isProducts ? f.buyQty : undefined,
+      rewardBasis: isAmount ? undefined : rewardBasisCode,
+      excludedProducts: excludedProducts.length ? excludedProducts : undefined,
+      reward: `${rewardProducts[0]?.productName ?? ""} * 1\n(${
+        rewardBasisCode === "PER_PRODUCT_QUANTITY"
+          ? "per target item"
+          : "per order"
+      })`,
+      rewardProducts,
+      rangeRewards: isAmount ? rangeRewards : undefined,
+      startDate: toListDate(f.start),
+      endDate: f.always ? "" : toListDate(f.end),
+      alwaysOn: f.always,
+      createdBy: "tam35",
+      createdAt: now,
+      updatedBy: "-",
+    };
+  };
+
+  // 신규 등록(add)은 목록에 추가 후 방금 만든 프로모션의 상세(수정) 페이지로 이동, 수정(edit)은 목록으로 복귀
+  const finishSave = (
+    status: PromotionRow["status"],
+    overrides: Partial<Pick<FormState, "always">> = {},
+  ) => {
+    if (mode !== "add") {
+      goBack();
+      return;
+    }
+    const row = createPromotion(buildRow(status, overrides));
+    openSnackbar({
+      severity: "success",
+      message:
+        status === "Draft"
+          ? `Promotion "${row.title}" saved as Draft.`
+          : `Promotion "${row.title}" saved.`,
+    });
+    router.push(`/promotion/promotion-list/edit-v2/${row.id}`);
+  };
+
+  // Save 시 상태: 시작 전이면 Scheduled, 기간 내면 Active, 종료일 경과면 Ended
+  const statusForSave = (): PromotionRow["status"] => {
+    const nowMs = Date.now();
+    const startMs = parseDate(form.start).getTime();
+    if (!isNaN(startMs) && startMs > nowMs) return "Scheduled";
+    if (!form.always && form.end) {
+      const endMs = parseDate(form.end).getTime();
+      if (!isNaN(endMs) && endMs <= nowMs) return "Ended";
+    }
+    return "Active";
+  };
+
+  // Draft 클릭: End Date 가 비어 있으면(상시 아님) Always-on 으로 저장할지 먼저 확인
+  const handleDraftClick = () => {
+    if (!form.always && !form.end) {
+      setDialog("draftAlwaysOn");
+      return;
+    }
+    setDialog("draft");
+  };
 
   // 다이얼로그 상태
   const [dialog, setDialog] = useState<
     | null
     | "save"
     | "draft"
+    | "draftAlwaysOn"
     | "cancel"
     | "invalid"
     | "delete"
@@ -1706,7 +2126,6 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
   // ---- Promotion Template 연동 ----
   // 템플릿 불러오기는 신규 등록 또는 Draft 상태에서만 가능
   const canLoadTemplate = mode === "add" || status === "Draft";
-  const openSnackbar = useSnackbarStore((s) => s.openSnackbar);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [saveAsTemplateOpen, setSaveAsTemplateOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
@@ -1719,6 +2138,8 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
       b.rewardBasis = "product";
       if (b.condMode === "amount") b.condMode = "products";
     }
+    // All Products 는 Reward Type 을 사용하지 않으므로 Default Gift 로 고정
+    if (b.condMode === "allProducts") b.rewardGive = "default";
     // Option Select 템플릿은 자사몰(Official) 채널이 있어야 적용 가능 — 없으면 적용하지 않고 안내
     if (
       b.rewardGive === "option" &&
@@ -1729,21 +2150,25 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
       return;
     }
     setForm((prev) => {
-      const inventory: Record<string, Inventory> = { ...prev.inventory };
-      const range = makeRange(b.minAmount, 0, true);
+      // 템플릿 기준으로 덮어쓰므로 재고는 새로 시작 — 불러온 Reward 제품만 Total · Sold · Alert 0 으로 등록
+      const inventory: Record<string, Inventory> = {};
+      // Order Amount: 템플릿의 구간과 구간별 Reward 제품을 그대로 복원
+      const isAmount = b.condMode === "amount" && b.amountRanges.length > 0;
+      const ranges: AmountRange[] = [];
       const rangeRewards: Record<string, SelectedProduct[]> = {};
-      if (b.condMode === "amount") {
-        rangeRewards[range.id] = b.rewardProducts;
-        b.rewardProducts.forEach((p) => {
-          const key = invKeyOf(p.id, range.id);
-          if (!inventory[key]) inventory[key] = { total: 0, sold: 0, alert: 0 };
+      if (isAmount)
+        b.amountRanges.forEach((r) => {
+          const range = makeRange(r.min, r.unlimited ? 0 : r.max, r.unlimited);
+          ranges.push(range);
+          rangeRewards[range.id] = r.rewardProducts;
         });
-      } else {
-        b.rewardProducts.forEach((p) => {
-          if (!inventory[p.id])
-            inventory[p.id] = { total: 0, sold: 0, alert: 0 };
-        });
-      }
+      // 재고는 SKU 단위 공유 — 여러 구간에 같은 SKU 가 있어도 Shared SKU Inventory 행은 1개
+      (isAmount
+        ? b.amountRanges.flatMap((r) => r.rewardProducts)
+        : b.rewardProducts
+      ).forEach((p) => {
+        if (!inventory[p.id]) inventory[p.id] = { total: 0, sold: 0, alert: 0 };
+      });
       const knownGoal = GOALS.includes(b.goal);
       // Option Select 템플릿은 판매 채널을 자사몰(Official) 채널로 자동 설정
       // — 사용 가능한 Official 채널 중 최상단 1개만 선택. Official 채널이 없으면 기본 증정으로 내린다
@@ -1770,9 +2195,8 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
         targets: b.condMode === "products" ? b.targets : [],
         excludeTargets: [],
         rewardProducts: b.condMode === "amount" ? [] : b.rewardProducts,
-        amountRanges: b.condMode === "amount" ? [range] : prev.amountRanges,
-        rangeRewards:
-          b.condMode === "amount" ? rangeRewards : prev.rangeRewards,
+        amountRanges: isAmount ? ranges : [makeRange(0, 0, true)],
+        rangeRewards,
         inventory,
       };
     });
@@ -1787,12 +2211,9 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
   };
 
   // 현재 입력값을 템플릿으로 등록 (같은 이름의 템플릿이 있어도 중복 등록 가능)
+  // Order Amount 는 모든 구간과 구간별 Reward 제품을 그대로 저장한다 (재고 수량은 저장하지 않음)
   const currentBridge = (): TemplateFormBridge => {
-    const amountRewards = form.amountRanges.flatMap(
-      (r) => form.rangeRewards[r.id] ?? [],
-    );
-    const dedupe = (list: SelectedProduct[]) =>
-      list.filter((p, i, arr) => arr.findIndex((x) => x.id === p.id) === i);
+    const isAmount = form.condMode === "amount";
     return {
       name: form.name,
       goal: form.goal === "__custom__" ? form.goalCustom : form.goal,
@@ -1801,12 +2222,17 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
       productMatch: form.productMatch,
       buyQty: form.buyQty,
       rewardBasis: form.rewardBasis,
-      rewardGive: form.rewardGive,
-      minAmount: form.amountRanges[0]?.min ?? 0,
+      rewardGive: form.condMode === "allProducts" ? "default" : form.rewardGive,
+      amountRanges: isAmount
+        ? form.amountRanges.map((r) => ({
+            min: r.min,
+            max: r.max,
+            unlimited: r.unlimited,
+            rewardProducts: form.rangeRewards[r.id] ?? [],
+          }))
+        : [],
       targets: form.targets,
-      rewardProducts: dedupe(
-        form.condMode === "amount" ? amountRewards : form.rewardProducts,
-      ),
+      rewardProducts: isAmount ? [] : form.rewardProducts,
     };
   };
   const openSaveAsTemplate = () => {
@@ -1863,20 +2289,17 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
     }
 
     if (form.condMode === "amount") {
-      // 구간마다 Reward 제품과 재고를 각각 입력해야 한다
+      // 구간마다 Reward 제품이 있어야 하고, 재고(Total/Alert)는 SKU 단위로 한 번씩만 검증한다
       form.amountRanges.forEach((r, i) => {
-        const list = form.rangeRewards[r.id] ?? [];
-        if (list.length === 0) {
+        if ((form.rangeRewards[r.id] ?? []).length === 0)
           m.push(`Reward Product (Range ${i + 1})`);
-          return;
-        }
-        if (!isGwp) return;
-        list.forEach((pd) => {
-          const inv = invOf(invKeyOf(pd.id, r.id));
-          if (!inv.total) m.push(`Reward Total (Range ${i + 1} · ${pd.name})`);
-          if (!inv.alert) m.push(`Reward Alert (Range ${i + 1} · ${pd.name})`);
-        });
       });
+      if (isGwp)
+        sharedSkus.forEach((s) => {
+          const inv = invOf(s.id);
+          if (!inv.total) m.push(`Reward Total (${s.name})`);
+          if (!inv.alert) m.push(`Reward Alert (${s.name})`);
+        });
     } else {
       if (form.rewardProducts.length === 0) m.push("Reward Product");
       if (isGwp) {
@@ -2015,7 +2438,7 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                 disabled={!canSaveDraft}
                 onClick={() => {
                   setStatusMenuAnchor(null);
-                  setDialog("draft");
+                  handleDraftClick();
                 }}
               >
                 Draft
@@ -2182,40 +2605,25 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                     sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}
                   >
                     <FieldLabel>Start Date</FieldLabel>
-                    <TextField
-                      type="datetime-local"
+                    <HourDateTimePicker
                       value={form.start}
-                      onChange={(e) => patch({ start: e.target.value })}
-                      fullWidth
+                      onChange={(v) => patch({ start: v })}
                       disabled={locked}
-                      // 과거 시각 선택 불가 · 시(hour) 단위 선택 · AM/PM 표기(en-US)
-                      inputProps={{
-                        min: nowLocal(),
-                        step: 3600,
-                        lang: "en-US",
-                      }}
-                      sx={inputSx}
+                      // 과거 시각 선택 불가
+                      min={nowLocal()}
                     />
                   </Box>
                   <Box
                     sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}
                   >
                     <FieldLabel>End Date</FieldLabel>
-                    <TextField
-                      type="datetime-local"
+                    <HourDateTimePicker
                       value={form.end}
-                      onChange={(e) => patch({ end: e.target.value })}
+                      onChange={(v) => patch({ end: v })}
                       // 진행 중(Active)인 프로모션도 종료일은 수정 가능
                       disabled={form.always || endDateLocked}
-                      fullWidth
                       // 진행 중이면 현재 시각 이후, 그 외에는 시작 시각 이후만
-                      // 시(hour) 단위 · AM/PM 표기(en-US)
-                      inputProps={{
-                        min: locked ? nowLocal() : form.start || nowLocal(),
-                        step: 3600,
-                        lang: "en-US",
-                      }}
-                      sx={inputSx}
+                      min={locked ? nowLocal() : form.start || nowLocal()}
                     />
                     {locked && !endDateLocked && (
                       <Typography sx={{ fontSize: 12, color: BRAND }}>
@@ -2450,7 +2858,7 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
               title="Reward · Benefit"
               desc={
                 form.condMode === "amount"
-                  ? "Reward type applies to the whole promotion. Reward products are set per order amount range."
+                  ? "Reward type applies to the whole promotion. Reward products are set per order amount range, but stock is managed per SKU and shared across all ranges — whichever range consumes it first draws from the same pool."
                   : isPkg
                     ? "Add reward products regardless of the condition. Packaging Benefit can only select Package-category products and is given without any quantity limit during the promotion period."
                     : "Add reward products regardless of the condition. GWP manages total/sold/alert quantity per reward product."
@@ -3153,7 +3561,7 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
           dialogConfirmLabel="Save"
           handlePost={() => {
             closeSaveDialog();
-            goBack();
+            finishSave(statusForSave());
           }}
           postButtonProps={{ color: "primary" }}
         />
@@ -3195,6 +3603,37 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
         postButtonProps={{ disabled: !templateName.trim() }}
       />
 
+      {/* Brand & Corp 변경 확인 (add 모드) — Confirm: 입력 정보 초기화 / Cancel: 변경 전 Brand & Corp 로 되돌림 */}
+      <AlertDialog
+        isButton={false}
+        open={brandCorpDialogOpen}
+        setOpen={(open) => {
+          if (!open) cancelBrandCorpChange();
+        }}
+        maxWidth="xs"
+        dialogTitle="Brand & Corp changed"
+        dialogContent="Changing Brand & Corp resets all information entered on this page. Do you want to continue?"
+        dialogCloseLabel="Cancel"
+        dialogConfirmLabel="Reset & Continue"
+        handlePost={confirmBrandCorpChange}
+        dialogContentProps={{ sx: { color: "black", pt: "20px !important" } }}
+        postButtonProps={{ color: "primary" }}
+      />
+
+      {/* Brand & Corp 변경 불가 안내 (edit 모드) — 헤더 선택은 이미 변경 전으로 되돌린 상태 */}
+      <AlertDialog
+        isButton={false}
+        open={brandCorpLockedOpen}
+        setOpen={setBrandCorpLockedOpen}
+        maxWidth="xs"
+        dialogTitle="Brand & Corp cannot be changed"
+        dialogContent="Brand & Corp cannot be changed for a saved promotion."
+        dialogConfirmLabel="OK"
+        handlePost={() => setBrandCorpLockedOpen(false)}
+        dialogContentProps={{ sx: { color: "black", pt: "20px !important" } }}
+        postButtonProps={{ color: "primary" }}
+      />
+
       {/* Save Draft 확인 */}
       {dialog === "draft" && (
         <AlertDialog
@@ -3207,9 +3646,30 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
           dialogConfirmLabel="Save Draft"
           handlePost={() => {
             setDialog(null);
-            goBack();
+            finishSave("Draft");
           }}
           dialogContentProps={{ sx: { color: "black" } }}
+          postButtonProps={{ color: "primary" }}
+        />
+      )}
+
+      {/* Save Draft 확인 — End Date 미입력 시 Always-on 으로 임시 저장 */}
+      {dialog === "draftAlwaysOn" && (
+        <AlertDialog
+          isButton={false}
+          open
+          setOpen={() => setDialog(null)}
+          maxWidth="xs"
+          dialogTitle="End Date is empty"
+          dialogContent="If End Date is empty, this promotion will be saved as a draft with Always-on. Do you want to continue?"
+          dialogCloseLabel="Cancel"
+          dialogConfirmLabel="Confirm"
+          handlePost={() => {
+            setDialog(null);
+            patch({ always: true });
+            finishSave("Draft", { always: true });
+          }}
+          dialogContentProps={{ sx: { color: "black", pt: "20px !important" } }}
           postButtonProps={{ color: "primary" }}
         />
       )}
@@ -3461,11 +3921,6 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                 >
                   {p.name}
                 </Typography>
-                <Typography
-                  sx={{ color: PRICE, fontSize: 13, fontWeight: 600 }}
-                >
-                  {won(p.price)}
-                </Typography>
                 {!locked && (
                   <IconButton
                     size="small"
@@ -3483,7 +3938,6 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
         </Box>
         {!locked && (
           <SearchBlock
-            currency={currency}
             label="Add Excluded Product"
             note="Excluded from eligibility even if purchased · model code search supported"
             query={excludeQuery}
@@ -3585,16 +4039,27 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                     }}
                     InputProps={{
                       startAdornment: (
-                        <InputAdornment position="start">≥</InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
+                        <InputAdornment position="start">
                           {currency.code}
                         </InputAdornment>
                       ),
                     }}
                   />
-                  <Typography sx={{ color: TEXT_TERTIARY }}>~</Typography>
+                  {/* 하한 ≤ 주문 금액 < 상한 — 기호는 입력 필드 사이에 표기 */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      px: 0.5,
+                      color: TEXT_SECONDARY,
+                      fontSize: 15,
+                    }}
+                  >
+                    <span>≤</span>
+                    <span>~</span>
+                    <span>&lt;</span>
+                  </Box>
                   {r.unlimited ? (
                     <Box
                       sx={{
@@ -3628,10 +4093,7 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                       }}
                       InputProps={{
                         startAdornment: (
-                          <InputAdornment position="start">&lt;</InputAdornment>
-                        ),
-                        endAdornment: (
-                          <InputAdornment position="end">
+                          <InputAdornment position="start">
                             {currency.code}
                           </InputAdornment>
                         ),
@@ -3748,7 +4210,7 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
           <Typography sx={{ fontSize: 12, color: TEXT_TERTIARY }}>
             {f.productMatch === "all"
               ? "All selected products must be in the cart (AND)."
-              : "Any one of the selected products satisfies the condition."}
+              : "Quantities of the selected products are added together; the total must reach the Purchase Quantity (OR)."}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -3794,11 +4256,6 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                 <Typography sx={{ fontSize: 11, color: TEXT_TERTIARY }}>
                   {p.category}
                 </Typography>
-                <Typography
-                  sx={{ color: PRICE, fontSize: 13, fontWeight: 600 }}
-                >
-                  {won(p.price)}
-                </Typography>
                 {/* Active 상태에서는 이번에 새로 추가한 제품만 되돌릴 수 있음 */}
                 {(!locked ||
                   (targetAddOnly && !initialTargetIds.has(p.id))) && (
@@ -3818,7 +4275,6 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
         </Box>
         {(!locked || targetAddOnly) && (
           <SearchBlock
-            currency={currency}
             label={addLabel}
             note="Linked to product DB · searching a model code shows all products under that model."
             query={targetQuery}
@@ -3898,39 +4354,27 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
     );
   }
 
-  // Reward 제품 목록 한 벌 (rangeId 를 주면 해당 금액 구간 전용 목록)
-  function renderRewardList(rangeId?: string) {
+  // Specific Product / All Products: Reward 제품 목록 + 제품별 재고 입력
+  // (Order Amount 는 renderReward 안의 구간 카드 + Shared SKU Inventory 로 대체)
+  function renderRewardList() {
     const f = form;
-    const list = rangeId ? (f.rangeRewards[rangeId] ?? []) : f.rewardProducts;
-    const query = rangeId ? (rangeRewardQuery[rangeId] ?? "") : rewardQuery;
-    const field = rangeId ? (rangeRewardField[rangeId] ?? "sap") : rewardField;
-    const onQuery = (v: string) =>
-      rangeId
-        ? setRangeRewardQuery((prev) => ({ ...prev, [rangeId]: v }))
-        : setRewardQuery(v);
-    const onField = (v: SearchField) =>
-      rangeId
-        ? setRangeRewardField((prev) => ({ ...prev, [rangeId]: v }))
-        : setRewardField(v);
-    const matches = rangeId
-      ? PRODUCTS.filter(
-          (p) =>
-            !list.some((t) => t.id === p.id) &&
-            (!isPkg || p.category === "Package") &&
-            matchProduct(p, field, query),
-        )
-      : rewardMatches;
+    const list = f.rewardProducts;
+    const query = rewardQuery;
+    const field = rewardField;
+    const onQuery = (v: string) => setRewardQuery(v);
+    const onField = (v: SearchField) => setRewardField(v);
+    const matches = rewardMatches;
 
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         <ListHeader
           label="Selected Reward Products"
           count={list.length}
-          onClear={() => clearRewards(rangeId)}
+          onClear={() => clearRewards()}
           disabled={locked}
         />
         {list.map((t, i) => {
-          const key = invKeyOf(t.id, rangeId);
+          const key = t.id;
           const inv = invOf(key);
           return (
             <Box
@@ -3964,15 +4408,10 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                 <Typography sx={{ fontSize: 11, color: TEXT_TERTIARY }}>
                   {t.category}
                 </Typography>
-                <Typography
-                  sx={{ color: PRICE, fontSize: 13, fontWeight: 600 }}
-                >
-                  {won(t.price)}
-                </Typography>
                 {!locked && (
                   <IconButton
                     size="small"
-                    onClick={() => removeRewardAt(i, rangeId)}
+                    onClick={() => removeRewardAt(i)}
                     sx={{ color: TEXT_TERTIARY }}
                   >
                     <CloseIcon sx={{ fontSize: 15 }} />
@@ -4064,7 +4503,6 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
         )}
         {!locked && (
           <SearchBlock
-            currency={currency}
             label="Add Reward Product"
             note={
               isPkg
@@ -4088,14 +4526,14 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                 setDialog("optionMaxReached");
                 return;
               }
-              addReward(p, rangeId);
+              addReward(p);
             }}
             onAddAll={() => {
               if (list.length + matches.length > rewardLimit) {
                 setDialog("optionMaxReached");
                 return;
               }
-              addRewardAll(matches, rangeId);
+              addRewardAll(matches);
             }}
           />
         )}
@@ -4137,29 +4575,65 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
     );
 
     if (isAmount) {
+      // 구간별로는 "어떤 제품을 주는지"만 고르고, 수량은 아래 Shared SKU Inventory 에서 SKU 당 한 번 입력
+      // 신규 등록 시 판매 수량은 항상 0
+      const soldOf = (inv: Inventory) => (mode === "add" ? 0 : inv.sold);
+      const remainingOf = (inv: Inventory) =>
+        Math.max(0, inv.total - soldOf(inv));
+      // Shared SKU Inventory 행의 수량 입력 필드 공통 스타일 (Sold · Remaining 은 읽기 전용)
+      const cellInputSx = (readonly: boolean) => ({
+        ...inputSx,
+        "& .MuiOutlinedInput-root": {
+          ...inputSx["& .MuiOutlinedInput-root"],
+          height: 42,
+          fontSize: 14,
+          background: readonly ? SURFACE_SUNKEN : "#fff",
+          // 좁은 컬럼에서도 4자리 수량이 잘리지 않도록 안쪽 여백을 줄인다
+          pr: 1,
+          "& .MuiOutlinedInput-input": { px: 1.25 },
+          "& .MuiInputAdornment-root": { ml: 0 },
+          "& .MuiInputAdornment-root .MuiTypography-root": { fontSize: 12 },
+        },
+      });
+      const gridColumns =
+        "minmax(0, 1.7fr) minmax(72px, 0.8fr) repeat(4, minmax(0, 1fr))";
+
       return (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {rewardTypeBlock}
-          <Typography
-            sx={{ fontSize: 12, color: TEXT_TERTIARY, lineHeight: 1.6 }}
-          >
-            Reward products are set per order amount range.
-            {isPkg
-              ? ""
-              : " GWP manages total/sold/alert quantity per reward product within each range."}
-          </Typography>
+
+          {/* Reward Products by Range */}
+          <Box>
+            <Typography sx={{ fontSize: 15, fontWeight: 600 }}>
+              Reward Products by Range
+            </Typography>
+            <Typography
+              sx={{ fontSize: 12, color: TEXT_TERTIARY, lineHeight: 1.6 }}
+            >
+              Choose which products each range gives. Quantities are set once
+              per SKU in the Shared SKU Inventory below.
+            </Typography>
+          </Box>
+
           {f.amountRanges.map((r, i) => {
             const list = f.rangeRewards[r.id] ?? [];
+            const query = rangeRewardQuery[r.id] ?? "";
+            const field = rangeRewardField[r.id] ?? "sap";
+            const matches = PRODUCTS.filter(
+              (p) =>
+                !list.some((t) => t.id === p.id) &&
+                matchProduct(p, field, query),
+            );
             return (
               <Box
                 key={r.id}
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1.5,
-                  p: "18px 20px",
+                  gap: 1.25,
+                  p: "16px 20px 18px",
                   border: `1px solid ${BORDER}`,
-                  borderLeft: `4px solid ${rangeColor(i)}`,
+                  borderTop: `4px solid ${rangeColor(i)}`,
                   borderRadius: "12px",
                 }}
               >
@@ -4190,13 +4664,298 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                   >
                     {isOptionGive
                       ? `Option Select · ${list.length}/${OPTION_REWARD_MAX} selected`
-                      : `Default Gift · ${list.length} selected`}
+                      : `${list.length} product${list.length === 1 ? "" : "s"}`}
                   </Typography>
                 </Box>
-                {renderRewardList(r.id)}
+
+                {list.map((t, idx) => {
+                  const inv = invOf(t.id);
+                  const remaining = remainingOf(inv);
+                  const tone = remainingTone(inv.total, remaining, inv.alert);
+                  const sap = PRODUCTS.find((x) => x.id === t.id)?.sap ?? t.id;
+                  return (
+                    <Box
+                      key={t.id}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.25,
+                        p: "10px 10px 10px 16px",
+                        border: `1px solid ${BRAND_TINT}`,
+                        background: BRAND_SOFT,
+                        borderRadius: "10px",
+                      }}
+                    >
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {t.name}
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, color: TEXT_TERTIARY }}>
+                          {sap}
+                          {t.category ? ` · ${t.category}` : ""}
+                        </Typography>
+                      </Box>
+                      {/* 수량은 SKU 공유 풀 기준 — 구간 카드에서는 잔여 재고만 보여준다 */}
+                      <Chip
+                        label={`Remaining ${remaining}`}
+                        size="small"
+                        sx={{
+                          height: 26,
+                          background: "#fff",
+                          border: `1px solid ${tone.border}`,
+                          color: tone.color,
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                      />
+                      {!locked && (
+                        <IconButton
+                          size="small"
+                          onClick={() => removeRewardAt(idx, r.id)}
+                          sx={{ color: TEXT_TERTIARY }}
+                        >
+                          <CloseIcon sx={{ fontSize: 15 }} />
+                        </IconButton>
+                      )}
+                    </Box>
+                  );
+                })}
+                {!list.length && (
+                  <EmptyHint text="Search and add reward products for this range." />
+                )}
+
+                {!locked && (
+                  <SearchBlock
+                    label="Add Reward Product"
+                    note=""
+                    query={query}
+                    field={field}
+                    onField={(v) =>
+                      setRangeRewardField((prev) => ({ ...prev, [r.id]: v }))
+                    }
+                    matches={matches}
+                    onQuery={(v) =>
+                      setRangeRewardQuery((prev) => ({ ...prev, [r.id]: v }))
+                    }
+                    onAddOne={(id) => {
+                      const p = PRODUCTS.find((x) => x.id === id);
+                      if (!p) return;
+                      if (list.length >= rewardLimit) {
+                        setDialog("optionMaxReached");
+                        return;
+                      }
+                      addReward(p, r.id);
+                    }}
+                    onAddAll={() => {
+                      if (list.length + matches.length > rewardLimit) {
+                        setDialog("optionMaxReached");
+                        return;
+                      }
+                      addRewardAll(matches, r.id);
+                    }}
+                    clearCount={list.length}
+                    onClearAll={() => clearRewards(r.id)}
+                  />
+                )}
               </Box>
             );
           })}
+
+          {/* Shared SKU Inventory — 구간에 쓰인 고유 SKU 마다 수량을 한 번만 입력 */}
+          <Box
+            sx={{
+              border: `1px solid ${BORDER}`,
+              borderRadius: "12px",
+              overflow: "hidden",
+              mt: 0.5,
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.25,
+                p: "16px 20px",
+              }}
+            >
+              <Typography sx={{ fontSize: 16, fontWeight: 700 }}>
+                Shared SKU Inventory
+              </Typography>
+              <Chip
+                label={`${sharedSkus.length} SKU`}
+                size="small"
+                sx={{
+                  height: 22,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: BRAND_STRONG,
+                  background: BRAND_SOFT,
+                }}
+              />
+            </Box>
+
+            {sharedSkus.length ? (
+              <>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: gridColumns,
+                    gap: 1,
+                    alignItems: "center",
+                    p: "10px 20px",
+                    background: SURFACE_ALT,
+                    borderTop: `1px solid ${BORDER}`,
+                    borderBottom: `1px solid ${BORDER}`,
+                  }}
+                >
+                  {[
+                    "Product / SKU",
+                    "Used in",
+                    "Total",
+                    "Sold",
+                    "Remaining",
+                    "Alert at",
+                  ].map((h) => (
+                    <Typography
+                      key={h}
+                      sx={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: TEXT_SECONDARY,
+                      }}
+                    >
+                      {h}
+                    </Typography>
+                  ))}
+                </Box>
+
+                {sharedSkus.map((s, rowIdx) => {
+                  const inv = invOf(s.id);
+                  const sold = soldOf(inv);
+                  const remaining = remainingOf(inv);
+                  const tone = remainingTone(inv.total, remaining, inv.alert);
+                  return (
+                    <Box
+                      key={s.id}
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: gridColumns,
+                        gap: 1,
+                        alignItems: "center",
+                        p: "12px 20px",
+                        borderTop:
+                          rowIdx === 0 ? "none" : `1px solid ${BORDER}`,
+                      }}
+                    >
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            fontWeight: 600,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {s.name}
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, color: TEXT_TERTIARY }}>
+                          {s.sap}
+                          {s.category ? ` · ${s.category}` : ""}
+                        </Typography>
+                      </Box>
+                      {/* 이 SKU 를 증정하는 구간 (R1 · R2 …) */}
+                      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                        {s.usedIn.map((ri) => (
+                          <Chip
+                            key={ri}
+                            label={`R${ri + 1}`}
+                            size="small"
+                            sx={{
+                              height: 22,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: "#fff",
+                              background: rangeColor(ri),
+                              "& .MuiChip-label": { px: 1 },
+                            }}
+                          />
+                        ))}
+                      </Box>
+                      <TextField
+                        type="number"
+                        value={inv.total}
+                        onChange={(e) =>
+                          setInv(s.id, "total", Number(e.target.value) || 0)
+                        }
+                        disabled={readOnly}
+                        sx={cellInputSx(false)}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">ea</InputAdornment>
+                          ),
+                        }}
+                      />
+                      <TextField
+                        type="number"
+                        value={sold}
+                        disabled
+                        sx={cellInputSx(true)}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">ea</InputAdornment>
+                          ),
+                        }}
+                      />
+                      <TextField
+                        type="number"
+                        value={remaining}
+                        disabled
+                        sx={{
+                          ...cellInputSx(true),
+                          "& .MuiInputBase-input.Mui-disabled": {
+                            fontWeight: 700,
+                            WebkitTextFillColor: tone.color,
+                          },
+                        }}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">ea</InputAdornment>
+                          ),
+                        }}
+                      />
+                      <TextField
+                        type="number"
+                        value={inv.alert}
+                        onChange={(e) =>
+                          setInv(s.id, "alert", Number(e.target.value) || 0)
+                        }
+                        disabled={readOnly}
+                        sx={cellInputSx(false)}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">ea</InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Box>
+                  );
+                })}
+              </>
+            ) : (
+              <Box sx={{ px: 2.5, pb: 2 }}>
+                <EmptyHint text="Add reward products to any range — their stock is managed here, once per SKU." />
+              </Box>
+            )}
+          </Box>
         </Box>
       );
     }

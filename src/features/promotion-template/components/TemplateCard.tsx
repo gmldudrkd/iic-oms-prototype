@@ -25,9 +25,30 @@ import {
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   TEXT_TERTIARY,
+  rangeColor,
 } from "@/features/promotion-template/modules/constants";
 import { PromotionTemplate } from "@/features/promotion-template/modules/types";
-import { productName } from "@/features/promotion-template/modules/utils";
+import {
+  productName,
+  rangeText,
+} from "@/features/promotion-template/modules/utils";
+
+// Reward 제품명 + SAP 코드 한 줄
+const RewardLine = ({ sap }: { sap: string }) => (
+  <Typography sx={{ fontSize: 12.5, lineHeight: 1.35 }}>
+    {productName(sap)}{" "}
+    <Typography
+      component="span"
+      sx={{
+        fontFamily: "ui-monospace, Menlo, monospace",
+        fontSize: 11.5,
+        color: TEXT_TERTIARY,
+      }}
+    >
+      {sap}
+    </Typography>
+  </Typography>
+);
 
 const cardSx = {
   border: `1px solid ${BORDER}`,
@@ -115,21 +136,26 @@ export default function TemplateCard({
                 <OptionBadge />
               </Box>
             )}
-            {t.rewards.map((sap) => (
-              <Typography key={sap} sx={{ fontSize: 12.5, lineHeight: 1.35 }}>
-                {productName(sap)}{" "}
-                <Typography
-                  component="span"
-                  sx={{
-                    fontFamily: "ui-monospace, Menlo, monospace",
-                    fontSize: 11.5,
-                    color: TEXT_TERTIARY,
-                  }}
-                >
-                  {sap}
-                </Typography>
-              </Typography>
-            ))}
+            {/* Order Amount 는 구간별로 묶어 표시 */}
+            {t.tmode === "amount" && t.amountRanges.length
+              ? t.amountRanges.map((r, i) => (
+                  <Box key={i} sx={{ mb: "2px" }}>
+                    <Typography
+                      sx={{
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        color: rangeColor(i),
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      R{i + 1} · {rangeText(r)}
+                    </Typography>
+                    {r.rewards.map((sap) => (
+                      <RewardLine key={sap} sap={sap} />
+                    ))}
+                  </Box>
+                ))
+              : t.rewards.map((sap) => <RewardLine key={sap} sap={sap} />)}
           </Box>
         </dd>
       </Box>

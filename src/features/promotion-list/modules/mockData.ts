@@ -32,17 +32,31 @@ export interface PromotionTargetProduct {
   category: string;
 }
 
+// Target = Specific Product 의 구매 조건 (Any: 대상 제품 수량 합산 / All: 대상 제품 각각)
+export type PromotionPurchaseBasis = "ANY" | "ALL";
+// 증정 기준 (주문당 1회 / 대상 제품 수량만큼)
+export type PromotionRewardBasis = "PER_ORDER" | "PER_PRODUCT_QUANTITY";
+
 export interface PromotionRow {
   id: number;
   brand: string;
   corp: string;
   title: string;
+  // 프로모션 목적 (등록 화면의 Goal). 미설정 시 등록 화면 기본값
+  goal?: string;
   status: "Active" | "Scheduled" | "Ended" | "Draft" | "Deleted";
   triggerType: string;
   triggerChannels: string[];
   trigger: string;
   // Target = Specific Product 인 경우에만 설정 (미설정 시 디테일에서 All Products 로 표시)
   targetProducts?: PromotionTargetProduct[];
+  // Target = Specific Product 의 구매 조건 (미설정 시 ANY / 1)
+  purchaseBasis?: PromotionPurchaseBasis;
+  purchaseQuantity?: number;
+  // Specific Product / All Product 의 증정 기준 (미설정 시 GWP=PER_ORDER, PACKAGE=PER_PRODUCT_QUANTITY)
+  rewardBasis?: PromotionRewardBasis;
+  // Specific Product / All Product 에서 증정 대상에서 제외할 제품
+  excludedProducts?: PromotionTargetProduct[];
   reward: string;
   // 증정 제품 전체 (Order Amount 타입은 모든 구간의 제품을 합친 목록)
   rewardProducts: PromotionRewardProduct[];
@@ -139,6 +153,9 @@ function generateMockPromotions(): PromotionRow[] {
         category: "Fragrance",
       },
     ],
+    purchaseBasis: "ANY",
+    purchaseQuantity: 2,
+    rewardBasis: "PER_PRODUCT_QUANTITY",
     reward: REWARD_TYPES[1],
     rewardProducts: [
       {
@@ -157,37 +174,41 @@ function generateMockPromotions(): PromotionRow[] {
   });
 
   // [Active] Target = Order Amount — 금액 구간별 Reward. 리스트에는 구간별 재고 최소 제품만 노출
+  // Reward 재고는 SKU 단위로 모든 구간이 공유한다 (Shared SKU Inventory)
+  // → 같은 SKU 가 여러 구간에 있으면 total/sold/alert 도 동일해야 한다 (Cica Hand Cream 30ml)
   const RANGE_LOW: PromotionRewardProduct[] = [
     {
       productName: "Ten Perfume 50ml",
-      skuCode: "TAM-PF-050",
+      skuCode: "12000231",
       total: 1000,
       sold: 180,
       alert: 100,
     },
+    // 잔여 재고가 첫 제품과 동일(820) → 리스트에는 조회된 첫 제품(Ten Perfume 50ml) 노출
     {
       productName: "Cica Hand Cream 30ml",
-      skuCode: "TAM-HC-030",
-      total: 1200,
-      sold: 150,
+      skuCode: "12000232",
+      total: 1000,
+      sold: 180,
       alert: 100,
     },
   ];
   const RANGE_HIGH: PromotionRewardProduct[] = [
-    {
-      productName: "Perfume Balm 6.5g",
-      skuCode: "TAM-PB-006",
-      total: 500,
-      sold: 454,
-      alert: 50,
-    },
     // 재고 소진 → 구간 재고 0 (붉은색)
     {
+      productName: "Perfume Balm 6.5g",
+      skuCode: "12000233",
+      total: 500,
+      sold: 500,
+      alert: 50,
+    },
+    // RANGE_LOW 와 같은 SKU — 공유 재고이므로 수량 동일
+    {
       productName: "Cica Hand Cream 30ml",
-      skuCode: "TAM-HC-030",
-      total: 300,
-      sold: 300,
-      alert: 30,
+      skuCode: "12000232",
+      total: 1000,
+      sold: 180,
+      alert: 100,
     },
     {
       productName: "CAR DIFFUSER MINI_BLACK",
@@ -251,7 +272,7 @@ function generateMockPromotions(): PromotionRow[] {
       },
       {
         productName: "Perfume Balm 6.5g",
-        skuCode: "TAM-PB-006",
+        skuCode: "12000233",
         total: 200,
         sold: 0,
         alert: 20,
@@ -273,7 +294,7 @@ function generateMockPromotions(): PromotionRow[] {
           },
           {
             productName: "Perfume Balm 6.5g",
-            skuCode: "TAM-PB-006",
+            skuCode: "12000233",
             total: 200,
             sold: 0,
             alert: 20,
@@ -298,6 +319,21 @@ function generateMockPromotions(): PromotionRow[] {
     triggerType: "Purchase Any Product",
     triggerChannels: [...CHANNELS_EXPIRED],
     trigger: "Purchase Any Product",
+    rewardBasis: "PER_ORDER",
+    excludedProducts: [
+      {
+        id: "pk1",
+        productName: "Basic Gift Wrap",
+        price: 0,
+        category: "Package",
+      },
+      {
+        id: "pk4",
+        productName: "Classic Satin Ribbon",
+        price: 0,
+        category: "Package",
+      },
+    ],
     reward: REWARD_TYPES[2],
     rewardProducts: [
       {
@@ -716,3 +752,25 @@ function generateMockPromotions(): PromotionRow[] {
 
 export const MOCK_PROMOTIONS = generateMockPromotions();
 export const MOCK_TOTAL_COUNT = 1234;
+
+// 등록 화면에서 저장한 프로모션 — 모듈 스코프에 유지 (페이지를 오가도 세션 동안 남는다, Template 과 동일 방식)
+const maxPromotionId = () =>
+  MOCK_PROMOTIONS.reduce((max, row) => Math.max(max, row.id), 0);
+
+// 정적 배포(GitHub Pages)에서도 신규 저장 후 상세(edit-v2) 진입이 가능하도록 미리 만들어 두는 ID 개수
+export const RESERVED_PROMOTION_ID_COUNT = 20;
+
+// 빌드 시점 최대 ID 다음부터 예약 ID 목록 (edit-v2 generateStaticParams 에서 사용)
+export const reservedPromotionIds = (): number[] => {
+  const base = maxPromotionId();
+  return Array.from(
+    { length: RESERVED_PROMOTION_ID_COUNT },
+    (_, i) => base + 1 + i,
+  );
+};
+
+export function createPromotion(draft: Omit<PromotionRow, "id">): PromotionRow {
+  const row: PromotionRow = { ...draft, id: maxPromotionId() + 1 };
+  MOCK_PROMOTIONS.unshift(row);
+  return row;
+}

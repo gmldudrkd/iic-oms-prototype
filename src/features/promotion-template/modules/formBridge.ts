@@ -7,6 +7,7 @@ import {
   PromotionTemplate,
   TemplateDraft,
 } from "@/features/promotion-template/modules/types";
+import { normalizeDraft } from "@/features/promotion-template/modules/utils";
 
 // Promotion 등록 화면(PromotionFormV2)과 템플릿 사이의 변환 계층.
 // FormV2 의 FormState 는 컴포넌트 내부 타입이므로, 양쪽이 모두 알 수 있는 중립 형태로 주고받는다.
@@ -18,6 +19,13 @@ export interface BridgeProduct {
   category?: string;
 }
 
+export interface BridgeAmountRange {
+  min: number;
+  max: number;
+  unlimited: boolean;
+  rewardProducts: BridgeProduct[];
+}
+
 export interface TemplateFormBridge {
   name: string;
   goal: string;
@@ -27,7 +35,8 @@ export interface TemplateFormBridge {
   buyQty: number;
   rewardBasis: "order" | "product";
   rewardGive: "default" | "option";
-  minAmount: number;
+  // condMode = "amount" 일 때 구간 + 구간별 Reward 제품
+  amountRanges: BridgeAmountRange[];
   targets: BridgeProduct[];
   rewardProducts: BridgeProduct[];
 }
@@ -57,7 +66,12 @@ export const templateToBridge = (t: PromotionTemplate): TemplateFormBridge => ({
   buyQty: t.qty,
   rewardBasis: t.rewardBasis === "per_order" ? "order" : "product",
   rewardGive: t.rewardType,
-  minAmount: t.minAmount,
+  amountRanges: t.amountRanges.map((r) => ({
+    min: r.min,
+    max: r.max,
+    unlimited: r.unlimited,
+    rewardProducts: r.rewards.map(toBridgeProduct),
+  })),
   targets: t.skus.map(toBridgeProduct),
   rewardProducts: t.rewards.map(toBridgeProduct),
 });
@@ -79,7 +93,10 @@ export const bridgeToDraft = (
   b.rewardProducts.forEach((p) =>
     register(p, b.promoType === "package" ? "Packaging" : "GWP"),
   );
-  return {
+  b.amountRanges.forEach((r) =>
+    r.rewardProducts.forEach((p) => register(p, "GWP")),
+  );
+  return normalizeDraft({
     name: templateName.trim(),
     type: b.promoType === "gwp" ? "GWP" : "PACKAGE",
     goal: b.goal || GOALS[0],
@@ -91,11 +108,16 @@ export const bridgeToDraft = (
           : "all",
     basis: b.productMatch,
     skus: b.condMode === "products" ? b.targets.map((p) => p.id) : [],
-    minAmount: b.minAmount,
+    amountRanges: b.amountRanges.map((r) => ({
+      min: r.min,
+      max: r.unlimited ? 0 : r.max,
+      unlimited: r.unlimited,
+      rewards: r.rewardProducts.map((p) => p.id),
+    })),
     qty: b.buyQty,
     rewardBasis: b.rewardBasis === "order" ? "per_order" : "per_qty",
     multiplier: 1,
     rewardType: b.rewardGive,
     rewards: b.rewardProducts.map((p) => p.id),
-  };
+  });
 };

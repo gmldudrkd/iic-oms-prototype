@@ -31,9 +31,13 @@ import {
   PromotionRow,
 } from "@/features/promotion-list/modules/mockData";
 import {
+  formatProductLines,
+  getPurchaseBasis,
+  getPurchaseQuantity,
   getRemaining,
+  getRewardBasis,
   getRewardDisplayRows,
-  getTargetType,
+  getTargetTypeCode,
 } from "@/features/promotion-list/modules/utils";
 
 import TotalResult from "@/shared/components/text/TotalResult";
@@ -70,8 +74,7 @@ export default function PromotionList() {
 
   const defaultValues = useMemo(
     () => ({
-      dateType: "startDate",
-      // 진행 예정 프로모션(시작일이 미래)도 기본 조회에 포함되도록 앞뒤 3개월
+      // Promotion Period: 진행 예정 프로모션(시작일이 미래)도 기본 조회에 포함되도록 앞뒤 3개월
       period: [
         dayjs().tz(timezone).subtract(3, "month").startOf("day"),
         dayjs().tz(timezone).add(3, "month").endOf("day"),
@@ -114,8 +117,7 @@ export default function PromotionList() {
 
   const handleSearch = useCallback(() => {
     const values = methods.getValues();
-    const { dateType, period, status, channel, searchKeyType, searchKeyword } =
-      values;
+    const { period, status, channel, searchKeyType, searchKeyword } = values;
 
     let result = [...scopedPromotions];
 
@@ -135,21 +137,28 @@ export default function PromotionList() {
       );
     }
 
-    // Date 필터 - period 값이 둘 다 있을 때만 적용
+    // Promotion Period 필터 - 선택 기간과 프로모션 진행 기간(Start ~ End)이 하루라도 겹치면 노출
+    // 상시(Always-on) 프로모션은 종료일이 없으므로 시작일이 선택 기간 종료일 이전이면 노출
     if (period?.[0] && period?.[1]) {
-      const startDate = dayjs(period[0]);
-      const endDate = dayjs(period[1]);
-      if (startDate.isValid() && endDate.isValid()) {
+      const periodStart = dayjs(period[0]);
+      const periodEnd = dayjs(period[1]);
+      if (periodStart.isValid() && periodEnd.isValid()) {
         result = result.filter((row) => {
-          const dateField =
-            dateType === "endDate" ? row.endDate : row.startDate;
-          const normalized = dateField.replace(/\./g, "-");
-          const rowDate = dayjs(normalized);
-          if (!rowDate.isValid()) return true;
-          return (
-            rowDate.isAfter(startDate.subtract(1, "day")) &&
-            rowDate.isBefore(endDate.add(1, "day"))
+          const rowStart = dayjs(row.startDate.replace(/\./g, "-"));
+          const rowEnd = row.endDate
+            ? dayjs(row.endDate.replace(/\./g, "-"))
+            : null;
+          if (!rowStart.isValid()) return true;
+          const startsBeforePeriodEnd = rowStart.isBefore(
+            periodEnd.add(1, "day"),
           );
+          if (row.alwaysOn || !rowEnd || !rowEnd.isValid()) {
+            return startsBeforePeriodEnd;
+          }
+          const endsAfterPeriodStart = rowEnd.isAfter(
+            periodStart.subtract(1, "day"),
+          );
+          return startsBeforePeriodEnd && endsAfterPeriodStart;
         });
       }
     }
@@ -157,15 +166,18 @@ export default function PromotionList() {
     // Keyword 검색
     const keyword = String(searchKeyword ?? "").trim();
     if (keyword) {
-      const keywords = keyword
-        .split("\n")
-        .map((k) => k.trim().toLowerCase())
-        .filter(Boolean);
+      // Title 은 단일 검색만 가능 (줄바꿈 입력 시 한 개의 키워드로 취급)
+      const keywords =
+        searchKeyType === "title"
+          ? [keyword.toLowerCase()]
+          : keyword
+              .split("\n")
+              .map((k) => k.trim().toLowerCase())
+              .filter(Boolean);
 
-      // Title 단일 부분검색은 최소 글자 수 미만이면 조회하지 않음
+      // Title 부분검색은 최소 글자 수 미만이면 조회하지 않음
       if (
         searchKeyType === "title" &&
-        keywords.length === 1 &&
         keywords[0].length < TITLE_PARTIAL_SEARCH_MIN_LENGTH
       ) {
         methods.setError("searchKeyword", {
@@ -183,8 +195,7 @@ export default function PromotionList() {
             title: row.title,
             createdBy: row.createdBy,
             updatedBy: row.updatedBy,
-            gwpName: row.reward,
-            gwpSapCode: row.reward,
+            rewardName: row.reward,
             // Reward SAP Code: 사은품 제품의 SKU 코드 전체를 대상으로 검색
             rewardSapCode: row.rewardProducts
               .map((product) => product.skuCode)
@@ -198,10 +209,7 @@ export default function PromotionList() {
           const fieldValue = (
             fieldMap[String(searchKeyType)] ?? ""
           ).toLowerCase();
-          // Title: 단일 키워드는 부분일치, 복수 키워드(줄바꿈)는 정확일치
-          if (searchKeyType === "title" && keywords.length > 1) {
-            return keywords.some((kw) => fieldValue === kw);
-          }
+          // Title 포함 모든 키는 부분일치 (Title 은 단일 키워드만)
           return keywords.some((kw) => fieldValue.includes(kw));
         });
       }
@@ -241,10 +249,22 @@ export default function PromotionList() {
   );
 
   const handleExport = useCallback(() => {
+    // 날짜 표기: "YYYY.MM.DD HH:mm:ss" → 날짜만 / 날짜+시(분)
+    const toDate = (s: string) => s.replace(/\./g, "-").slice(0, 10);
+    const toDateTime = (s: string) => s.replace(/\./g, "-").slice(0, 16);
+
+    // 컬럼 순서 = 엑셀 헤더 순서
     const exportData = filteredData.map((row) => ({
       ID: row.id,
       promotionTitle: row.title,
-      targetType: getTargetType(row.triggerType),
+      goal: row.goal ?? "",
+      promotionType: row.promotionType ?? "GWP",
+      targetType: getTargetTypeCode(row),
+      purchaseBasis: getPurchaseBasis(row),
+      purchaseQuantity: getPurchaseQuantity(row),
+      rewardBasis: getRewardBasis(row),
+      targetProduct: formatProductLines(row.targetProducts),
+      excludedProduct: formatProductLines(row.excludedProducts),
       rewardProduct: getRewardDisplayRows(row)
         .map((item) =>
           [
@@ -263,19 +283,46 @@ export default function PromotionList() {
             : `${getRemaining(item.product)} / ${item.product.total}`,
         )
         .join("\n"),
-      channel: row.triggerChannels.join(", "),
+      channel: row.triggerChannels.join("\n"),
       status: row.status,
-      createdDate: row.createdAt.replace(/\./g, "-").slice(0, 10),
-      startDate: row.startDate.replace(/\./g, "-").slice(0, 10),
-      endDate: row.endDate.replace(/\./g, "-"),
+      createdDate: toDate(row.createdAt),
+      startDate: toDate(row.startDate),
+      // 상시 프로모션은 종료일 없음(빈칸)
+      endDate: row.alwaysOn ? "" : toDateTime(row.endDate),
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
+    // 컬럼 너비 (엑셀 문자 수 기준)
+    ws["!cols"] = [
+      { wch: 20 }, // ID
+      { wch: 28 }, // promotionTitle
+      { wch: 24 }, // goal
+      { wch: 14 }, // promotionType
+      { wch: 18 }, // targetType
+      { wch: 14 }, // purchaseBasis
+      { wch: 16 }, // purchaseQuantity
+      { wch: 22 }, // rewardBasis
+      { wch: 26 }, // targetProduct
+      { wch: 26 }, // excludedProduct
+      { wch: 40 }, // rewardProduct
+      { wch: 12 }, // stock
+      { wch: 20 }, // channel
+      { wch: 10 }, // status
+      { wch: 12 }, // createdDate
+      { wch: 12 }, // startDate
+      { wch: 18 }, // endDate
+    ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Promotions");
+    // 파일명: IIC_OMS_Promotion_List_{brand}_{corp}_YYYYMMDD_HHmm
+    // 상단 헤더 Brand & Corp 선택 기준. 복수 선택 시 "-" 로 연결, 미선택 시 ALL
+    const brandCorp =
+      brandCorpKeysOf(selectedPermission)
+        .map((key) => key.replace("|", "_"))
+        .join("-") || "ALL";
     const date = dayjs().tz(timezone).format("YYYYMMDD_HHmm");
-    XLSX.writeFile(wb, `IIC_OMS_Promotion_List_${date}.xlsx`);
-  }, [filteredData, timezone]);
+    XLSX.writeFile(wb, `IIC_OMS_Promotion_List_${brandCorp}_${date}.xlsx`);
+  }, [filteredData, selectedPermission, timezone]);
 
   const handlePaginationModelChange = useCallback(
     (model: GridPaginationModel) => {

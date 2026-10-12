@@ -26,7 +26,6 @@ import {
 } from "react-hook-form";
 
 import {
-  DATE_TYPE_OPTIONS,
   STATUS_OPTIONS,
   SEARCH_KEY_TYPE_OPTIONS,
   MULTI_SEARCH_KEY_TYPES,
@@ -109,28 +108,8 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
     >
       <div className="search-form w-full">
         <div className="flex flex-wrap items-start gap-[16px]">
-          {/* Date Type */}
-          <div className="flex w-[160px] items-center">
-            <FormControl fullWidth size="small">
-              <InputLabel shrink>Date Type</InputLabel>
-              <Controller
-                name="dateType"
-                control={control}
-                render={({ field }) => (
-                  <Select {...field} label="Date Type" notched>
-                    {DATE_TYPE_OPTIONS.map((opt) => (
-                      <MenuItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-              />
-            </FormControl>
-          </div>
-
-          {/* Period */}
-          <div className="flex w-[260px] items-center">
+          {/* Promotion Period — 선택한 기간과 프로모션 진행 기간(Start~End)이 겹치는 건 조회 */}
+          <div className="flex w-[280px] items-center">
             <FormControl fullWidth>
               <Controller
                 name="period"
@@ -154,7 +133,7 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                       slotProps={{
                         textField: {
                           fullWidth: true,
-                          label: "Period",
+                          label: "Promotion Period",
                           InputLabelProps: { shrink: true },
                           InputProps: {
                             startAdornment: (
@@ -235,7 +214,7 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                     label="Search"
                     placeholder={
                       isTitleSearch
-                        ? `Partial match with ${TITLE_PARTIAL_SEARCH_MIN_LENGTH}+ characters, or multiple exact titles separated by line breaks`
+                        ? `Enter a single keyword (partial match, ${TITLE_PARTIAL_SEARCH_MIN_LENGTH}+ characters)`
                         : isMultiSearch
                           ? "Enter multiple keywords separated by line breaks"
                           : "Enter a keyword to search"

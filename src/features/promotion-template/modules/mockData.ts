@@ -20,7 +20,7 @@ const base = (): Omit<
   tmode: "product",
   basis: "any",
   skus: [],
-  minAmount: 100000,
+  amountRanges: [],
   qty: 1,
   rewardBasis: "per_order",
   multiplier: 1,
@@ -61,14 +61,44 @@ function seed(): PromotionTemplate[] {
     ),
     mk(
       "KEY COMB 10만원 GWP",
-      { tmode: "amount", minAmount: 100000, rewards: ["12002354"] },
+      {
+        tmode: "amount",
+        amountRanges: [
+          { min: 100000, max: 0, unlimited: true, rewards: ["12002354"] },
+        ],
+        rewards: ["12002354"],
+      },
       14,
+    ),
+    mk(
+      "구매금액별 GWP (5만 · 10만)",
+      {
+        tmode: "amount",
+        amountRanges: [
+          { min: 50000, max: 100000, unlimited: false, rewards: ["12002438"] },
+          {
+            min: 100000,
+            max: 0,
+            unlimited: true,
+            rewards: ["12002354", "12002438"],
+          },
+        ],
+        rewards: ["12002438", "12002354"],
+      },
+      13,
     ),
     mk(
       "15만원 사은품 선택 GWP",
       {
         tmode: "amount",
-        minAmount: 150000,
+        amountRanges: [
+          {
+            min: 150000,
+            max: 0,
+            unlimited: true,
+            rewards: ["12002417", "12500587"],
+          },
+        ],
         rewardType: "option",
         rewards: ["12002417", "12500587"],
       },
@@ -106,7 +136,6 @@ function seed(): PromotionTemplate[] {
         type: "PACKAGE",
         skus: G.ohand,
         rewardBasis: "per_qty",
-        multiplier: 2,
         rewards: ["32002382"],
       },
       5,

@@ -25,6 +25,7 @@ import { PromotionRow } from "@/features/promotion-list/modules/mockData";
 import { useTimezoneStore } from "@/shared/stores/useTimezoneStore";
 
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+// 주(week)당 기본 노출 줄 수 — 초과분은 "+N more" 클릭 시 아래 줄로 펼쳐서 노출
 const MAX_LANES = 4;
 const LANE_HEIGHT = 23;
 const BAR_TOP = 30;
@@ -116,11 +117,22 @@ export default function PromotionCalendar({ rows }: PromotionCalendarProps) {
   const [alwaysOnFilter, setAlwaysOnFilter] =
     useState<AlwaysOnFilter>("include");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  // "+N more" 로 펼친 주(week) 인덱스 — 월 이동/검색 결과 변경 시 초기화
+  const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]);
+  const toggleWeek = useCallback((wi: number) => {
+    setExpandedWeeks((prev) =>
+      prev.includes(wi) ? prev.filter((w) => w !== wi) : [...prev, wi],
+    );
+  }, []);
 
   // 검색 결과가 바뀌면 선택 해제
   useEffect(() => {
     setSelectedId(null);
+    setExpandedWeeks([]);
   }, [rows]);
+  useEffect(() => {
+    setExpandedWeeks([]);
+  }, [month, alwaysOnFilter]);
 
   // 채널 필터는 검색 조건(Channel)으로 처리하므로 캘린더에서는 별도 토글 없음
   const visibleRows = rows;
@@ -300,9 +312,18 @@ export default function PromotionCalendar({ rows }: PromotionCalendarProps) {
 
         {weeks.map((week, wi) => {
           const { placed, laneCount } = placeWeek(week);
-          const shown = placed.filter((p) => p.lane < MAX_LANES);
+          const expanded = expandedWeeks.includes(wi);
+          // 기본은 MAX_LANES 줄까지, 펼친 주는 전체 줄 노출
+          const shown = expanded
+            ? placed
+            : placed.filter((p) => p.lane < MAX_LANES);
           const hidden = placed.length - shown.length;
-          const laneRows = Math.min(laneCount, MAX_LANES) + (hidden ? 1 : 0);
+          const visibleLanes = expanded
+            ? laneCount
+            : Math.min(laneCount, MAX_LANES);
+          // "+N more" 또는 "Show less" 토글 줄
+          const hasToggle = hidden > 0 || (expanded && laneCount > MAX_LANES);
+          const laneRows = visibleLanes + (hasToggle ? 1 : 0);
           const minHeight = BAR_TOP + laneRows * LANE_HEIGHT + 8;
           return (
             <div
@@ -391,16 +412,18 @@ export default function PromotionCalendar({ rows }: PromotionCalendarProps) {
                     </button>
                   );
                 })}
-                {hidden > 0 && (
-                  <div
-                    className="px-[7px] text-[11.5px] leading-[20px] text-black/50"
+                {hasToggle && (
+                  <button
+                    type="button"
+                    onClick={() => toggleWeek(wi)}
+                    className="pointer-events-auto px-[7px] text-left text-[11.5px] font-medium leading-[20px] text-black/60 hover:text-black hover:underline"
                     style={{
                       gridColumn: "1 / span 7",
-                      gridRow: MAX_LANES + 1,
+                      gridRow: visibleLanes + 1,
                     }}
                   >
-                    +{hidden} more
-                  </div>
+                    {expanded ? "Show less" : `+${hidden} more`}
+                  </button>
                 )}
               </div>
             </div>

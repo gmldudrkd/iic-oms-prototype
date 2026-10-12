@@ -16,6 +16,7 @@ import {
 import {
   MultiRegisterRow,
   PromotionTemplate,
+  TemplateAmountRange,
   TemplateDraft,
   TemplateType,
 } from "@/features/promotion-template/modules/types";
@@ -28,16 +29,38 @@ export const productName = (sap: string) => PRODUCT_BY_SAP[sap]?.name ?? sap;
 export const formatKrw = (n: number) =>
   `KRW ${(Number(n) || 0).toLocaleString()}`;
 
+// 구간 금액 표기 — 프로모션 등록 화면과 동일 (`KRW 50,000 ≤ ~ < KRW 100,000` / `KRW 100,000 ≤ ~ Unlimited`)
+export const rangeText = (
+  r: Pick<TemplateAmountRange, "min" | "max" | "unlimited">,
+) =>
+  r.unlimited
+    ? `${formatKrw(r.min)} ≤ ~ Unlimited`
+    : `${formatKrw(r.min)} ≤ ~ < ${formatKrw(r.max)}`;
+
+// 모든 구간의 Reward 제품을 순서대로 합친 목록 (중복 제거)
+export const rangeRewardUnion = (ranges: TemplateAmountRange[]) =>
+  Array.from(new Set(ranges.flatMap((r) => r.rewards)));
+
+// 저장 직전 정규화 — Order Amount 는 rewards 를 구간 합집합으로 맞추고, 그 외 모드는 구간을 비운다.
+// All Products 는 Reward Type 을 사용하지 않으므로 Default Gift 로 고정 (프로모션 등록 화면과 동일)
+export const normalizeDraft = (d: TemplateDraft): TemplateDraft => ({
+  ...d,
+  rewardType: d.tmode === "all" ? "default" : d.rewardType,
+  rewards: d.tmode === "amount" ? rangeRewardUnion(d.amountRanges) : d.rewards,
+  amountRanges: d.tmode === "amount" ? d.amountRanges : [],
+});
+
 export const targetDesc = (t: TemplateDraft) => {
   if (t.tmode === "all") return TARGET_MODE_LABEL.all;
-  if (t.tmode === "amount") return `Order Amount ${formatKrw(t.minAmount)}+`;
+  if (t.tmode === "amount")
+    return `Order Amount · ${t.amountRanges.length} range${
+      t.amountRanges.length > 1 ? "s" : ""
+    }`;
   return `${t.skus.length} products · ${t.basis === "any" ? "Any" : "All"}`;
 };
 
 export const conditionDesc = (t: TemplateDraft) =>
-  t.rewardBasis === "per_order"
-    ? `Per order · ${t.qty}+`
-    : `Per product qty × ${t.multiplier}`;
+  t.rewardBasis === "per_order" ? `Per order · ${t.qty}+` : "Per product qty";
 
 export const rewardDesc = (t: TemplateDraft) =>
   t.rewards.map(productName).join(", ") || "—";
@@ -91,14 +114,28 @@ export const validateTemplate = (d: TemplateDraft): string => {
   if (!d.goal.trim()) return "Enter a Promotion Goal.";
   if (d.tmode === "product" && d.skus.length === 0)
     return "Add at least one Target product.";
-  if (d.tmode === "amount" && !(d.minAmount > 0))
-    return "Enter a Minimum Order Amount.";
+  if (d.tmode === "amount") {
+    if (d.amountRanges.length === 0)
+      return "Add at least one Order Amount range.";
+    for (let i = 0; i < d.amountRanges.length; i++) {
+      const r = d.amountRanges[i];
+      const label = `Range ${i + 1}`;
+      if (i === 0 && !(r.min > 0)) return `${label}: enter a lower bound.`;
+      if (!r.unlimited && r.max <= r.min)
+        return `${label}: upper bound must be greater than the lower bound.`;
+      if (i > 0 && r.min !== d.amountRanges[i - 1].max)
+        return `${label}: must start where Range ${i} ends.`;
+      if (r.rewards.length === 0)
+        return `${label}: add at least one Reward product.`;
+    }
+  }
   // Packaging Benefit: Order Amount 불가, Reward Basis 는 Per product quantity 고정
   if (d.type === "PACKAGE" && d.tmode === "amount")
     return "Order Amount is not available for Packaging Benefit.";
   if (d.type === "PACKAGE" && d.rewardBasis !== "per_qty")
     return "Packaging Benefit must use Per product quantity as Reward Basis.";
-  if (d.rewards.length === 0) return "Add at least one Reward product.";
+  if (d.tmode !== "amount" && d.rewards.length === 0)
+    return "Add at least one Reward product.";
   return "";
 };
 
@@ -141,14 +178,28 @@ export function registerPromotions(
 ): PromotionRow[] {
   let nextId = Math.max(0, ...MOCK_PROMOTIONS.map((p) => p.id)) + 1;
   const now = dayjs().format("YYYY.MM.DD HH:mm:ss");
-  const rewardProducts = t.rewards.map((sap) => ({
+  // Reward 수량은 생성된 프로모션에서 입력한다 (템플릿에는 없음)
+  const toRewardProduct = (sap: string) => ({
     productName: productName(sap),
     skuCode: sap,
-    // Reward 수량은 생성된 프로모션에서 입력한다 (템플릿에는 없음)
     total: 0,
     sold: 0,
     alert: 0,
-  }));
+  });
+  const isAmount = t.tmode === "amount" && t.amountRanges.length > 0;
+  const rewardProducts = (
+    isAmount ? rangeRewardUnion(t.amountRanges) : t.rewards
+  ).map(toRewardProduct);
+  // Order Amount 는 템플릿의 구간 · 구간별 Reward 제품을 그대로 옮긴다
+  const rangeRewards = isAmount
+    ? t.amountRanges.map((r) => ({
+        label: rangeText(r),
+        min: r.min,
+        max: r.unlimited ? 0 : r.max,
+        unlimited: r.unlimited,
+        products: r.rewards.map(toRewardProduct),
+      }))
+    : undefined;
   const rewardText = `${rewardDesc(t)} * ${t.multiplier}\n(${
     t.rewardBasis === "per_order" ? "per order" : "per target item"
   })`;
@@ -175,7 +226,7 @@ export function registerPromotions(
           .filter(Boolean)
           .join("\n")
       : t.tmode === "amount"
-        ? `Order Amount ${formatKrw(t.minAmount)}+`
+        ? `Order Amount ≥ ${(t.amountRanges[0]?.min ?? 0).toLocaleString()} KRW`
         : "Purchase Any Product";
 
   const created: PromotionRow[] = rows.map((r) => ({
@@ -190,6 +241,7 @@ export function registerPromotions(
     targetProducts,
     reward: rewardText,
     rewardProducts,
+    rangeRewards,
     startDate: toListDate(r.start),
     endDate: r.always ? "" : toListDate(r.end),
     createdBy: "tam35",
@@ -213,7 +265,7 @@ const searchFieldOf = (t: PromotionTemplate, key: TemplateSearchKeyType) => {
   switch (key) {
     case "title":
       return t.name;
-    case "gwpName":
+    case "rewardName":
       return t.rewards.map(productName).join("\n");
     case "rewardSapCode":
       return t.rewards.join("\n");

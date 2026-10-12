@@ -1,12 +1,6 @@
 import { DateRange, PickersShortcutsItem } from "@mui/x-date-pickers-pro";
 import dayjs, { Dayjs } from "dayjs";
 
-// Date Type 옵션
-export const DATE_TYPE_OPTIONS = [
-  { label: "Start Date", value: "startDate" },
-  { label: "End Date", value: "endDate" },
-];
-
 // Status 옵션
 export const STATUS_OPTIONS = [
   { label: "All", value: "" },
@@ -65,65 +59,150 @@ export const SEARCH_KEY_TYPE_OPTIONS = [
   { label: "Title", value: "title" },
   { label: "Created By", value: "createdBy" },
   { label: "Updated By", value: "updatedBy" },
-  { label: "GWP Name", value: "gwpName" },
-  { label: "GWP SAP Code", value: "gwpSapCode" },
+  { label: "Reward Product Name", value: "rewardName" },
   { label: "Reward SAP Code", value: "rewardSapCode" },
   { label: "Target Product Name", value: "targetProductName" },
   { label: "Target SAP Code", value: "targetSapCode" },
 ];
 
-// Title 단일 검색 시 부분검색 최소 글자 수 (복수 키워드는 정확일치)
+// Title 검색은 단일 키워드 부분검색만 가능 — 최소 글자 수
 export const TITLE_PARTIAL_SEARCH_MIN_LENGTH = 2;
 
-// 멀티 검색 가능한 키 타입
+// 멀티 검색 가능한 키 타입 (Title 은 단일 검색만 가능)
 export const MULTI_SEARCH_KEY_TYPES = [
   "id",
-  "title",
   "createdBy",
   "updatedBy",
-  "gwpName",
-  "gwpSapCode",
+  "rewardName",
   "rewardSapCode",
   "targetProductName",
   "targetSapCode",
 ];
 
-// Import 템플릿 컬럼 (헤더명은 업로드 파싱 키와 동일해야 함)
+// Import 템플릿 컬럼 (헤더명은 업로드 파싱 키와 동일해야 함) — Export 엑셀과 동일한 표기
 export const IMPORT_TEMPLATE_COLUMNS: { key: string; width: number }[] = [
-  { key: "Title", width: 40 },
-  { key: "Brand", width: 8 },
-  { key: "Corp", width: 8 },
-  { key: "Channel", width: 24 },
-  { key: "Trigger Type", width: 36 },
-  { key: "Target SAP Code", width: 18 },
-  { key: "Reward Product Name", width: 36 },
-  { key: "Reward SAP Code", width: 18 },
-  { key: "Reward Qty", width: 12 },
-  { key: "Start Date", width: 14 },
-  { key: "End Date", width: 14 },
+  { key: "promotionTitle", width: 30 },
+  { key: "goal", width: 24 },
+  { key: "promotionType", width: 14 },
+  { key: "targetType", width: 18 },
+  { key: "purchaseBasis", width: 14 },
+  { key: "purchaseQuantity", width: 16 },
+  { key: "rewardBasis", width: 22 },
+  { key: "targetProduct", width: 24 },
+  { key: "excludedProduct", width: 24 },
+  { key: "rewardProduct", width: 40 },
+  { key: "channel", width: 20 },
+  { key: "startDate", width: 18 },
+  { key: "endDate", width: 18 },
 ];
 
-// Import 시 허용하는 Trigger Type (미기재/불일치 시 첫 번째 값으로 대체)
-export const IMPORT_TRIGGER_TYPES = [
-  "Purchase Specific Product or Label",
-  "Purchase Over Amount Threshold",
-  "Purchase Any Product",
-];
-
-// 템플릿에 포함되는 샘플 1행
-export const IMPORT_TEMPLATE_SAMPLE_ROW: Record<string, string | number> = {
-  Title: "SHRY 240ml BLACK RIBBON GWP · 공식몰",
-  Brand: "GM",
-  Corp: "KR",
-  Channel: "GM_Official_KR",
-  "Trigger Type": IMPORT_TRIGGER_TYPES[0],
-  "Target SAP Code": "32001988",
-  "Reward Product Name": "SHRY 240ml BLACK RIBBON_23",
-  "Reward SAP Code": "16000248",
-  "Reward Qty": 1,
-  "Start Date": "2026-10-01",
-  "End Date": "2026-10-31",
+// Import 시 허용하는 Target Type 코드 → 저장 triggerType (미기재·불일치 시 SPECIFIC_PRODUCT)
+export const IMPORT_TARGET_TYPES: Record<string, string> = {
+  SPECIFIC_PRODUCT: "Purchase Specific Product or Label",
+  ORDER_AMOUNT: "Purchase Over Amount Threshold",
+  ALL_PRODUCT: "Purchase Any Product",
 };
+
+// Import 시 허용하는 Promotion Type (미기재·불일치 시 GWP)
+export const IMPORT_PROMOTION_TYPES = ["GWP", "PACKAGE"] as const;
+
+// 템플릿에 포함되는 샘플 행 (Target Type · 증정 기준별 대표 케이스)
+// - 제품은 "제품명 - 코드" 형식, 여러 개는 줄바꿈(Alt+Enter)으로 구분
+// - Order Amount 의 rewardProduct 는 "[하한 ~ 상한] 제품명 - 코드" (상한 비우면 무제한)
+// - endDate 를 비우면 상시(Always-on)
+export const IMPORT_TEMPLATE_SAMPLE_ROWS: Record<string, string | number>[] = [
+  {
+    promotionTitle: "[APPLY-C6] GWP 옵션선택 자사몰전용",
+    goal: "apply 검증 C6 OPTION_SELECT",
+    promotionType: "GWP",
+    targetType: "SPECIFIC_PRODUCT",
+    purchaseBasis: "ANY",
+    purchaseQuantity: 1,
+    rewardBasis: "PER_ORDER",
+    targetProduct: "제품F - STB0006",
+    excludedProduct: "",
+    rewardProduct: "선택 사은품 A - SGIFT006\n선택 사은품 B - SGIFT007",
+    channel: "TAM_Official_KR",
+    startDate: "2026-10-01 09:00",
+    endDate: "2027-01-01 09:00",
+  },
+  {
+    promotionTitle: "[APPLY-C5] GWP 재고 1개 소진종료",
+    goal: "apply 검증 C5 SOLD_OUT",
+    promotionType: "GWP",
+    targetType: "SPECIFIC_PRODUCT",
+    purchaseBasis: "ANY",
+    purchaseQuantity: 1,
+    rewardBasis: "PER_ORDER",
+    targetProduct: "제품E - STB0005",
+    excludedProduct: "",
+    rewardProduct: "한정 사은품 - SGIFT005",
+    channel: "TAM_KAKAO_KR",
+    startDate: "2026-09-01 09:00",
+    endDate: "2026-09-17 16:05",
+  },
+  {
+    promotionTitle: "[APPLY-C4] GWP 금액구간 사은품",
+    goal: "apply 검증 C4",
+    promotionType: "GWP",
+    targetType: "ORDER_AMOUNT",
+    purchaseBasis: "",
+    purchaseQuantity: "",
+    rewardBasis: "",
+    targetProduct: "",
+    excludedProduct: "쇼핑백 - SBAG001",
+    rewardProduct:
+      "[50,000 ~ 100,000] 핸드크림 - SGIFT003\n[100,000 ~ ] 퍼퓸 미니 - SGIFT004",
+    channel: "TAM_NAVER_KR",
+    startDate: "2026-10-01 09:00",
+    endDate: "2027-01-01 09:00",
+  },
+  {
+    promotionTitle: "[APPLY-C3] PACKAGE 전제품 쇼핑백",
+    goal: "apply 검증 C3",
+    promotionType: "PACKAGE",
+    targetType: "ALL_PRODUCT",
+    purchaseBasis: "",
+    purchaseQuantity: "",
+    rewardBasis: "PER_PRODUCT_QUANTITY",
+    targetProduct: "",
+    excludedProduct: "쇼핑백 - SBAG001\n제품E - STB0005",
+    rewardProduct: "쇼핑백 - SPKG001",
+    channel: "TAM_NAVER_KR\nTAM_KAKAO_KR\nTAM_Official_KR",
+    startDate: "2026-10-01 09:00",
+    endDate: "",
+  },
+  {
+    promotionTitle: "[APPLY-C2] GWP 수량비례 다중세트",
+    goal: "apply 검증 C2",
+    promotionType: "GWP",
+    targetType: "SPECIFIC_PRODUCT",
+    purchaseBasis: "ANY",
+    purchaseQuantity: 2,
+    rewardBasis: "PER_PRODUCT_QUANTITY",
+    targetProduct: "제품B - STB0002",
+    excludedProduct: "",
+    rewardProduct: "샘플 키트 - SGIFT002",
+    channel: "TAM_NAVER_KR",
+    startDate: "2026-10-01 09:00",
+    endDate: "2027-01-01 09:00",
+  },
+  {
+    promotionTitle: "[APPLY-C1] GWP 특정제품 주문당 1회",
+    goal: "apply 검증 C1",
+    promotionType: "GWP",
+    targetType: "SPECIFIC_PRODUCT",
+    purchaseBasis: "ANY",
+    purchaseQuantity: 2,
+    rewardBasis: "PER_ORDER",
+    targetProduct: "제품A - STB0001",
+    excludedProduct: "",
+    rewardProduct: "미니 파우치 - SGIFT001",
+    channel: "TAM_KAKAO_KR",
+    startDate: "2026-10-01 09:00",
+    endDate: "2027-01-01 09:00",
+  },
+];
 
 // 단축키 아이템
 export const SHORTCUTS_ITEMS = (

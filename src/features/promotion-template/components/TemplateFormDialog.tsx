@@ -1,12 +1,18 @@
 "use client";
 
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Box,
   Button,
+  Chip,
   Dialog,
+  IconButton,
+  InputAdornment,
   MenuItem,
   Select,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
@@ -21,9 +27,11 @@ import {
 import ProductPicker from "@/features/promotion-template/components/ProductPicker";
 import {
   BORDER,
+  BRAND,
   BRAND_SOFT,
   CUSTOM_GOAL,
   GOALS,
+  MAX_AMOUNT_RANGES,
   PRODUCT_BY_SAP,
   REWARD_BASIS_OPTIONS,
   REWARD_TYPE_OPTIONS,
@@ -36,13 +44,26 @@ import {
   inputSx,
   isRewardProduct,
   isTargetProduct,
+  rangeColor,
 } from "@/features/promotion-template/modules/constants";
 import {
   PromotionTemplate,
+  TemplateAmountRange,
   TemplateDraft,
   TemplateProduct,
 } from "@/features/promotion-template/modules/types";
-import { validateTemplate } from "@/features/promotion-template/modules/utils";
+import {
+  normalizeDraft,
+  rangeText,
+  validateTemplate,
+} from "@/features/promotion-template/modules/utils";
+
+const emptyRange = (): TemplateAmountRange => ({
+  min: 0,
+  max: 0,
+  unlimited: true,
+  rewards: [],
+});
 
 const emptyDraft = (): TemplateDraft => ({
   name: "",
@@ -51,7 +72,7 @@ const emptyDraft = (): TemplateDraft => ({
   tmode: "product",
   basis: "any",
   skus: [],
-  minAmount: 100000,
+  amountRanges: [emptyRange()],
   qty: 1,
   rewardBasis: "per_order",
   multiplier: 1,
@@ -66,7 +87,10 @@ const toDraft = (t: PromotionTemplate): TemplateDraft => ({
   tmode: t.tmode,
   basis: t.basis,
   skus: [...t.skus],
-  minAmount: t.minAmount,
+  // 구간이 없는 템플릿(Order Amount 외)은 Order Amount 로 바꿀 때를 위해 빈 구간 1개로 시작
+  amountRanges: t.amountRanges.length
+    ? t.amountRanges.map((r) => ({ ...r, rewards: [...r.rewards] }))
+    : [emptyRange()],
   qty: t.qty,
   rewardBasis: t.rewardBasis,
   multiplier: t.multiplier,
@@ -129,6 +153,65 @@ export default function TemplateFormDialog({
       isGwp ? isRewardProduct(p) : p.category === "Packaging",
     [isGwp],
   );
+
+  // Target 변경 — All Products 는 Reward Type 을 사용하지 않으므로 Default Gift 로 고정 (프로모션 등록 화면과 동일)
+  const setTmode = (tmode: TemplateDraft["tmode"]) =>
+    patch(tmode === "all" ? { tmode, rewardType: "default" } : { tmode });
+
+  // ---- Order Amount 구간 mutations (프로모션 등록 화면과 동일 규칙) ----
+  // 구간 사이에 공백/중복이 생기지 않도록 이웃 구간의 경계값을 함께 맞춘다
+  const setRanges = (
+    fn: (ranges: TemplateAmountRange[]) => TemplateAmountRange[],
+  ) => setDraft((d) => ({ ...d, amountRanges: fn(d.amountRanges) }));
+
+  const patchRange = (idx: number, p: Partial<TemplateAmountRange>) =>
+    setRanges((prev) => {
+      const ranges = prev.map((r, i) => (i === idx ? { ...r, ...p } : r));
+      if (p.max !== undefined && ranges[idx + 1])
+        ranges[idx + 1] = { ...ranges[idx + 1], min: p.max };
+      if (p.min !== undefined && idx > 0)
+        ranges[idx - 1] = { ...ranges[idx - 1], max: p.min };
+      return ranges;
+    });
+
+  // 무제한은 마지막 구간만 가질 수 있으므로 새로 추가된 구간으로 넘긴다
+  const addRange = () =>
+    setRanges((prev) => {
+      if (prev.length >= MAX_AMOUNT_RANGES) return prev;
+      const lastIdx = prev.length - 1;
+      const last = prev[lastIdx];
+      const boundary = last.unlimited ? last.min : last.max;
+      return [
+        ...prev.map((r, i) =>
+          i === lastIdx ? { ...r, unlimited: false, max: boundary } : r,
+        ),
+        { min: boundary, max: 0, unlimited: last.unlimited, rewards: [] },
+      ];
+    });
+
+  // 삭제된 자리를 기준으로 앞뒤 구간을 다시 이어 붙인다
+  const removeRange = (idx: number) =>
+    setRanges((prev) => {
+      if (prev.length <= 1) return prev;
+      const removed = prev[idx];
+      const ranges = prev.filter((_, i) => i !== idx);
+      if (idx === 0) ranges[0] = { ...ranges[0], min: removed.min };
+      else if (ranges[idx])
+        ranges[idx] = { ...ranges[idx], min: ranges[idx - 1].max };
+      if (removed.unlimited)
+        ranges[ranges.length - 1] = {
+          ...ranges[ranges.length - 1],
+          unlimited: true,
+        };
+      return ranges;
+    });
+
+  const toggleLastUnlimited = () =>
+    setRanges((prev) =>
+      prev.map((r, i) =>
+        i === prev.length - 1 ? { ...r, unlimited: !r.unlimited } : r,
+      ),
+    );
 
   // Packaging Benefit 으로 바꾸면 Packaging 카테고리가 아닌 Reward 제품만 제거
   // (Reward Type 은 유지 — Option Select 는 타입과 무관하게 사용 가능, 프로모션 등록 화면과 동일)
@@ -301,7 +384,7 @@ export default function TemplateFormDialog({
         <SectionCard num="2" title="Target">
           <Segmented
             value={draft.tmode}
-            onChange={(tmode) => patch({ tmode })}
+            onChange={setTmode}
             // Packaging Benefit 은 Order Amount 조건을 사용할 수 없다
             options={TARGET_MODE_OPTIONS.map((o) =>
               o.value === "amount" ? { ...o, disabled: !isGwp } : o,
@@ -348,25 +431,142 @@ export default function TemplateFormDialog({
           )}
 
           {draft.tmode === "amount" && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.5,
-                flexWrap: "wrap",
-              }}
-            >
-              <FieldLabel>Minimum Order Amount</FieldLabel>
-              <TextField
-                type="number"
-                value={draft.minAmount}
-                onChange={(e) => patch({ minAmount: Number(e.target.value) })}
-                inputProps={{ step: 10000, min: 0 }}
-                sx={{ ...numberSx, width: 150 }}
-              />
-              <Typography sx={{ fontSize: 13, color: TEXT_SECONDARY }}>
-                KRW or more
-              </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+              <FieldLabel>
+                Order Amount Ranges ({draft.amountRanges.length}/
+                {MAX_AMOUNT_RANGES})
+              </FieldLabel>
+              <Note>
+                Lower bound is inclusive (≤), upper bound is exclusive (&lt;).
+                Each range gets its own reward products in step 3.
+              </Note>
+              {draft.amountRanges.map((r, i) => {
+                const isLast = i === draft.amountRanges.length - 1;
+                return (
+                  <Box
+                    key={i}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.25,
+                      flexWrap: "wrap",
+                      p: "10px 12px",
+                      border: `1px solid ${BORDER}`,
+                      borderRadius: "10px",
+                      background: "#fff",
+                    }}
+                  >
+                    <Chip
+                      label={`Range ${i + 1}`}
+                      size="small"
+                      sx={{
+                        height: 24,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "#fff",
+                        background: rangeColor(i),
+                      }}
+                    />
+                    <TextField
+                      type="number"
+                      value={r.min}
+                      onChange={(e) =>
+                        patchRange(i, { min: Number(e.target.value) || 0 })
+                      }
+                      inputProps={{ step: 10000, min: 0 }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">KRW</InputAdornment>
+                        ),
+                      }}
+                      sx={{ ...numberSx, width: 170 }}
+                    />
+                    <Typography sx={{ fontSize: 14, color: TEXT_SECONDARY }}>
+                      ≤ ~ &lt;
+                    </Typography>
+                    {r.unlimited ? (
+                      <Box
+                        sx={{
+                          width: 170,
+                          height: 40,
+                          display: "flex",
+                          alignItems: "center",
+                          px: 1.5,
+                          border: `1.5px solid ${BORDER}`,
+                          borderRadius: "10px",
+                          background: SURFACE_SUNKEN,
+                          color: TEXT_TERTIARY,
+                          fontSize: 14,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Unlimited ∞
+                      </Box>
+                    ) : (
+                      <TextField
+                        type="number"
+                        value={r.max}
+                        onChange={(e) =>
+                          patchRange(i, { max: Number(e.target.value) || 0 })
+                        }
+                        inputProps={{ step: 10000, min: 0 }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              KRW
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{ ...numberSx, width: 170 }}
+                      />
+                    )}
+                    {isLast && (
+                      <Box
+                        onClick={toggleLastUnlimited}
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 0.25,
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Switch size="small" checked={r.unlimited} />
+                        <Typography
+                          sx={{ fontSize: 12, color: TEXT_SECONDARY }}
+                        >
+                          No maximum limit
+                        </Typography>
+                      </Box>
+                    )}
+                    {draft.amountRanges.length > 1 && (
+                      <IconButton
+                        size="small"
+                        onClick={() => removeRange(i)}
+                        sx={{ color: TEXT_TERTIARY, ml: "auto" }}
+                      >
+                        <CloseIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    )}
+                  </Box>
+                );
+              })}
+              {draft.amountRanges.length < MAX_AMOUNT_RANGES && (
+                <Button
+                  onClick={addRange}
+                  startIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    textTransform: "none",
+                    border: `1px dashed ${BRAND}`,
+                    background: BRAND_SOFT,
+                    color: BRAND,
+                    borderRadius: "10px",
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  Add Range
+                </Button>
+              )}
             </Box>
           )}
 
@@ -423,35 +623,9 @@ export default function TemplateFormDialog({
                   ? "Packaging Benefit is always given per product quantity. Reward Basis is fixed to Per product quantity."
                   : draft.rewardBasis === "per_order"
                     ? "The reward is given once per order when the condition is met. e.g. no matter how many target products are bought, 1 set is given."
-                    : "The reward is given per target product quantity. e.g. 3 target products → 3 rewards (× multiplier)."}
+                    : "The reward is given per target product quantity. e.g. 3 target products → 3 rewards."}
               </Note>
             </Box>
-            {draft.rewardBasis === "per_qty" && (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.25,
-                  flexWrap: "wrap",
-                }}
-              >
-                <FieldLabel>Reward per unit</FieldLabel>
-                <TextField
-                  type="number"
-                  value={draft.multiplier}
-                  onChange={(e) =>
-                    patch({
-                      multiplier: Math.max(1, Number(e.target.value) || 1),
-                    })
-                  }
-                  inputProps={{ min: 1 }}
-                  sx={numberSx}
-                />
-                <Typography sx={{ fontSize: 13, color: TEXT_SECONDARY }}>
-                  per purchased quantity
-                </Typography>
-              </Box>
-            )}
           </Box>
         </SectionCard>
 
@@ -461,28 +635,89 @@ export default function TemplateFormDialog({
             sold / alert quantity per reward product — quantities are entered in
             each registered promotion.
           </Note>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-            <FieldLabel>Reward Type</FieldLabel>
-            <Segmented
-              value={draft.rewardType}
-              onChange={(rewardType) => patch({ rewardType })}
-              options={REWARD_TYPE_OPTIONS}
+          {/* Reward Type — All Products 에서는 숨기고 Default Gift 로 고정 (프로모션 등록 화면과 동일) */}
+          {draft.tmode !== "all" && (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+              <FieldLabel>Reward Type</FieldLabel>
+              <Segmented
+                value={draft.rewardType}
+                onChange={(rewardType) => patch({ rewardType })}
+                options={REWARD_TYPE_OPTIONS}
+              />
+              <Note warn={isOption}>
+                {isOption
+                  ? draft.tmode === "amount"
+                    ? "Option Select is available on Official channels only — other channels are disabled in Multi Register. The customer picks one of the rewards of the range their order amount falls into."
+                    : "Option Select is available on Official channels only — other channels are disabled in Multi Register. The customer picks one of the rewards below."
+                  : draft.tmode === "amount"
+                    ? "All reward products set for the matching range are given as gifts."
+                    : isGwp
+                      ? "All reward products below are given as gifts."
+                      : "All reward products below are given as gifts. Packaging Benefit rewards are limited to Packaging-category products."}
+              </Note>
+            </Box>
+          )}
+          {draft.tmode === "amount" ? (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <FieldLabel>Reward Products by Range</FieldLabel>
+              <Note>
+                Choose which products each range gives. Quantities are set once
+                per SKU in each registered promotion (Shared SKU Inventory).
+              </Note>
+              {draft.amountRanges.map((r, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1,
+                    p: "12px 14px",
+                    border: `1px solid ${BORDER}`,
+                    borderTop: `4px solid ${rangeColor(i)}`,
+                    borderRadius: "10px",
+                    background: "#fff",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Chip
+                      label={`Range ${i + 1}`}
+                      size="small"
+                      sx={{
+                        height: 22,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "#fff",
+                        background: rangeColor(i),
+                      }}
+                    />
+                    <Typography sx={{ fontSize: 13, color: TEXT_SECONDARY }}>
+                      {rangeText(r)}
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 12, color: TEXT_TERTIARY, ml: "auto" }}
+                    >
+                      {r.rewards.length} products
+                    </Typography>
+                  </Box>
+                  <ProductPicker
+                    label="Add Reward Product"
+                    value={r.rewards}
+                    onChange={(rewards) => patchRange(i, { rewards })}
+                    filter={rewardFilter}
+                    emptyText="Search and add reward products for this range."
+                  />
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <ProductPicker
+              label="Add Reward Product"
+              value={draft.rewards}
+              onChange={(rewards) => patch({ rewards })}
+              filter={rewardFilter}
+              emptyText="Search and add reward products below."
             />
-            <Note warn={isOption}>
-              {isOption
-                ? "Option Select is available on Official channels only — other channels are disabled in Multi Register. The customer picks one of the rewards below."
-                : isGwp
-                  ? "All reward products below are given as gifts."
-                  : "All reward products below are given as gifts. Packaging Benefit rewards are limited to Packaging-category products."}
-            </Note>
-          </Box>
-          <ProductPicker
-            label="Add Reward Product"
-            value={draft.rewards}
-            onChange={(rewards) => patch({ rewards })}
-            filter={rewardFilter}
-            emptyText="Search and add reward products below."
-          />
+          )}
         </SectionCard>
       </Box>
 
@@ -523,7 +758,7 @@ export default function TemplateFormDialog({
           <Button
             variant="contained"
             disabled={!!error}
-            onClick={() => onSave(draft)}
+            onClick={() => onSave(normalizeDraft(draft))}
             sx={{ textTransform: "none" }}
           >
             Save

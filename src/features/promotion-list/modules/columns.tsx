@@ -148,9 +148,10 @@ const renderRewardProductCell = (params: GridRenderCellParams) => {
 };
 
 // 재고 (잔여 / 전체): Reward 행과 같은 순서. Order Amount 는 구간별 재고 최소 제품 기준
+// 색상은 재고 소진(0)만 붉은색으로 강조 — Alert 이하(low) 주황색 강조는 제거
 const STOCK_COLOR: Record<StockLevel, string> = {
   empty: "#C62828",
-  low: "#B7791F",
+  low: "inherit",
   ok: "inherit",
 };
 
