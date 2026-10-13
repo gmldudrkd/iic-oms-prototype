@@ -32,11 +32,15 @@ interface SearchFormProps {
 // (템플릿은 채널을 갖지 않으므로 Channel 필터는 없음)
 export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
   const methods = useFormContext();
-  const { control, handleSubmit } = methods;
+  const { control, handleSubmit, watch } = methods;
 
-  // 모든 검색 키는 줄바꿈 복수 검색 지원 (엑셀 붙여넣기 → 줄바꿈 변환)
+  // Title 은 단일 검색만 가능, 나머지 검색 키는 줄바꿈 복수 검색 지원
+  const isTitleSearch = watch("searchKeyType") === "title";
+
+  // 복수 검색 키: 엑셀 붙여넣기 → 줄바꿈 변환
   const handlePaste = useCallback(
     (e: ClipboardEvent<HTMLDivElement>) => {
+      if (isTitleSearch) return;
       const pasted = e.clipboardData.getData("text");
       if (pasted.includes("\t") || pasted.includes("\r")) {
         e.preventDefault();
@@ -50,7 +54,7 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
         methods.setValue("searchKeyword", prefix + converted);
       }
     },
-    [methods],
+    [isTitleSearch, methods],
   );
 
   const onSubmit: SubmitHandler<FieldValues> = () => {
@@ -100,10 +104,14 @@ export default function SearchForm({ onSearch, onReset }: SearchFormProps) {
                     {...field}
                     fullWidth
                     label="Search"
-                    placeholder="Enter multiple keywords separated by line breaks"
-                    multiline
+                    placeholder={
+                      isTitleSearch
+                        ? "Enter a single keyword"
+                        : "Enter multiple keywords separated by line breaks"
+                    }
+                    multiline={!isTitleSearch}
                     minRows={1}
-                    maxRows={4}
+                    maxRows={isTitleSearch ? 1 : 4}
                     onPaste={handlePaste}
                     size="small"
                     sx={{

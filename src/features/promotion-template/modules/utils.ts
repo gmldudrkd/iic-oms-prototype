@@ -286,10 +286,17 @@ export const filterTemplates = (
   if (v.promotionType) {
     result = result.filter((t) => t.type === v.promotionType);
   }
-  const keywords = String(v.searchKeyword ?? "")
-    .split("\n")
-    .map((k) => k.trim().toLowerCase())
-    .filter(Boolean);
+  const keyword = String(v.searchKeyword ?? "")
+    .trim()
+    .toLowerCase();
+  // Title 은 단일 검색만 가능 (줄바꿈 입력 시 한 개의 키워드로 취급)
+  const keywords =
+    v.searchKeyType === "title"
+      ? [keyword].filter(Boolean)
+      : keyword
+          .split("\n")
+          .map((k) => k.trim())
+          .filter(Boolean);
   if (keywords.length > 0) {
     result = result.filter((t) => {
       const field = searchFieldOf(t, v.searchKeyType).toLowerCase();

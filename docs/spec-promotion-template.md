@@ -39,7 +39,7 @@
 | 필드 | 옵션 | 동작 |
 | --- | --- | --- |
 | `Promotion Type` | `All`(기본) / `GWP · Free Gift` / `Packaging Benefit` | 선택한 타입의 템플릿만 조회 |
-| `Search` | 키: `Title` / `GWP Name` / `Reward SAP Code` / `Target Product Name` / `Target SAP Code` | 줄바꿈으로 여러 키워드 입력 가능(엑셀 붙여넣기 시 탭·줄바꿈 자동 변환) |
+| `Search` | 키: `Title` / `Reward Product Name` / `Reward SAP Code` / `Target Product Name` / `Target SAP Code` | `Title` 은 **단일 키워드만** 입력(부분일치). 그 외 키는 줄바꿈으로 여러 키워드 입력 가능(엑셀 붙여넣기 시 탭·줄바꿈 자동 변환) |
 
 - 템플릿에서 **무엇을 등록했는지는 추적하지 않습니다.** 카드에 등록 건수·채널 표시를 두지 않습니다.
 - 목록 정렬: 최근 생성 순(신규 저장 시 맨 앞에 추가).
@@ -60,13 +60,13 @@
 |  | Promotion Type | `GWP · Free Gift` / `Packaging Benefit` |
 |  | Promotion Goal | Create Promotion 과 동일한 선택지(`Increase Sales` / `Acquire New Customers` / `Drive Repurchase` / `Promote New Products` / `Clear Inventory` / `Boost Brand Awareness`) + `Custom`(직접 입력, 필수) |
 | 2. Target | 모드 | `Specific Product` / `Order Amount` / `All Products` |
-|  | Target Purchase Basis | Specific Product 일 때 `Any` / `All` |
-|  | 대상 제품 | Specific Product 일 때 1개 이상 필수. 상품 검색(SAP Code / Product Name / Model Code, 줄바꿈 복수 키워드). `+ Select all (N)` 으로 검색 결과 일괄 추가, `Remove all (N)` 으로 선택 제품 일괄 제거 |
-|  | Minimum Order Amount | Order Amount 일 때 0 초과 필수 (KRW) |
+|  | Target Purchase Basis | Specific Product 일 때 `Any` / `All`. **Any 는 대상 제품 수량을 합산**해 Purchase Quantity 이상이면 충족(A,B 각 1개 · Purchase Quantity 2 → 충족), **All 은 대상 제품 각각**이 Purchase Quantity 이상이어야 충족. 시뮬레이션 표기: Any `Any items (total ≥ n): 합계 / n met`, All `All items (each ≥ n): 충족 제품 수 / 대상 제품 수 met` |
+|  | 대상 제품 | Specific Product 일 때 1개 이상 필수. 상품 검색(Product Name / SAP Code / ModelPack2, 줄바꿈 복수 키워드). **검색 전에는 제품 목록을 노출하지 않으며(디폴트 없음)**, `Product Name` 은 키워드 **1개면 부분일치**, **2개 이상이면 각 키워드 정확일치 OR** 로 조회. `SAP Code` · `ModelPack2` 는 키워드 수와 무관하게 **항상 정확일치(OR)** 로 조회. `+ Select all (N)` 으로 검색 결과 일괄 추가, `Remove all (N)` 으로 선택 제품 일괄 제거 |
+|  | Order Amount Ranges | Order Amount 일 때 노출. 프로모션 등록 화면과 동일 — 최대 5개, 하한 포함(≤)·상한 미포함(<), 마지막 구간만 Unlimited, 첫 구간 하한 0 초과·상한 > 하한 필수 (KRW) |
 |  | Purchase Quantity | 1~99 |
 |  | Reward Basis | `Per order` / `Per product quantity`(선택 시 `Reward per unit` 입력 노출) |
-| 3. Reward · Benefit | Reward Type | `Default Gift` / `Option Select`. Promotion Type 과 무관하게 선택 가능(프로모션 등록 화면과 동일). Option Select 는 자사몰(Official) 채널 전용 |
-|  | Reward 제품 | 1개 이상 필수. GWP 는 GWP·Packaging 카테고리, Packaging Benefit 은 Packaging 카테고리만 검색. `Select all` / `Remove all` 동일 제공 |
+| 3. Reward · Benefit | Reward Type | `Default Gift` / `Option Select`. Promotion Type 과 무관하게 선택 가능(프로모션 등록 화면과 동일). Option Select 는 자사몰(Official) 채널 전용. **Target = All Products 이면 Reward Type 미노출 · Default Gift 고정** |
+|  | Reward 제품 | 1개 이상 필수. GWP 는 GWP·Packaging 카테고리, Packaging Benefit 은 Packaging 카테고리만 검색. 검색 규칙(디폴트 없음 · Product Name 은 1개 부분일치/2개 이상 정확일치 OR · SAP Code/ModelPack2 는 항상 정확일치)은 대상 제품과 동일. `Select all` / `Remove all` 동일 제공. Target = Order Amount 는 **구간별로 Reward 제품 선택(구간마다 1개 이상 필수)**, 수량은 저장하지 않음 |
 
 - 하단 버튼: `Cancel` · `Save`. 필수값(Template Name, 대상 제품/최소 금액, Reward 제품)이 비면 `Save` 비활성. 멀티 등록은 저장 후 카드의 `Multi Register` 로 진행
 - 편집 모드에서는 좌하단에 **`Delete`** 버튼만 노출
@@ -104,7 +104,9 @@
 | 팝업 | 타입 필터 칩 + 이름/리워드 검색, 템플릿 행(이름·타입 배지 / Target·Condition / Reward·SAP) 선택 후 `Load Template`(더블클릭·Enter 도 가능) |
 | 적용 범위 | 템플릿 기준으로 덮어쓰기 |
 | Option Select 템플릿 | 판매 채널을 **자사몰(Official) 채널로 자동 설정** — 사용 가능한 Official 채널이 여러 개면 목록 최상단 1개만 선택(기존 채널 선택은 대체). Official 채널이 없는 Brand & Corp 이면 **템플릿을 적용하지 않고** 알럿 `Template not applicable — This template uses Option Select, which is only available on the official store. The selected Brand & Corp has no official store channel, so the template cannot be applied.` 노출 |
-| Reward 재고 | 불러온 Reward 제품은 Total · Sold · Alert 0 으로 시작 → 사용자가 입력 |
+| Target = Order Amount 템플릿 | 템플릿의 구간 · 구간별 Reward 제품을 그대로 복원 (기존 구간 대체) |
+| All Products 템플릿 | Reward Type 은 Default Gift 고정 |
+| Reward 재고 | 불러온 Reward 제품은 Total · Sold · Alert 0 으로 시작 → 사용자가 입력. Order Amount 는 Shared SKU Inventory 에 SKU 단위로 1행씩 생성 |
 | 완료 안내 | 스낵바 `Template "{이름}" loaded. Set the period and sales channel, then save.` |
 
 ### 3-2. Save as Template (템플릿으로 등록)
@@ -113,6 +115,6 @@
 | --- | --- |
 | 노출 조건 | 완전 읽기 전용(Ended · Deleted)이 아닌 모든 등록/수정 화면 |
 | 팝업 | `Save as Template` 확인 다이얼로그. Template Name 입력(기본값 = Promotion Name), 비어 있으면 저장 불가 |
-| 저장 범위 | 현재 입력된 Basic Info · Target · Reward. Period · Channel · Status · 재고 수량은 저장하지 않음 |
+| 저장 범위 | 현재 입력된 Basic Info · Target · Reward (Order Amount 는 모든 구간 · 구간별 Reward 제품). Period · Channel · Status · 재고 수량은 저장하지 않음 |
 | 중복 | **같은 이름의 템플릿이 있어도 그대로 추가 저장**(중복 등록 허용) |
 | 완료 안내 | 스낵바 `Saved as template "{이름}". Find it under Promotion › Template.` |
