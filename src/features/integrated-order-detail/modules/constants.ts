@@ -260,6 +260,79 @@ export const CLAIM_REASON_LISTS = {
   },
 };
 
+// ------------------------------------------------------------
+// GM US / GM KR + INTELLIGENT EYEWEAR 제품 포함 주문 전용 반품 사유
+// - group(대카테고리)은 헤더로만 노출, 하위 항목만 사유로 선택 가능
+// - 귀책: CUSTOMER(고객) / SELLER(판매자) / CONDITIONAL(상황에 따라 다름 → 우선 고객 귀책으로 처리)
+const IE_FAULT = { CUSTOMER: true, SELLER: false, CONDITIONAL: true };
+
+const INTELLIGENT_EYEWEAR_RETURN_REASON_GROUPS = [
+  {
+    group: "Fit / Comfort",
+    reasons: [
+      { label: "Too Small", isCustomerFault: IE_FAULT.CUSTOMER },
+      { label: "Too Large", isCustomerFault: IE_FAULT.CUSTOMER },
+      { label: "Comfort / Weight", isCustomerFault: IE_FAULT.CUSTOMER },
+    ],
+  },
+  {
+    group: "Setup / Connectivity",
+    reasons: [
+      { label: "Phone Connection", isCustomerFault: IE_FAULT.CONDITIONAL },
+      { label: "App / Account Setup", isCustomerFault: IE_FAULT.CONDITIONAL },
+    ],
+  },
+  {
+    group: "Feature",
+    reasons: [
+      { label: "Gemini / Assistant", isCustomerFault: IE_FAULT.CONDITIONAL },
+      { label: "Camera", isCustomerFault: IE_FAULT.CONDITIONAL },
+      { label: "Audio / Microphone", isCustomerFault: IE_FAULT.CONDITIONAL },
+      { label: "Touch Controls", isCustomerFault: IE_FAULT.CONDITIONAL },
+    ],
+  },
+  {
+    group: "Battery / Charging",
+    reasons: [
+      { label: "Battery", isCustomerFault: IE_FAULT.CONDITIONAL },
+      { label: "Charging Case", isCustomerFault: IE_FAULT.CONDITIONAL },
+    ],
+  },
+  {
+    group: "Damaged / Defective",
+    reasons: [
+      { label: "Physical Damage", isCustomerFault: IE_FAULT.CONDITIONAL },
+      // 제조상 하자 확인 시
+      { label: "Physical Defect", isCustomerFault: IE_FAULT.SELLER },
+    ],
+  },
+  {
+    group: "Not as Expected",
+    reasons: [
+      { label: "Design", isCustomerFault: IE_FAULT.CUSTOMER },
+      { label: "Performance", isCustomerFault: IE_FAULT.CONDITIONAL },
+    ],
+  },
+  {
+    // 판매자 또는 배송사 귀책 확인 시
+    group: "Delivery",
+    reasons: [
+      { label: "Misdelivery", isCustomerFault: IE_FAULT.SELLER },
+      { label: "Delivery Delay", isCustomerFault: IE_FAULT.SELLER },
+    ],
+  },
+];
+
+export const INTELLIGENT_EYEWEAR_RETURN_REASONS =
+  INTELLIGENT_EYEWEAR_RETURN_REASON_GROUPS.flatMap(({ group, reasons }) =>
+    reasons.map(({ label, isCustomerFault }) => ({
+      group,
+      label,
+      value: label,
+      isCustomerFault,
+    })),
+  );
+
 export const MODAL_CONFIGS = {
   force_refund: {
     text: "Force refund processing without product pickup? This action cannot be undone.",

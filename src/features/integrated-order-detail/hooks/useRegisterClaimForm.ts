@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm, useFormState } from "react-hook-form";
 
+import { INTELLIGENT_EYEWEAR_RETURN_REASONS } from "@/features/integrated-order-detail/modules/constants";
 import { RegisterClaimSchema } from "@/features/integrated-order-detail/modules/schema";
 import { ClaimModalType } from "@/features/integrated-order-detail/modules/types";
 import { getClaimReasonList } from "@/features/integrated-order-detail/modules/utils";
@@ -11,7 +12,7 @@ import {
   OrderEstimateRefundFeeRequestFaultEnum,
 } from "@/shared/generated/oms/types/Order";
 
-const { RETURN, EXCHANGE, RESHIPMENT } =
+const { RETURN, EXCHANGE, RESHIPMENT, RETURN_FORCE_REFUND } =
   OrderEstimateRefundFeeRequestClaimTypeEnum;
 const { CUSTOMER, OPERATION } = OrderEstimateRefundFeeRequestFaultEnum;
 
@@ -41,12 +42,15 @@ interface Props {
   modalType?: ClaimModalType;
   /** INT 채널 등 픽업 요청이 불가한 경우 true (Pickup Option 기본값을 "Do Not Request Pickup"으로) */
   disablePickupRequest?: boolean;
+  /** GM US / GM KR + INTELLIGENT EYEWEAR 제품 포함 주문이면 true (Return/Force Refund 사유를 전용 사유로 노출) */
+  useIntelligentEyewearReasons?: boolean;
 }
 
 export default function useRegisterClaimForm({
   brandName,
   modalType = "DEFAULT",
   disablePickupRequest = false,
+  useIntelligentEyewearReasons = false,
 }: Props) {
   const claimReasonList = getClaimReasonList(brandName);
 
@@ -70,10 +74,20 @@ export default function useRegisterClaimForm({
   const [pickupOption, setPickupOption] =
     useState<boolean>(!disablePickupRequest);
 
-  const reasonList =
+  const isReturnClaim =
+    claimType === RETURN || claimType === RETURN_FORCE_REFUND;
+
+  const reasonList: {
+    group?: string;
+    label: string;
+    value: string;
+    isCustomerFault: boolean;
+  }[] =
     claimType === "EXCHANGE"
       ? claimReasonList.registerClaim.exchange
-      : claimReasonList.registerClaim.return;
+      : useIntelligentEyewearReasons && isReturnClaim
+        ? INTELLIGENT_EYEWEAR_RETURN_REASONS
+        : claimReasonList.registerClaim.return;
 
   const fault = reasonList.find((reason) => reason.value === claimReason)
     ?.isCustomerFault

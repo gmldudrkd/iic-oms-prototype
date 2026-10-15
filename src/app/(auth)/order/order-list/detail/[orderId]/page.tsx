@@ -17,6 +17,7 @@ export function generateStaticParams() {
     { orderId: "ord-20250201-013" },
     { orderId: "ord-20250201-019" },
     { orderId: "ord-20250201-020" },
+    { orderId: "ord-20250201-023" },
   ];
 }
 

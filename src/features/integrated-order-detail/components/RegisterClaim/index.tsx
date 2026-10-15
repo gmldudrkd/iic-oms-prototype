@@ -26,6 +26,7 @@ import useRegisterClaimForm from "@/features/integrated-order-detail/hooks/useRe
 import useSubmitClaim from "@/features/integrated-order-detail/hooks/useSubmitClaim";
 import { MODAL_CONFIGS } from "@/features/integrated-order-detail/modules/constants";
 import { TAddressForm } from "@/features/integrated-order-detail/modules/types";
+import { isIntelligentEyewearReturnOrder } from "@/features/integrated-order-detail/modules/utils";
 
 import ModalBump from "@/shared/components/modal/ModalBump";
 import ModalOrder from "@/shared/components/ModalOrder";
@@ -83,6 +84,7 @@ export default function RegisterClaim({ open, setOpen }: Props) {
   } = useRegisterClaimForm({
     brandName: data?.brand.name,
     disablePickupRequest: isIntChannel,
+    useIntelligentEyewearReasons: isIntelligentEyewearReturnOrder(data),
   });
 
   // rows & summary

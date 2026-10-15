@@ -2,6 +2,7 @@ import {
   FormControl,
   FormHelperText,
   InputLabel,
+  ListSubheader,
   MenuItem,
   Select,
   TextField,
@@ -11,6 +12,8 @@ import { Controller, useFormContext } from "react-hook-form";
 
 interface Props {
   reasonList: {
+    // 대카테고리 (있으면 헤더로 노출, 선택 불가)
+    group?: string;
     label: string;
     value: string;
     isCustomerFault: boolean;
@@ -102,11 +105,28 @@ export default function ClaimInformation({
                     await trigger(othersFieldName);
                   }}
                 >
-                  {reasonList.map((reason) => (
-                    <MenuItem key={reason.value} value={reason.value}>
-                      {reason.label}
-                    </MenuItem>
-                  ))}
+                  {reasonList.flatMap((reason, index) => {
+                    const item = (
+                      <MenuItem
+                        key={reason.value}
+                        value={reason.value}
+                        sx={reason.group ? { pl: 4 } : undefined}
+                      >
+                        {reason.label}
+                      </MenuItem>
+                    );
+                    const isNewGroup =
+                      reason.group &&
+                      reason.group !== reasonList[index - 1]?.group;
+                    return isNewGroup
+                      ? [
+                          <ListSubheader key={`group-${reason.group}`}>
+                            {reason.group}
+                          </ListSubheader>,
+                          item,
+                        ]
+                      : [item];
+                  })}
                 </Select>
               )}
             />

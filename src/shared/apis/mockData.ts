@@ -627,12 +627,41 @@ const mockOrderList = {
       shipments: [],
       status: { name: "COLLECTED", description: "Collected" },
     },
+    // GM US INTELLIGENT EYEWEAR 포함 주문 — Register Claim 시 전용 반품 사유 노출
+    {
+      brand: { name: "GENTLE_MONSTER", description: "GM" },
+      channelType: {
+        name: "GM_Official_US",
+        description: "GM_Official_US",
+      },
+      corporation: "US",
+      orderId: "ORD-20250201-023",
+      orderType: { name: "NORMAL", description: "Normal" },
+      tags: "",
+      receiveMethod: "Delivery",
+      orderedAt: threeDaysAgo,
+      ordererEmail: "olivia.bennett@example.com",
+      ordererName: "Olivia Bennett",
+      ordererPhone: "+1-555-0123",
+      originOrderNo: "GM-2025020123",
+      purchaseNo: "PUR-023",
+      recipientName: "Olivia Bennett",
+      recipientPhone: "+1-555-0123",
+      shipments: [
+        {
+          shipmentId: "SHP-023",
+          shipmentNo: "SHIP-20250201-023",
+          status: { name: "DELIVERED", description: "Delivered" },
+        },
+      ],
+      status: { name: "COMPLETED", description: "Completed" },
+    },
   ],
   isFirst: true,
   isLast: true,
   pageNumber: 0,
   pageSize: 25,
-  totalCount: 22,
+  totalCount: 23,
   totalPages: 1,
 };
 
@@ -2058,6 +2087,154 @@ const mockOrderDetail = {
 // --- 배송비를 계좌이체로 환불한 주문 상세 ---
 // 반품(환불) 시 고객이 부담한 배송비를 계좌이체(DIRECT_DEPOSIT)로 별도 환불
 // → Payment Info 에 DIRECT_DEPOSIT Refund 라인이 1건 추가됨
+// --- GM US INTELLIGENT EYEWEAR 포함 주문 상세 (ORD-20250201-023) ---
+// - Brand&Corp GM US + category "INTELLIGENT EYEWEAR" 제품 1개 이상 → Return 사유를 전용 사유로 노출
+const IE_ORDER_ITEMS = [
+  {
+    orderItemId: "OI-023-1",
+    originItemId: "ORIG-023-1",
+    sku: "S11009001",
+    productCode: "11009001",
+    productName: "GM X GOOGLE SMART GLASSES 01",
+    category: "INTELLIGENT EYEWEAR",
+    upcCode: "8809123459001",
+    thumbnailUrl: "",
+    sequence: 1,
+    orderedQuantity: 1,
+    shipmentQuantity: 1,
+    shippedQuantity: 1,
+    canceledQuantity: 0,
+    returnedQuantity: 0,
+    reshippedQuantity: 0,
+    allocateQuantity: 1,
+    price: 599,
+    subTotal: 599,
+    products: [],
+    components: [],
+  },
+  {
+    orderItemId: "OI-023-2",
+    originItemId: "ORIG-023-2",
+    sku: "S11003422",
+    productCode: "11003422",
+    productName: "GM Sunglasses",
+    upcCode: "8809123456003",
+    thumbnailUrl: "",
+    sequence: 2,
+    orderedQuantity: 1,
+    shipmentQuantity: 1,
+    shippedQuantity: 1,
+    canceledQuantity: 0,
+    returnedQuantity: 0,
+    reshippedQuantity: 0,
+    allocateQuantity: 1,
+    price: 290,
+    subTotal: 290,
+    products: [],
+    components: [
+      {
+        sku: "S11500340",
+        productCode: "11500340",
+        productName: "2025 PACKAGE SET (SUN)",
+        category: "Packaging",
+        price: 0,
+        quantity: 1,
+        shipmentQuantity: 1,
+        canceledQuantity: 0,
+        returnedQuantity: 0,
+        reshippedQuantity: 0,
+      },
+    ],
+  },
+];
+
+const mockIntelligentEyewearOrderDetail = {
+  ...mockOrderDetail,
+  brand: { name: "GENTLE_MONSTER", description: "GM" },
+  channelType: { name: "GM_Official_US", description: "GM_Official_US" },
+  corporation: "US",
+  orderId: "ORD-20250201-023",
+  originOrderNo: "GM-2025020123",
+  purchaseNo: "PUR-023",
+  orderedAt: threeDaysAgo,
+  status: { name: "COMPLETED", description: "Completed" },
+  tags: "",
+  receiveMethod: "Delivery",
+  orderer: {
+    ...mockOrderDetail.orderer,
+    fullName: "Olivia Bennett",
+    firstName: "Olivia",
+    lastName: "Bennett",
+    email: "olivia.bennett@example.com",
+    phone: "555-0123",
+  },
+  recipient: {
+    ...mockOrderDetail.recipient,
+    fullName: "Olivia Bennett",
+    firstName: "Olivia",
+    lastName: "Bennett",
+    phone: "555-0123",
+  },
+  items: IE_ORDER_ITEMS,
+  payments: [
+    {
+      currency: "USD",
+      method: "CREDIT_CARD",
+      paidAmount: 889,
+      paidAt: threeDaysAgo,
+      shippingFee: 0,
+      taxAmount: 0,
+      dutyAmount: 0,
+      transactionNo: "TXN-20250201-023",
+    },
+  ],
+  shipments: [
+    {
+      ...mockOrderDetail.shipments[0],
+      id: "SHP-023",
+      shipmentNo: "SHIP-20250201-023",
+      wmsNo: "WMS-023",
+      status: { name: "DELIVERED", description: "Delivered" },
+      event: "DELIVERED",
+      shippedAt: twoDaysAgo,
+      recipient: {
+        ...mockOrderDetail.shipments[0].recipient,
+        fullName: "Olivia Bennett",
+        firstName: "Olivia",
+        lastName: "Bennett",
+        phone: "555-0123",
+      },
+      items: IE_ORDER_ITEMS.map(
+        ({
+          orderItemId,
+          originItemId,
+          sku,
+          productCode,
+          productName,
+          sequence,
+          category,
+          components,
+        }) => ({
+          shipmentItemId: `SI-${orderItemId}`,
+          orderItemId,
+          originItemId,
+          sku,
+          productCode,
+          productName,
+          category,
+          thumbnailUrl: "",
+          sequence,
+          shipmentQuantity: 1,
+          shippedQuantity: 1,
+          canceledQuantity: 0,
+          components,
+          products: [],
+        }),
+      ),
+    },
+  ],
+};
+
 const mockDirectDepositOrderDetail = {
   ...mockOrderDetail,
   orderId: "ORD-20250201-018",
@@ -4126,6 +4303,9 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
     // 배송비를 계좌이체(DIRECT_DEPOSIT)로 환불한 주문
     if (orderId?.toLowerCase() === "ord-20250201-018")
       return mockDirectDepositOrderDetail;
+    // GM US INTELLIGENT EYEWEAR 포함 주문 (전용 반품 사유 노출)
+    if (orderId?.toLowerCase() === "ord-20250201-023")
+      return mockIntelligentEyewearOrderDetail;
     const listRow = (mockOrderList.content ?? mockOrderList.data)?.find(
       (r: { orderId: string }) =>
         r.orderId.toLowerCase() === orderId?.toLowerCase(),
