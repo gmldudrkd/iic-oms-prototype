@@ -34,7 +34,7 @@ import {
   formatProductLines,
   getPurchaseBasis,
   getPurchaseQuantity,
-  getRemaining,
+  formatStock,
   getRewardBasis,
   getRewardDisplayRows,
   getTargetTypeCode,
@@ -277,11 +277,7 @@ export default function PromotionList() {
         .join("\n"),
       // 재고 (잔여 / 전체) — 검색 시점 기준, Order Amount 는 구간별 재고 최소 제품
       stock: getRewardDisplayRows(row)
-        .map((item) =>
-          item.product.total === undefined
-            ? "-"
-            : `${getRemaining(item.product)} / ${item.product.total}`,
-        )
+        .map((item) => formatStock(item.product))
         .join("\n"),
       channel: row.triggerChannels.join("\n"),
       status: row.status,

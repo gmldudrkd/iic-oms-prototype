@@ -8,9 +8,10 @@ export interface PromotionRewardProduct {
   productName: string;
   skuCode: string;
   // 재고 정보 (Expired 판정 등에 사용) — 없으면 디테일에서 기본값 사용
-  total?: number;
-  sold?: number;
-  alert?: number;
+  // PACKAGE 프로모션은 재고관리를 하지 않아 null 로 내려온다 (리스트에서 "-" 표시)
+  total?: number | null;
+  sold?: number | null;
+  alert?: number | null;
 }
 
 // Target = Order Amount 프로모션의 금액 구간별 Reward 제품
@@ -732,9 +733,10 @@ function generateMockPromotions(): PromotionRow[] {
         {
           productName: c.reward,
           skuCode: c.sku,
-          total: 500,
-          sold: 38,
-          alert: 50,
+          // PACKAGE 는 재고관리 안 함 → null
+          total: c.type === "PACKAGE" ? null : 500,
+          sold: c.type === "PACKAGE" ? null : 38,
+          alert: c.type === "PACKAGE" ? null : 50,
         },
       ],
       startDate: dateFrom(c.start),

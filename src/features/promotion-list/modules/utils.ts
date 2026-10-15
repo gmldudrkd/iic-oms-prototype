@@ -23,12 +23,23 @@ export const getTargetType = (triggerType: string): PromotionTargetType => {
 export const getRemaining = (p: PromotionRewardProduct) =>
   Math.max(0, (p.total ?? 0) - (p.sold ?? 0));
 
+// 재고 미관리(PACKAGE 등 total 이 null/undefined) 여부 — 리스트·엑셀에서 "-" 로 표시
+export const hasStock = (p: PromotionRewardProduct) => p.total != null;
+
+// 재고 (잔여 / 전체) 표기. 재고 미관리 시 "-"
+export const formatStock = (p: PromotionRewardProduct, localize = false) => {
+  if (!hasStock(p)) return "-";
+  const fmt = (n: number) => (localize ? n.toLocaleString() : String(n));
+  return `${fmt(getRemaining(p))} / ${fmt(p.total as number)}`;
+};
+
 // 재고 표시 단계: 소진(0) / 경고(Alert 이하) / 정상
 export type StockLevel = "empty" | "low" | "ok";
 export const getStockLevel = (p: PromotionRewardProduct): StockLevel => {
+  if (!hasStock(p)) return "ok";
   const remaining = getRemaining(p);
   if (remaining <= 0) return "empty";
-  if (p.alert !== undefined && remaining <= p.alert) return "low";
+  if (p.alert != null && remaining <= p.alert) return "low";
   return "ok";
 };
 

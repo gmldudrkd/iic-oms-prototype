@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { PromotionRow } from "@/features/promotion-list/modules/mockData";
 import {
-  getRemaining,
+  formatStock,
   getRewardDisplayRows,
   getStockLevel,
   getTargetType,
@@ -169,9 +169,7 @@ const renderStockCell = (params: GridRenderCellParams) => {
             className={REWARD_LINE_CLASS}
             style={{ color: STOCK_COLOR[level], fontWeight: 600 }}
           >
-            {item.product.total === undefined
-              ? "-"
-              : `${getRemaining(item.product).toLocaleString()} / ${item.product.total.toLocaleString()}`}
+            {formatStock(item.product, true)}
           </div>
         );
       })}

@@ -1993,12 +1993,14 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
     const isProducts = f.condMode === "products";
     const toReward = (p: SelectedProduct): PromotionRewardProduct => {
       const inv = f.inventory[p.id] ?? { total: 0, sold: 0, alert: 0 };
+      // PACKAGE 는 재고관리를 하지 않으므로 재고 수량을 null 로 저장 (리스트에서 "-" 표시)
+      const isPackage = f.promoType === "package";
       return {
         productName: p.name,
         skuCode: p.id,
-        total: inv.total,
-        sold: inv.sold,
-        alert: inv.alert,
+        total: isPackage ? null : inv.total,
+        sold: isPackage ? null : inv.sold,
+        alert: isPackage ? null : inv.alert,
       };
     };
     const toTarget = (p: SelectedProduct): PromotionTargetProduct => ({
