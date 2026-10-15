@@ -411,8 +411,10 @@ const fmtDate = (dt: Date) => {
   const base = `${dt.getFullYear()}. ${String(dt.getMonth() + 1).padStart(2, "0")}. ${String(
     dt.getDate(),
   ).padStart(2, "0")}`;
-  // 시(hour) 단위로만 설정 가능 → 분은 항상 00 으로 표기
-  return `${base} ${String(dt.getHours()).padStart(2, "0")}:00`;
+  // 분(minute) 단위까지 표기
+  return `${base} ${String(dt.getHours()).padStart(2, "0")}:${String(
+    dt.getMinutes(),
+  ).padStart(2, "0")}`;
 };
 
 const DAY = 86400000;
@@ -642,9 +644,9 @@ const inputSx = {
   },
 };
 
-// 시(hour) 단위 일시 선택 — 값은 datetime-local 형식("YYYY-MM-DDTHH:00")
-const HOUR_VALUE_FORMAT = "YYYY-MM-DDTHH:00";
-function HourDateTimePicker({
+// 분(minute) 단위 일시 선택 — 값은 datetime-local 형식("YYYY-MM-DDTHH:mm")
+const MINUTE_VALUE_FORMAT = "YYYY-MM-DDTHH:mm";
+function MinuteDateTimePicker({
   value,
   onChange,
   disabled,
@@ -662,13 +664,19 @@ function HourDateTimePicker({
         value={parsed && parsed.isValid() ? parsed : null}
         onChange={(v) =>
           onChange(
-            v && v.isValid() ? v.startOf("hour").format(HOUR_VALUE_FORMAT) : "",
+            v && v.isValid()
+              ? v.startOf("minute").format(MINUTE_VALUE_FORMAT)
+              : "",
           )
         }
-        views={["year", "month", "day", "hours"]}
-        format="YYYY. MM. DD HH:[00]"
+        views={["year", "month", "day", "hours", "minutes"]}
+        format="YYYY. MM. DD HH:mm"
         ampm={false}
-        localeText={{ fieldHoursPlaceholder: () => "HH" }}
+        timeSteps={{ minutes: 1 }}
+        localeText={{
+          fieldHoursPlaceholder: () => "HH",
+          fieldMinutesPlaceholder: () => "mm",
+        }}
         minDateTime={min ? dayjs(min) : undefined}
         disabled={disabled}
         slotProps={{ textField: { fullWidth: true, sx: inputSx } }}
@@ -990,12 +998,14 @@ function EmptyHint({ text }: { text: string }) {
 
 type Mode = "add" | "edit";
 
-// 현재 시각을 datetime-local 값("YYYY-MM-DDTHH:00")으로 (분은 00 고정, 시 단위)
+// 현재 시각을 datetime-local 값("YYYY-MM-DDTHH:mm")으로 (분 단위)
 const nowLocal = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
     d.getDate(),
-  ).padStart(2, "0")}T${String(d.getHours()).padStart(2, "0")}:00`;
+  ).padStart(2, "0")}T${String(d.getHours()).padStart(2, "0")}:${String(
+    d.getMinutes(),
+  ).padStart(2, "0")}`;
 };
 
 // 신규 등록: 기본값 없음 (셀렉트/라디오는 첫 값, 시작일=오늘, 종료일 미선택)
@@ -1026,9 +1036,10 @@ const toISO = (s: string) => {
   if (!s) return "";
   const [datePart, timePart = ""] = s.trim().split(/\s+/);
   const d = datePart.replace(/\./g, "-");
-  // 시(hour) 단위만 사용 → 분은 00 으로 절삭
+  // 분(minute) 단위까지 사용 → 초는 절삭
   const hh = timePart.slice(0, 2) || "00";
-  return `${d}T${hh}:00`;
+  const mm = timePart.slice(3, 5) || "00";
+  return `${d}T${hh}:${mm}`;
 };
 
 interface EditData {
@@ -2605,7 +2616,7 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                     sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}
                   >
                     <FieldLabel>Start Date</FieldLabel>
-                    <HourDateTimePicker
+                    <MinuteDateTimePicker
                       value={form.start}
                       onChange={(v) => patch({ start: v })}
                       disabled={locked}
@@ -2617,7 +2628,7 @@ export default function PromotionFormV2({ mode = "add", promotionId }: Props) {
                     sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}
                   >
                     <FieldLabel>End Date</FieldLabel>
-                    <HourDateTimePicker
+                    <MinuteDateTimePicker
                       value={form.end}
                       onChange={(v) => patch({ end: v })}
                       // 진행 중(Active)인 프로모션도 종료일은 수정 가능

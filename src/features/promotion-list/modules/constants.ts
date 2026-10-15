@@ -80,7 +80,9 @@ export const MULTI_SEARCH_KEY_TYPES = [
 ];
 
 // Import 템플릿 컬럼 (헤더명은 업로드 파싱 키와 동일해야 함) — Export 엑셀과 동일한 표기
+// ID · stock · status · createdDate 는 참고용 컬럼으로 업로드 시 무시됨
 export const IMPORT_TEMPLATE_COLUMNS: { key: string; width: number }[] = [
+  { key: "ID", width: 22 },
   { key: "promotionTitle", width: 30 },
   { key: "goal", width: 24 },
   { key: "promotionType", width: 14 },
@@ -91,7 +93,10 @@ export const IMPORT_TEMPLATE_COLUMNS: { key: string; width: number }[] = [
   { key: "targetProduct", width: 24 },
   { key: "excludedProduct", width: 24 },
   { key: "rewardProduct", width: 40 },
+  { key: "stock", width: 14 },
   { key: "channel", width: 20 },
+  { key: "status", width: 10 },
+  { key: "createdDate", width: 14 },
   { key: "startDate", width: 18 },
   { key: "endDate", width: 18 },
 ];
@@ -110,8 +115,10 @@ export const IMPORT_PROMOTION_TYPES = ["GWP", "PACKAGE"] as const;
 // - 제품은 "제품명 - 코드" 형식, 여러 개는 줄바꿈(Alt+Enter)으로 구분
 // - Order Amount 의 rewardProduct 는 "[하한 ~ 상한] 제품명 - 코드" (상한 비우면 무제한)
 // - endDate 를 비우면 상시(Always-on)
+// - ID 는 18자리라 숫자 정밀도 손실 방지를 위해 문자열로 기록
 export const IMPORT_TEMPLATE_SAMPLE_ROWS: Record<string, string | number>[] = [
   {
+    ID: "888316278706322137",
     promotionTitle: "[APPLY-C6] GWP 옵션선택 자사몰전용",
     goal: "apply 검증 C6 OPTION_SELECT",
     promotionType: "GWP",
@@ -122,11 +129,15 @@ export const IMPORT_TEMPLATE_SAMPLE_ROWS: Record<string, string | number>[] = [
     targetProduct: "제품F - STB0006",
     excludedProduct: "",
     rewardProduct: "선택 사은품 A - SGIFT006\n선택 사은품 B - SGIFT007",
+    stock: "99 / 100\n100 / 100",
     channel: "TAM_Official_KR",
-    startDate: "2026-10-01 09:00",
+    status: "Active",
+    createdDate: "2026-09-17",
+    startDate: "2026-09-01",
     endDate: "2027-01-01 09:00",
   },
   {
+    ID: "888316250721925879",
     promotionTitle: "[APPLY-C5] GWP 재고 1개 소진종료",
     goal: "apply 검증 C5 SOLD_OUT",
     promotionType: "GWP",
@@ -137,11 +148,15 @@ export const IMPORT_TEMPLATE_SAMPLE_ROWS: Record<string, string | number>[] = [
     targetProduct: "제품E - STB0005",
     excludedProduct: "",
     rewardProduct: "한정 사은품 - SGIFT005",
+    stock: "0 / 100",
     channel: "TAM_KAKAO_KR",
-    startDate: "2026-09-01 09:00",
+    status: "Ended",
+    createdDate: "2026-09-17",
+    startDate: "2026-09-01",
     endDate: "2026-09-17 16:05",
   },
   {
+    ID: "888316114549652059",
     promotionTitle: "[APPLY-C4] GWP 금액구간 사은품",
     goal: "apply 검증 C4",
     promotionType: "GWP",
@@ -153,11 +168,15 @@ export const IMPORT_TEMPLATE_SAMPLE_ROWS: Record<string, string | number>[] = [
     excludedProduct: "쇼핑백 - SBAG001",
     rewardProduct:
       "[50,000 ~ 100,000] 핸드크림 - SGIFT003\n[100,000 ~ ] 퍼퓸 미니 - SGIFT004",
+    stock: "499 / 500\n499 / 500",
     channel: "TAM_NAVER_KR",
-    startDate: "2026-10-01 09:00",
+    status: "Active",
+    createdDate: "2026-09-17",
+    startDate: "2026-09-01",
     endDate: "2027-01-01 09:00",
   },
   {
+    ID: "888316092009462393",
     promotionTitle: "[APPLY-C3] PACKAGE 전제품 쇼핑백",
     goal: "apply 검증 C3",
     promotionType: "PACKAGE",
@@ -168,11 +187,15 @@ export const IMPORT_TEMPLATE_SAMPLE_ROWS: Record<string, string | number>[] = [
     targetProduct: "",
     excludedProduct: "쇼핑백 - SBAG001\n제품E - STB0005",
     rewardProduct: "쇼핑백 - SPKG001",
+    stock: "-",
     channel: "TAM_NAVER_KR\nTAM_KAKAO_KR\nTAM_Official_KR",
-    startDate: "2026-10-01 09:00",
+    status: "Active",
+    createdDate: "2026-09-17",
+    startDate: "2026-09-01",
     endDate: "",
   },
   {
+    ID: "888313754997799316",
     promotionTitle: "[APPLY-C2] GWP 수량비례 다중세트",
     goal: "apply 검증 C2",
     promotionType: "GWP",
@@ -183,11 +206,15 @@ export const IMPORT_TEMPLATE_SAMPLE_ROWS: Record<string, string | number>[] = [
     targetProduct: "제품B - STB0002",
     excludedProduct: "",
     rewardProduct: "샘플 키트 - SGIFT002",
+    stock: "496 / 500",
     channel: "TAM_NAVER_KR",
-    startDate: "2026-10-01 09:00",
+    status: "Active",
+    createdDate: "2026-09-17",
+    startDate: "2026-09-01",
     endDate: "2027-01-01 09:00",
   },
   {
+    ID: "888313729018280442",
     promotionTitle: "[APPLY-C1] GWP 특정제품 주문당 1회",
     goal: "apply 검증 C1",
     promotionType: "GWP",
@@ -198,8 +225,11 @@ export const IMPORT_TEMPLATE_SAMPLE_ROWS: Record<string, string | number>[] = [
     targetProduct: "제품A - STB0001",
     excludedProduct: "",
     rewardProduct: "미니 파우치 - SGIFT001",
+    stock: "499 / 500",
     channel: "TAM_KAKAO_KR",
-    startDate: "2026-10-01 09:00",
+    status: "Active",
+    createdDate: "2026-09-17",
+    startDate: "2026-09-01",
     endDate: "2027-01-01 09:00",
   },
 ];

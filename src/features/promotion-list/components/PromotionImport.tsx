@@ -139,15 +139,45 @@ export default function PromotionImport({
   const handleCloseMenu = () => setAnchorEl(null);
 
   // 템플릿 다운로드: 헤더 + 케이스별 샘플 행 (Export 엑셀과 동일한 컬럼 표기)
-  const handleDownloadTemplate = useCallback(() => {
+  // 셀 내 줄바꿈(여러 제품 · 재고 · 채널)이 보이도록 wrapText 서식을 적용해야 해서 ExcelJS 로 작성
+  const handleDownloadTemplate = useCallback(async () => {
     handleCloseMenu();
-    const ws = XLSX.utils.json_to_sheet(IMPORT_TEMPLATE_SAMPLE_ROWS, {
-      header: IMPORT_TEMPLATE_COLUMNS.map((c) => c.key),
+    const { default: ExcelJS } = await import("exceljs");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Promotions");
+    ws.columns = IMPORT_TEMPLATE_COLUMNS.map((c) => ({
+      header: c.key,
+      key: c.key,
+      width: c.width,
+    }));
+    ws.addRows(IMPORT_TEMPLATE_SAMPLE_ROWS);
+
+    const headerRow = ws.getRow(1);
+    headerRow.font = { bold: true };
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFD9D9D9" },
+      };
     });
-    ws["!cols"] = IMPORT_TEMPLATE_COLUMNS.map((c) => ({ wch: c.width }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Promotions");
-    XLSX.writeFile(wb, "IIC_OMS_Promotion_Import_Template.xlsx");
+    ws.eachRow((row) => {
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.alignment = { vertical: "top", wrapText: true };
+      });
+    });
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const url = URL.createObjectURL(
+      new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "IIC_OMS_Promotion_Import_Template.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
   }, []);
 
   // 업로드 파일 파싱 → PromotionRow(Draft) 변환. 필수값 누락 행은 에러로 집계
