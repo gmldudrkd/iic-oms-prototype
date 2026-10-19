@@ -7,6 +7,7 @@ import { useState, useMemo } from "react";
 import CancelOrder from "@/features/integrated-order-detail/components/CancelOrder";
 import CancelShipment from "@/features/integrated-order-detail/components/CancelShipment";
 import CopyTextButton from "@/features/integrated-order-detail/components/CopyTextButton";
+import EditShipmentAddress from "@/features/integrated-order-detail/components/EditShipmentAddress";
 import OrderInfoWrapper from "@/features/integrated-order-detail/components/OrderInfoWrapper";
 import RegisterClaimLost from "@/features/integrated-order-detail/components/RegisterClaim/variants/RegisterClaimLost";
 import RequestShipment from "@/features/integrated-order-detail/components/RequestShipment";
@@ -20,6 +21,7 @@ import { Cell, DetailGrid } from "@/shared/components/table/tableStyle";
 import { DetailGridSingle } from "@/shared/components/table/tableStyle";
 import {
   OrderDetailResponse,
+  OrderDetailResponseCorporationEnum,
   OrderDetailShipmentResponse,
   OrderSearchRequestShipmentStatusesEnum,
   OrderDetailShipmentResponseEventEnum,
@@ -82,8 +84,12 @@ function ShipmentInfoItem({
         item.event === OrderDetailShipmentResponseEventEnum.REJECT,
       cancelOrder: item.status.name === PICKING_REJECTED,
       cancelShipment: item.status.name === PICKING_REQUESTED,
+      // KR 법인(전 브랜드) + Picking Requested: 수정 주소를 WMS(Maersk)로 전송
+      editAddress:
+        item.status.name === PICKING_REQUESTED &&
+        data?.corporation === OrderDetailResponseCorporationEnum.KR,
     };
-  }, [item]);
+  }, [item, data?.corporation]);
 
   return (
     <div>
@@ -237,6 +243,9 @@ function ShipmentInfoItem({
                   item.deliveryAddress.city,
                   item.deliveryAddress.address1,
                   item.deliveryAddress.address2,
+                )}
+                {buttonConditions.editAddress && (
+                  <EditShipmentAddress shipment={shipment} />
                 )}
               </Cell>
             </div>
