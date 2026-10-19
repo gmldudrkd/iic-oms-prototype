@@ -61,8 +61,10 @@ export const SEARCH_KEY_TYPE_OPTIONS = [
   { label: "Updated By", value: "updatedBy" },
   { label: "Reward Product Name", value: "rewardName" },
   { label: "Reward SAP Code", value: "rewardSapCode" },
+  { label: "Reward SKU Code", value: "rewardSkuCode" },
   { label: "Target Product Name", value: "targetProductName" },
   { label: "Target SAP Code", value: "targetSapCode" },
+  { label: "Target SKU Code", value: "targetSkuCode" },
 ];
 
 // Title 검색은 단일 키워드 부분검색만 가능 — 최소 글자 수
@@ -75,8 +77,10 @@ export const MULTI_SEARCH_KEY_TYPES = [
   "updatedBy",
   "rewardName",
   "rewardSapCode",
+  "rewardSkuCode",
   "targetProductName",
   "targetSapCode",
+  "targetSkuCode",
 ];
 
 // Import 템플릿 컬럼 (헤더명은 업로드 파싱 키와 동일해야 함) — Export 엑셀과 동일한 표기

@@ -29,6 +29,8 @@ export interface PromotionRangeReward {
 export interface PromotionTargetProduct {
   id: string;
   productName: string;
+  // 리스트 Target SKU Code 검색용
+  skuCode?: string;
   price: number;
   category: string;
 }
@@ -143,12 +145,14 @@ function generateMockPromotions(): PromotionRow[] {
     targetProducts: [
       {
         id: "p1",
+        skuCode: "F0000101",
         productName: "Ten Perfume 50ml",
         price: 32000,
         category: "Fragrance",
       },
       {
         id: "p3",
+        skuCode: "F0000103",
         productName: "Perfume Balm 6.5g",
         price: 42000,
         category: "Fragrance",

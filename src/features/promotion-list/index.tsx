@@ -205,6 +205,17 @@ export default function PromotionList() {
               ...(row.targetProducts ?? []).map((p) => p.productName),
             ].join("\n"),
             targetSapCode: row.trigger,
+            // Reward SKU Code: 증정 제품 + Order Amount 구간별 Reward 제품의 SKU 코드
+            rewardSkuCode: [
+              ...row.rewardProducts,
+              ...(row.rangeRewards ?? []).flatMap((range) => range.products),
+            ]
+              .map((product) => product.skuCode)
+              .join("\n"),
+            // Target SKU Code: Specific Product 대상 제품의 SKU 코드
+            targetSkuCode: (row.targetProducts ?? [])
+              .map((product) => product.skuCode ?? "")
+              .join("\n"),
           };
           const fieldValue = (
             fieldMap[String(searchKeyType)] ?? ""
