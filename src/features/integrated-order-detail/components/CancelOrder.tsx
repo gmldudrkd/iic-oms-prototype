@@ -95,6 +95,7 @@ export default function CancelOrder({ open, setOpen, shipment }: Props) {
         const validSelectedRows = initialRows.filter(
           (row) =>
             row.isActive &&
+            !row.isGwp &&
             shipmentOrderItemIds.includes(String(row.orderItemId)),
         );
 

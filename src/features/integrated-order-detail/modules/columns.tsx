@@ -20,6 +20,22 @@ import { convertToPrice } from "@/shared/utils/stringUtils";
  * ------------------------------------------------------------
  */
 
+/**
+ * Product Name 셀 렌더러
+ * 프로모션 접수 여부는 P 태그 대신 Category 컬럼(GWP / PACKAGE)과 주문 Tags(Promotion)로 확인한다
+ * bundle 하위 제품의 "└" prefix는 제품명 앞에 유지
+ */
+const renderCellProductName = (params: GridRenderCellParams) => {
+  const value = String(params.row.productName ?? "").split("^")[0];
+  const display = !value || value === "null" ? "-" : value;
+
+  return (
+    <div key={params.row.id}>
+      <span>{display}</span>
+    </div>
+  );
+};
+
 export const LIST_COLUMNS_PRODUCT_GROUPING = [
   {
     groupId: "orderQty",
@@ -48,6 +64,14 @@ export const LIST_COLUMNS_PRODUCT: GridColDef[] = [
       renderCellImage({ value: params.value as string }),
   },
   {
+    field: "category",
+    headerName: "Category",
+    flex: 1,
+    minWidth: 110,
+    renderCell: (params: GridRenderCellParams) =>
+      renderCellSpanningNullCheck(params, "category"),
+  },
+  {
     field: "skuCode",
     headerName: "SKU Code",
     flex: 1,
@@ -60,8 +84,7 @@ export const LIST_COLUMNS_PRODUCT: GridColDef[] = [
     headerName: "Product Name",
     flex: 2,
     minWidth: 200,
-    renderCell: (params: GridRenderCellParams) =>
-      renderCellSpanningNullCheck(params, "productName"),
+    renderCell: renderCellProductName,
   },
   {
     field: "sapCode",
@@ -248,6 +271,13 @@ export const LIST_COLUMNS_PAYMENT: GridColDef[] = [
     },
   },
   {
+    field: "note",
+    headerName: "Note",
+    minWidth: 150,
+    flex: 1,
+    renderCell: (params: GridRenderCellParams) => params.value || "-",
+  },
+  {
     field: "net",
     headerName: "Net",
     minWidth: 120,
@@ -315,6 +345,14 @@ export const LIST_COLUMNS_SHIPMENT: GridColDef[] = [
       renderCellImage({ value: params.value as string }),
   },
   {
+    field: "category",
+    headerName: "Category",
+    flex: 1,
+    minWidth: 110,
+    renderCell: (params: GridRenderCellParams) =>
+      renderCellSpanningNullCheck(params, "category"),
+  },
+  {
     field: "skuCode",
     headerName: "SKU Code",
     flex: 1,
@@ -327,8 +365,7 @@ export const LIST_COLUMNS_SHIPMENT: GridColDef[] = [
     headerName: "Product Name",
     flex: 2,
     minWidth: 150,
-    renderCell: (params: GridRenderCellParams) =>
-      renderCellSpanningNullCheck(params, "productName"),
+    renderCell: renderCellProductName,
   },
   {
     field: "sapCode",
@@ -706,8 +743,9 @@ export const LIST_COLUMNS_CANCEL: GridColDef[] = [
     renderCell: (params) => {
       return (
         <div className="flex h-full flex-col justify-center overflow-visible whitespace-normal break-words">
-          {/* bundle product */}
-          {params.row.products.length > 0 && (
+          {/* bundle product · 단일 제품(하위 products/components 없음) */}
+          {(params.row.products.length > 0 ||
+            !params.row.components?.length) && (
             <div
               key={params.value}
               className={`order-t border-gray-30 flex h-full min-h-[40px] items-center px-2 py-4`}
@@ -739,8 +777,9 @@ export const LIST_COLUMNS_CANCEL: GridColDef[] = [
     renderCell: (params) => {
       return (
         <div className="flex h-full flex-col justify-center overflow-visible whitespace-normal break-words">
-          {/* bundle product */}
-          {params.row.products.length > 0 && (
+          {/* bundle product · 단일 제품(하위 products/components 없음) */}
+          {(params.row.products.length > 0 ||
+            !params.row.components?.length) && (
             <div
               key={params.value}
               className={`order-t border-gray-30 flex h-full min-h-[40px] items-center px-2 py-4`}

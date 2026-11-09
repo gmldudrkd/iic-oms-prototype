@@ -52,3 +52,39 @@ export const isIntelligentEyewearReturnOrder = (data?: OrderDetailResponse) => {
       ),
   );
 };
+
+const PRODUCT_CATEGORIES = [
+  "GWP",
+  "PERFUME",
+  "PACKAGE",
+  "SUNGLASS",
+  INTELLIGENT_EYEWEAR,
+] as const;
+type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
+
+/**
+ * 제품 Category를 판별하는 함수
+ * 1) GWP 로 접수된 제품(isGwp)은 항상 "GWP"
+ * 2) 응답에 명시된 category가 PERFUME / PACKAGE / SUNGLASS / INTELLIGENT EYEWEAR 중 하나면 그 값을 사용
+ * 3) 그 외에는 가격으로 판별: 0원 제품은 PACKAGE(패키지 접수), 나머지는 SUNGLASS
+ * @param price 제품 가격
+ * @param isGwp GWP 증정품 여부
+ * @param explicitCategory 응답에 명시된 category (있을 경우 우선 적용)
+ * @returns "GWP" | "PERFUME" | "PACKAGE" | "SUNGLASS" | "INTELLIGENT EYEWEAR"
+ */
+export const getProductCategory = (
+  price: number | string | null | undefined,
+  isGwp = false,
+  explicitCategory?: unknown,
+): ProductCategory => {
+  if (isGwp) return "GWP";
+  if (
+    typeof explicitCategory === "string" &&
+    (PRODUCT_CATEGORIES as readonly string[]).includes(explicitCategory)
+  )
+    return explicitCategory as ProductCategory;
+  // 가격을 알 수 없는 경우는 SUNGLASS로 처리
+  if (price === null || price === undefined || price === "") return "SUNGLASS";
+  const numericPrice = Number(price);
+  return numericPrice === 0 ? "PACKAGE" : "SUNGLASS";
+};

@@ -3,6 +3,7 @@ import {
   FormControl,
   Select,
   SelectChangeEvent,
+  Tooltip,
 } from "@mui/material";
 import {
   DataGridPro,
@@ -11,6 +12,8 @@ import {
   GridRowModel,
   GridRowId,
   GridColDef,
+  GRID_CHECKBOX_SELECTION_COL_DEF,
+  GridCellCheckboxRenderer,
 } from "@mui/x-data-grid-pro";
 import {
   useState,
@@ -50,6 +53,12 @@ export default function DataGridCancelClaim({
   isAllCancel = false,
 }: Props) {
   const [cancelQty, setCancelQty] = useState<{ [key: GridRowId]: number }>({});
+
+  // Cancel Order: Category = GWP 제품은 선택 불가 (연관 제품 취소 시 백엔드에서 자동 취소)
+  const isGwpLocked = useCallback(
+    (row: GridRowModel) => claimType === "CANCEL_ORDER" && Boolean(row.isGwp),
+    [claimType],
+  );
 
   // select cell 렌더링
   const renderSelectCell = useCallback(
@@ -110,15 +119,20 @@ export default function DataGridCancelClaim({
         <FormControl fullWidth sx={{ justifyContent: "center" }}>
           <Select
             // 비활성이거나 최대 수량이 0이면 비활성화
-            disabled={!params.row.isActive || optionsMaxQuantity === 0}
+            disabled={
+              !params.row.isActive ||
+              optionsMaxQuantity === 0 ||
+              isGwpLocked(params.row)
+            }
             value={displayValue}
             onChange={handleChangeSelect}
             size="small"
             sx={{
               "& .MuiSelect-select": {
-                backgroundColor: !params.row.isActive
-                  ? "rgba(0, 0, 0, 0.1)"
-                  : "",
+                backgroundColor:
+                  !params.row.isActive || isGwpLocked(params.row)
+                    ? "rgba(0, 0, 0, 0.1)"
+                    : "",
               },
             }}
           >
@@ -131,14 +145,14 @@ export default function DataGridCancelClaim({
         </FormControl>
       );
     },
-    [cancelQty, setRows, setSelectedRows, selectedRows],
+    [cancelQty, setRows, setSelectedRows, selectedRows, isGwpLocked],
   );
 
   // 행 선택 시 선택된 행의 취소 수량 업데이트
   const handleSelectionChange = (newSelection: GridRowSelectionModel) => {
     const currentSelectedRows = newSelection
       .map((id) => rows.find((row) => row.id === id))
-      .filter((row): row is GridRowModel => !!row)
+      .filter((row): row is GridRowModel => !!row && !isGwpLocked(row))
       .map((row) => ({
         ...row,
         cellQuantity: cancelQty[row.id] ?? row.cellQuantity,
@@ -148,19 +162,58 @@ export default function DataGridCancelClaim({
 
   useEffect(() => {
     if (isAllCancel) {
-      setSelectedRows(rows);
+      setSelectedRows(rows.filter((row) => !isGwpLocked(row)));
     }
-  }, [isAllCancel, rows, setSelectedRows]);
+  }, [isAllCancel, rows, setSelectedRows, isGwpLocked]);
 
   const columns = useMemo(() => {
     // LIST_COLUMNS_CANCEL에서 cancelPrice 필드의 인덱스 찾기
-    const cancelPriceIndex = LIST_COLUMNS_CANCEL.findIndex(
+    // Cancel Order: No 다음에 Category 컬럼 노출 (GWP 식별용)
+    const categoryColumn: GridColDef = {
+      field: "category",
+      headerName: "Category",
+      flex: 0.6,
+      minWidth: 90,
+      cellClassName: "custom-cell-claim",
+      renderCell: (params) => (
+        <div className="flex h-full items-center">{params.value || "-"}</div>
+      ),
+    };
+    const baseColumns =
+      claimType === "CANCEL_ORDER"
+        ? [
+            LIST_COLUMNS_CANCEL[0],
+            categoryColumn,
+            ...LIST_COLUMNS_CANCEL.slice(1),
+          ]
+        : LIST_COLUMNS_CANCEL;
+    const priceIndex = baseColumns.findIndex(
       (col: GridColDef) => col.field === "cancelPrice",
     );
 
+    // Cancel Order: GWP 행 체크박스에 마우스 올리면 자동 취소 안내 툴팁 노출
+    const checkboxColumn: GridColDef = {
+      ...GRID_CHECKBOX_SELECTION_COL_DEF,
+      renderCell: (params) =>
+        isGwpLocked(params.row) ? (
+          <Tooltip
+            title="GWP items are automatically canceled along with their related products."
+            placement="top"
+            arrow
+          >
+            <span>
+              <GridCellCheckboxRenderer {...params} />
+            </span>
+          </Tooltip>
+        ) : (
+          <GridCellCheckboxRenderer {...params} />
+        ),
+    };
+
     // cancelPrice가 있으면 그 앞에 cellQuantity 삽입, 없으면 맨 뒤에 추가
     return [
-      ...LIST_COLUMNS_CANCEL.slice(0, cancelPriceIndex),
+      ...(claimType === "CANCEL_ORDER" ? [checkboxColumn] : []),
+      ...baseColumns.slice(0, priceIndex),
       {
         field: "cellQuantity",
         headerName: "Qty",
@@ -168,9 +221,9 @@ export default function DataGridCancelClaim({
         minWidth: 100,
         renderCell: renderSelectCell,
       },
-      ...LIST_COLUMNS_CANCEL.slice(cancelPriceIndex),
+      ...baseColumns.slice(priceIndex),
     ];
-  }, [renderSelectCell]);
+  }, [renderSelectCell, claimType, isGwpLocked]);
 
   return (
     <div>
@@ -190,12 +243,18 @@ export default function DataGridCancelClaim({
         sx={{
           ...DATA_GRID_STYLES,
           ...DATA_GRID_STYLES_CLAIM,
+          // 선택 불가 행(취소 완료 · GWP) 회색 배경
+          "& .inactive-row, & .inactive-row:hover": {
+            backgroundColor: "#f5f5f5",
+          },
         }}
         rowSelectionModel={selectedRows.map((row) => row.id)}
-        isRowSelectable={(params) => params.row.isActive ?? true}
+        isRowSelectable={(params) =>
+          (params.row.isActive ?? true) && !isGwpLocked(params.row)
+        }
         checkboxSelection={!isAllCancel}
         getRowClassName={(params) =>
-          !params.row.isActive ? "inactive-row" : ""
+          !params.row.isActive || isGwpLocked(params.row) ? "inactive-row" : ""
         }
         onRowSelectionModelChange={handleSelectionChange}
       />

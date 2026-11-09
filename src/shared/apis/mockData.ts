@@ -656,12 +656,35 @@ const mockOrderList = {
       ],
       status: { name: "COMPLETED", description: "Completed" },
     },
+    // 프로모션(GWP) 적용 + Pending 주문 — Cancel Order 시 GWP 선택 불가 · 자동 취소 확인용
+    {
+      brand: { name: "NUFLAAT", description: "NUF" },
+      channelType: {
+        name: "NUF_Official_KR",
+        description: "NUF_Official_KR",
+      },
+      corporation: "KR",
+      orderId: "ORD-20250201-024",
+      orderType: { name: "NORMAL", description: "Normal" },
+      tags: "Promotion",
+      receiveMethod: "Delivery",
+      orderedAt: yesterday,
+      ordererEmail: "sora.kim@example.com",
+      ordererName: "Sora Kim",
+      ordererPhone: "+82-10-5555-0124",
+      originOrderNo: "NF-2025020124",
+      purchaseNo: "PUR-024",
+      recipientName: "Sora Kim",
+      recipientPhone: "+82-10-5555-0124",
+      shipments: [],
+      status: { name: "PENDING", description: "Pending" },
+    },
   ],
   isFirst: true,
   isLast: true,
   pageNumber: 0,
   pageSize: 25,
-  totalCount: 23,
+  totalCount: 24,
   totalPages: 1,
 };
 
@@ -2847,6 +2870,63 @@ const mockPromotionOrderDetail = {
   refundPayments: [],
 };
 
+// --- 프로모션(GWP) 적용 + Pending 주문 상세 ---
+// Cancel Order 버튼은 Pending 상태에서만 노출 → GWP 행 비활성화 · 체크박스 툴팁 확인용
+// - No.1 PERFUME SHELL X_CHAMO_15ML (2025) 주문 제품 + 같은 제품이 GWP 로 증정된 주문
+// - 출고 전이므로 shipmentQuantity = 0, shipments 없음
+const pendingGwpBaseItem = {
+  originItemId: "ORIG-024-1",
+  sku: "S12001790",
+  productCode: "S12001790",
+  productName: "PERFUME SHELL X_CHAMO_15ML (2025)",
+  upcCode: "8809123456024",
+  category: "PERFUME",
+  thumbnailUrl: "",
+  sequence: 1,
+  orderedQuantity: 1,
+  shipmentQuantity: 0,
+  shippedQuantity: 0,
+  canceledQuantity: 0,
+  returnedQuantity: 0,
+  reshippedQuantity: 0,
+  allocateQuantity: 1,
+  price: 18500,
+  subTotal: 18500,
+  products: [],
+  components: [],
+};
+const mockPromotionPendingOrderDetail = {
+  ...mockPromotionOrderDetail,
+  orderId: "ORD-20250201-024",
+  originOrderNo: "NF-2025020124",
+  purchaseNo: "PUR-024",
+  status: { name: "PENDING", description: "Pending" },
+  shipments: [],
+  items: [
+    // 주문 제품
+    { ...pendingGwpBaseItem, orderItemId: "OI-024-1" },
+    // 같은 제품 GWP 증정 (Category = GWP → Cancel Order 시 선택 불가)
+    {
+      ...pendingGwpBaseItem,
+      orderItemId: "OI-024-2",
+      originItemId: "ORIG-024-2",
+      sequence: 2,
+      isGwp: true,
+      // GWP 는 항상 0원
+      price: 0,
+      subTotal: 0,
+    },
+  ],
+  payments: [
+    {
+      ...mockPromotionOrderDetail.payments[0],
+      paidAmount: 18500,
+      taxAmount: 1682,
+      transactionNo: "TXN-20250201-024",
+    },
+  ],
+};
+
 // --- Return Detail Mock (ReturnDetailResponse[]) ---
 const mockReturnDetail = [
   {
@@ -4300,6 +4380,9 @@ export function getMockResponse(url: string, method: string = "GET"): unknown {
     // 프로모션 증정 주문(제품당/주문당 GWP·PACKAGE) 전용 상세 데이터
     if (orderId?.toLowerCase() === "ord-20250201-014")
       return mockPromotionOrderDetail;
+    // 프로모션(GWP) 적용 + Pending 주문 (Cancel Order 노출)
+    if (orderId?.toLowerCase() === "ord-20250201-024")
+      return mockPromotionPendingOrderDetail;
     // 배송비를 계좌이체(DIRECT_DEPOSIT)로 환불한 주문
     if (orderId?.toLowerCase() === "ord-20250201-018")
       return mockDirectDepositOrderDetail;

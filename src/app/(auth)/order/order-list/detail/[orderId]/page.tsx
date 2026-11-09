@@ -15,9 +15,13 @@ export function generateStaticParams() {
     { orderId: "ord-20250201-011" },
     { orderId: "ord-20250201-012" },
     { orderId: "ord-20250201-013" },
+    { orderId: "ord-20250201-014" },
     { orderId: "ord-20250201-019" },
     { orderId: "ord-20250201-020" },
     { orderId: "ord-20250201-023" },
+    // 프로모션(GWP) 적용 Pending 주문 — 스펙 문서 링크는 대문자 ID 사용
+    { orderId: "ord-20250201-024" },
+    { orderId: "ORD-20250201-024" },
   ];
 }
 

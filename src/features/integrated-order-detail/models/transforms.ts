@@ -3,6 +3,7 @@ import { GridRowModel as GridRowModelPro } from "@mui/x-data-grid-pro";
 
 import { NOT_STARTED } from "@/features/integrated-order-detail/modules/constants";
 import { TAddressForm } from "@/features/integrated-order-detail/modules/types";
+import { getProductCategory } from "@/features/integrated-order-detail/modules/utils";
 
 import { ClaimCreateRequestTypeEnum } from "@/shared/generated/oms/types/Claim";
 import {
@@ -36,6 +37,17 @@ interface TransformOrderDetailDataProps {
  * order detail 데이터 변환
  * @param TransformOrderDetailDataProps { data: OrderDetailResponse, timezone: string }
  */
+// 주문 Tags를 문자열("RX, Pre-Order") 또는 배열 어느 형태로 내려와도 배열로 정규화
+const toTagList = (raw: unknown): string[] => {
+  if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
+  if (typeof raw === "string")
+    return raw
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  return [];
+};
+
 export const transformOrderDetailData = ({
   data,
   timezone,
@@ -51,9 +63,11 @@ export const transformOrderDetailData = ({
       ordererPhone: data?.orderer?.phone,
       ordererEmail: data?.orderer?.email ?? "-",
       receiveMethod:
-        ((data as Record<string, unknown>)?.receiveMethod as string) ??
-        "Delivery",
+        ((data as unknown as Record<string, unknown>)
+          ?.receiveMethod as string) ?? "Delivery",
       orderType: data?.orderType?.description ?? "-",
+      // 주문 Tags (Pre-Order / Promotion 등) — 문자열·배열 모두 배열로 정규화
+      tags: toTagList((data as unknown as Record<string, unknown>)?.tags),
     },
     recipientInfo: {
       orderStatus: snakeToTitleCase(data?.status.name ?? "-"),
@@ -135,6 +149,11 @@ export const transformRowsOrderedProductInfo = (
         id: `item-${itemIndex}-${keyPrefix}-${subIndex}-${sequence}`,
         no: sequence,
         image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(price, Boolean(sub.isGwp), sub.category),
+          subSeq,
+        ),
+        isGwp: Boolean(sub.isGwp),
         skuCode: formatWithSequence(sub.sku as string, subSeq),
         productName: formatWithSequence(
           `${productNamePrefix}${sub.productName ?? ""}`,
@@ -160,6 +179,15 @@ export const transformRowsOrderedProductInfo = (
         id: `item-${itemIndex}-bundle-${sequence}`,
         no: sequence,
         image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(
+            item.price,
+            Boolean((item as unknown as Record<string, unknown>).isGwp),
+            (item as unknown as Record<string, unknown>).category,
+          ),
+          headerSeq,
+        ),
+        isGwp: Boolean((item as unknown as Record<string, unknown>).isGwp),
         skuCode: formatWithSequence(item.sku, headerSeq),
         productName: formatWithSequence(item.productName, headerSeq),
         sapCode: formatWithSequence(item.productCode, headerSeq),
@@ -185,7 +213,7 @@ export const transformRowsOrderedProductInfo = (
         );
       });
 
-      // Bundle에 components도 있다면 함께 렌더
+      // Bundle의 components(제품당 PACKAGE/GWP 등 부가제품)도 하위 row("└")로 노출
       item.components?.forEach((component, componentIndex) => {
         itemRows.push(
           buildSubRow(
@@ -197,12 +225,21 @@ export const transformRowsOrderedProductInfo = (
         );
       });
     } else if (hasComponents) {
-      // 메인 item row + components row (prefix 없음)
+      // 메인 item row + components row (제품당 부가제품이므로 "└" prefix)
       const mainSeq = `main-${sequence}`;
       itemRows.push({
         id: `item-${itemIndex}-main-${sequence}`,
         no: sequence,
         image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(
+            item.price,
+            Boolean((item as unknown as Record<string, unknown>).isGwp),
+            (item as unknown as Record<string, unknown>).category,
+          ),
+          mainSeq,
+        ),
+        isGwp: Boolean((item as unknown as Record<string, unknown>).isGwp),
         skuCode: formatWithSequence(item.sku, mainSeq),
         productName: formatWithSequence(item.productName, mainSeq),
         sapCode: formatWithSequence(item.productCode, mainSeq),
@@ -223,6 +260,7 @@ export const transformRowsOrderedProductInfo = (
             component as unknown as Record<string, unknown>,
             "component",
             componentIndex,
+            "└ ",
           ),
         );
       });
@@ -230,9 +268,18 @@ export const transformRowsOrderedProductInfo = (
       // 단일 상품
       const singleSeq = `single-${sequence}`;
       itemRows.push({
-        id: item.productCode || `item-${itemIndex}`,
+        id: `${item.productCode || "item"}-${itemIndex}`,
         no: sequence,
         image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(
+            item.price,
+            Boolean((item as unknown as Record<string, unknown>).isGwp),
+            (item as unknown as Record<string, unknown>).category,
+          ),
+          singleSeq,
+        ),
+        isGwp: Boolean((item as unknown as Record<string, unknown>).isGwp),
         skuCode: formatWithSequence(item.sku, singleSeq),
         productName: formatWithSequence(item.productName, singleSeq),
         sapCode: formatWithSequence(item.productCode, singleSeq),
@@ -258,6 +305,7 @@ export const transformRowsOrderedProductInfo = (
   rows.push({
     id: "shipping-fee",
     no: "-",
+    category: "",
     skuCode: "",
     image: null,
     productName: "배송비",
@@ -322,6 +370,9 @@ export const transformRowsPaymentInfo = (
         .map((refund: RefundPayment, refundIndex) => {
           const amount = refund.refundAmount ? refund.refundAmount * -1 : 0;
           const tax = refund.taxAmount ? refund.taxAmount * -1 : 0;
+          // 계좌이체(DIRECT_DEPOSIT) 배송비 환불 등 환불건 개별 비고가 있으면 우선 노출
+          const refundNote = (refund as unknown as Record<string, unknown>)
+            .note as string | undefined;
           return {
             id: `${refund.transactionNo}-${refundGroupIndex}-${refundIndex}`,
             no: data.payments.length + previousRefundCount + refundIndex + 1,
@@ -329,13 +380,15 @@ export const transformRowsPaymentInfo = (
             type: "Refund",
             method: refund.method,
             tid: refund.transactionNo,
-            note: refundGroup.reason
-              ? `${refundGroup.reason}${
-                  refund.shippingFee
-                    ? ` (excl., shipping ${refund.shippingFee.toLocaleString()})`
-                    : ""
-                }`
-              : "-",
+            note: refundNote
+              ? refundNote
+              : refundGroup.reason
+                ? `${refundGroup.reason}${
+                    refund.shippingFee
+                      ? ` (excl., shipping ${refund.shippingFee.toLocaleString()})`
+                      : ""
+                  }`
+                : "-",
             tax,
             net: amount - tax,
             amount,
@@ -361,8 +414,9 @@ export const transformRowsShipmentInfo = (
   shipment: OrderDetailShipmentResponse,
   // index: number,
   timezone: string,
+  data?: OrderDetailResponse,
 ) => {
-  const rows = transformRowsShipmentInfoRows(shipment);
+  const rows = transformRowsShipmentInfoRows(shipment, data);
 
   return {
     sequence: shipment.shipmentNo,
@@ -402,7 +456,22 @@ export const transformRowsShipmentInfo = (
  */
 export const transformRowsShipmentInfoRows = (
   shipment: OrderDetailShipmentResponse,
+  data?: OrderDetailResponse,
 ) => {
+  // shipment item에는 price가 없어 order item의 price를 sku로 매칭해 Category 판별에 사용
+  const priceBySku = new Map<string, number>();
+  data?.items.forEach((orderItem) => {
+    if (orderItem.sku)
+      priceBySku.set(orderItem.sku, Number(orderItem.price ?? 0));
+    orderItem.products?.forEach((product) => {
+      if (product.sku) priceBySku.set(product.sku, Number(product.price ?? 0));
+    });
+    orderItem.components?.forEach((component) => {
+      if (component.sku)
+        priceBySku.set(component.sku, Number(component.price ?? 0));
+    });
+  });
+
   const fields: (keyof OrderDetailShipmentItemResponse)[] = [
     "shipmentQuantity",
     "canceledQuantity",
@@ -418,6 +487,30 @@ export const transformRowsShipmentInfoRows = (
     const commonFields = createCommonQuantityFields(fields, item, sequence);
     const itemRows: GridRowModel[] = [];
 
+    // ✅ bundle 헤더 row - Ordered Product Info와 동일하게 번들 제품 자체를 먼저 표시
+    if (hasProducts) {
+      const headerSeq = `bundle-${sequence}`;
+      itemRows.push({
+        id: `item-${itemIndex}-bundle-${sequence}`,
+        no: sequence,
+        image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(
+            priceBySku.get(item.sku),
+            Boolean((item as unknown as Record<string, unknown>).isGwp),
+            (item as unknown as Record<string, unknown>).category,
+          ),
+          headerSeq,
+        ),
+        isGwp: Boolean((item as unknown as Record<string, unknown>).isGwp),
+        skuCode: formatWithSequence(item.sku, headerSeq),
+        productName: formatWithSequence(item.productName, headerSeq),
+        sapCode: formatWithSequence(item.productCode, headerSeq),
+        sapName: formatWithSequence(item.productName, headerSeq),
+        ...commonFields,
+      });
+    }
+
     // ✅ bundle products - 각 row는 자체 SKU/Product Name 표시
     item.products?.forEach((product, productIndex) => {
       const rowSeq = `product-${sequence}-${productIndex}`;
@@ -425,6 +518,15 @@ export const transformRowsShipmentInfoRows = (
         id: `item-${itemIndex}-product-${productIndex}-${sequence}`,
         no: sequence,
         image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(
+            product.price ?? priceBySku.get(product.sku),
+            Boolean((product as unknown as Record<string, unknown>).isGwp),
+            (product as unknown as Record<string, unknown>).category,
+          ),
+          rowSeq,
+        ),
+        isGwp: Boolean((product as unknown as Record<string, unknown>).isGwp),
         skuCode: formatWithSequence(product.sku, rowSeq),
         productName: formatWithSequence(product.productName, rowSeq),
         sapCode: formatWithSequence(product.productCode, rowSeq),
@@ -440,6 +542,15 @@ export const transformRowsShipmentInfoRows = (
         id: `item-${itemIndex}-main-${sequence}`,
         no: sequence,
         image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(
+            priceBySku.get(item.sku),
+            Boolean((item as unknown as Record<string, unknown>).isGwp),
+            (item as unknown as Record<string, unknown>).category,
+          ),
+          mainSeq,
+        ),
+        isGwp: Boolean((item as unknown as Record<string, unknown>).isGwp),
         skuCode: formatWithSequence(item.sku, mainSeq),
         productName: formatWithSequence(item.productName, mainSeq),
         sapCode: formatWithSequence(item.productCode, mainSeq),
@@ -449,14 +560,28 @@ export const transformRowsShipmentInfoRows = (
     }
 
     // ✅ components - 각 row는 자체 SKU/Product Name 표시
+    // 제품당 PACKAGE/GWP 등 제품에 속한 부가제품이므로 Ordered Product Info와 동일하게 "└" prefix 노출
     item.components?.forEach((component, componentIndex) => {
       const rowSeq = `component-${sequence}-${componentIndex}`;
       itemRows.push({
         id: `item-${itemIndex}-component-${componentIndex}-${sequence}`,
         no: sequence,
         image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(
+            component.price ??
+              (component.sku ? priceBySku.get(component.sku) : undefined),
+            Boolean((component as unknown as Record<string, unknown>).isGwp),
+            (component as unknown as Record<string, unknown>).category,
+          ),
+          rowSeq,
+        ),
+        isGwp: Boolean((component as unknown as Record<string, unknown>).isGwp),
         skuCode: formatWithSequence(component.sku, rowSeq),
-        productName: formatWithSequence(component.productName, rowSeq),
+        productName: formatWithSequence(
+          `└ ${component.productName ?? ""}`,
+          rowSeq,
+        ),
         sapCode: formatWithSequence(component.productCode, rowSeq),
         sapName: formatWithSequence(component.productName, rowSeq),
         ...commonFields,
@@ -466,9 +591,18 @@ export const transformRowsShipmentInfoRows = (
     // ✅ 단일 상품
     if (!hasProducts && !hasComponents) {
       itemRows.push({
-        id: item.productCode || `item-${itemIndex}`,
+        id: `${item.productCode || "item"}-${itemIndex}`,
         no: sequence,
         image: imageValue,
+        category: formatWithSequence(
+          getProductCategory(
+            priceBySku.get(item.sku),
+            Boolean((item as unknown as Record<string, unknown>).isGwp),
+            (item as unknown as Record<string, unknown>).category,
+          ),
+          sequence,
+        ),
+        isGwp: Boolean((item as unknown as Record<string, unknown>).isGwp),
         skuCode: formatWithSequence(item.sku, sequence),
         productName: item.productName ?? "-",
         sapCode: formatWithSequence(item.productCode, sequence),
@@ -518,6 +652,21 @@ export const transformRowsRequestShipment = (
  * @param data OrderDetailResponse
  * @returns rows: GridRowModel[]
  */
+/**
+ * Cancel Order 그리드용 GWP 판별
+ * - Category 가 GWP 인 제품은 운영자가 선택할 수 없고, 연관 제품 취소 시 백엔드에서 자동 취소된다
+ */
+const getCancelItemCategory = (item: unknown) => {
+  const record = item as Record<string, unknown>;
+  return getProductCategory(
+    record.price as number,
+    Boolean(record.isGwp),
+    record.category,
+  );
+};
+const isCancelGwpItem = (item: unknown) =>
+  getCancelItemCategory(item) === "GWP";
+
 export const transformRowsCancelOrder = (
   data: OrderDetailResponse | undefined,
 ) => {
@@ -550,6 +699,8 @@ export const transformRowsCancelOrder = (
         components: item.components,
         sapCode: item.productCode,
         productName: item.productName,
+        category: getCancelItemCategory(item),
+        isGwp: isCancelGwpItem(item),
         cellQuantity: actualAvailableQuantity, // TODO: cellQuantity 디폴트 값 맞는지 체크
         cancelPrice: item.price,
         initialAvailableQuantity: actualAvailableQuantity,
@@ -571,6 +722,8 @@ export const transformRowsCancelOrder = (
         id: `${itemId}-canceled-${itemIndex}`,
         sapCode: item.productCode,
         productName: item.productName,
+        category: getCancelItemCategory(item),
+        isGwp: isCancelGwpItem(item),
         cellQuantity:
           canceledQuantity > item.orderedQuantity
             ? item.orderedQuantity
@@ -594,6 +747,8 @@ export const transformRowsCancelOrder = (
         id: `${itemId}-shipment-${itemIndex}`,
         sapCode: item.productCode,
         productName: item.productName,
+        category: getCancelItemCategory(item),
+        isGwp: isCancelGwpItem(item),
         cellQuantity:
           shipmentQuantity > item.orderedQuantity
             ? item.orderedQuantity
@@ -618,6 +773,8 @@ export const transformRowsCancelOrder = (
         sapCode: item.productCode,
         image: item.thumbnailUrl,
         productName: item.productName,
+        category: getCancelItemCategory(item),
+        isGwp: isCancelGwpItem(item),
         cellQuantity:
           returnedQuantity > item.orderedQuantity
             ? item.orderedQuantity
@@ -670,6 +827,8 @@ export const transformRowsCancelOrderShipment = (
         components: item.components,
         sapCode: item.productCode,
         productName: item.productName,
+        category: getCancelItemCategory(item),
+        isGwp: isCancelGwpItem(item),
         cellQuantity: actualAvailableQuantity,
         cancelPrice: item.price,
         initialAvailableQuantity: actualAvailableQuantity,
@@ -690,6 +849,8 @@ export const transformRowsCancelOrderShipment = (
         id: `${itemId}-canceled-${itemIndex}`,
         sapCode: item.productCode,
         productName: item.productName,
+        category: getCancelItemCategory(item),
+        isGwp: isCancelGwpItem(item),
         cellQuantity:
           canceledQuantity > item.orderedQuantity
             ? item.orderedQuantity
@@ -1100,7 +1261,7 @@ export const transformReturnDetail = (
 ) => {
   return {
     productInspectionResult: returnData.items.map((item, idx) => ({
-      id: item.productCode || `item-${idx}`,
+      id: `${item.productCode || "item"}-${idx}`,
       ...item,
     })),
     claimFault: returnData.claimFault,
@@ -1187,7 +1348,7 @@ export const transformRowsReturnDetail = (returnData: ReturnDetailResponse) => {
     // ✅ 단일 상품
     if (totalSubItems === 0) {
       itemRows.push({
-        id: item.productCode || `item-${itemIndex}`,
+        id: `${item.productCode || "item"}-${itemIndex}`,
         no: itemIndex + 1,
         image: `${getDefaultImageUrl(item.thumbnailUrl)}?${itemIndex + 1}`,
         skuCode: item.sku || "-",
@@ -1250,7 +1411,7 @@ export const transformExchangeDetail = (
 
   return {
     productInspectionResult: exchangeData.items.map((item, idx) => ({
-      id: item.productCode || `item-${idx}`,
+      id: `${item.productCode || "item"}-${idx}`,
       ...item,
     })),
 
@@ -1358,7 +1519,7 @@ export const transformRowsExchangeDetail = (
     // ✅ 단일 상품
     if (totalSubItems === 0) {
       itemRows.push({
-        id: item.productCode || `item-${itemIndex}`,
+        id: `${item.productCode || "item"}-${itemIndex}`,
         no: itemIndex + 1,
         image: `${getDefaultImageUrl(item.thumbnailUrl)}?${itemIndex + 1}`,
         skuCode: item.sku || "-",
@@ -1499,6 +1660,8 @@ export const transformReshipmentDetail = (
   return {
     reshipmentId: data.reshipmentId,
     reshipmentNo: data.reshipmentNo,
+    registeredBy: data.claimCreatedBy || "-",
+    reshipmentReason: data.claimReason || "-",
     status: data.status,
     event: data.event,
     updatedAt: getLocalTime(data.updatedAt, timezone),
@@ -1533,7 +1696,7 @@ export const transformRowsReshipmentDetail = (
   data: ReshipmentDetailResponse,
 ) => {
   return data.items.map((item, idx) => ({
-    id: item.productCode || `item-${idx}`,
+    id: `${item.productCode || "item"}-${idx}`,
     no: idx + 1,
     skuCode: item.sku,
     sapCode: item.productCode ?? "-",
