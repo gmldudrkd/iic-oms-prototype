@@ -3,7 +3,10 @@
 - 영향 화면: **Promotion › Template** (신규, `/promotion/template`), **Promotion 등록/수정 화면** (`/promotion/promotion-list/add-v2`, `/promotion/promotion-list/edit-v2/:id`), **Promotion List** (멀티 등록 결과가 Draft 로 추가됨)
 - 신규 메뉴/라우트: Promotion 메뉴 하위 **`Template`** (기존 `List` 아래)
 - 기준 문서: GWP 멀티 등록 프로토타입(템플릿 탭), 9월 GWP 시트(탬버린즈, gid 904858322)
-- 문서 기준일: 2026-09-15 (프로토타입 최종 반영 상태 기준)
+- 문서 기준일: 2026-11-10 (프로토타입 최종 반영 상태 기준)
+- 변경 이력
+  - 2026-09-15: 최초 작성
+  - 2026-11-10: 멀티 등록 Start / End 를 신규 프로모션 등록과 동일한 기간 정책으로 변경(분 단위 선택, Start 기본값 현재 시각·과거 불가, End 기본값 미선택·Start 이후만)
 
 ---
 
@@ -79,9 +82,11 @@
 | 채널 체크 | 체크한 채널마다 행 1개 추가(= 프로모션 1건). 해제하면 해당 채널 행 모두 제거 |
 | Option Select 템플릿 | 채널명에 `Official` 이 포함된 자사몰 채널만 선택 가능, 그 외 채널은 비활성 |
 | Promotion Name | 기본값 `{템플릿 이름} · {채널명}`, 수정 가능, 필수 |
-| Start / End | datetime. 기본값 다음날 10:00 ~ +15일 10:00. `Always on` 체크 시 End 비활성·비움 |
+| Start / End | **신규 프로모션 등록 화면과 동일한 기간 정책** 적용. 일시 선택기(`YYYY. MM. DD HH:mm`, 24시간제)로 **분 단위**까지 설정 |
+| Start | 기본값 **현재 시각(분 단위)**. 현재 시각 이전(과거)은 선택 불가 |
+| End | 기본값 **미선택**. Start 이후 시각만 선택 가능. `Always on` 체크 시 End 비활성·비움 |
 | `+ Period` | 같은 채널에 다른 기간 행을 추가(예: 카카오 1차·2차). 이름 뒤에 ` · 2차`, ` · 3차` 자동 부여 |
-| 검증 | 채널 1개 이상, 이름·Start 필수, Always on 이 아니면 End 필수 및 End > Start |
+| 검증 | 채널 1개 이상, 이름·Start 필수, Start 는 현재 시각 이후, Always on 이 아니면 End 필수 및 End > Start (신규 등록과 동일) |
 | 등록 | 행마다 프로모션 1건을 **Draft** 로 생성해 Promotion List 에 추가. 등록 후 스낵바 안내 |
 
 ### 2-4. 템플릿 삭제

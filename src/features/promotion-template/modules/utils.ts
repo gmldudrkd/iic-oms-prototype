@@ -72,11 +72,13 @@ export const fmtLocal = (s: string) => {
   return d.isValid() ? d.format("M/D HH:mm") : s;
 };
 
-// datetime-local 기본값: 오늘 10:00 / +15일 10:00 (시트의 통상 기간 패턴)
-export const defaultStart = () =>
-  dayjs().add(1, "day").hour(10).minute(0).format("YYYY-MM-DDTHH:mm");
-export const defaultEnd = () =>
-  dayjs().add(16, "day").hour(10).minute(0).format("YYYY-MM-DDTHH:mm");
+// 신규 프로모션 등록과 동일한 기간 정책 (분 단위)
+// - Start 기본값: 현재 시각(분 단위), 과거 시각 불가
+// - End 기본값: 미선택, Start 이후만 가능 (Always on 이면 비움)
+export const nowLocal = () =>
+  dayjs().startOf("minute").format("YYYY-MM-DDTHH:mm");
+export const defaultStart = () => nowLocal();
+export const defaultEnd = () => "";
 
 // ---- 채널 ----
 export const channelColor = (channels: string[], name: string) => {
@@ -144,10 +146,13 @@ export const validateRows = (rows: MultiRegisterRow[]): string => {
   for (const r of rows) {
     if (!r.name.trim()) return `${r.channel}: Promotion Name is required.`;
     if (!r.start) return `${r.channel}: Start is required.`;
+    if (r.start < nowLocal())
+      return `${r.channel}: Start cannot be in the past.`;
     if (!r.always) {
       if (!r.end)
         return `${r.channel}: End is required (or turn on Always on).`;
-      if (r.end <= r.start) return `${r.channel}: End must be after Start.`;
+      if (r.end <= r.start)
+        return `${r.channel}: End must be later than Start.`;
     }
   }
   return "";

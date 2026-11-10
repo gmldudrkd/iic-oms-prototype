@@ -14,6 +14,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import dayjs from "dayjs";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -48,6 +52,7 @@ import {
   defaultStart,
   fmtLocal,
   nextRoundName,
+  nowLocal,
   rewardDesc,
   targetDesc,
   validateRows,
@@ -67,8 +72,54 @@ const cellInputSx = {
   "& .MuiInputBase-root": { fontSize: 13, background: "#fff" },
   "& input": { py: "6px", px: "8px" },
 };
-// datetime-local 입력은 폭을 고정해 표가 다이얼로그 안에 들어오게 한다
-const dateInputSx = { ...cellInputSx, width: 178 };
+// 일시 입력은 폭을 고정해 표가 다이얼로그 안에 들어오게 한다
+const dateInputSx = {
+  ...cellInputSx,
+  width: 196,
+  "& .MuiInputBase-root": { fontSize: 13, background: "#fff", pr: "6px" },
+  "& .MuiIconButton-root": { p: "4px" },
+  "& .MuiSvgIcon-root": { fontSize: 18 },
+};
+
+// 분(minute) 단위 일시 선택 — 신규 프로모션 등록(PromotionFormV2)과 동일한 정책
+// 값은 datetime-local 형식("YYYY-MM-DDTHH:mm")
+const MINUTE_VALUE_FORMAT = "YYYY-MM-DDTHH:mm";
+function MinuteDateTimePicker({
+  value,
+  onChange,
+  disabled,
+  min,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+  min?: string;
+}) {
+  const parsed = value ? dayjs(value) : null;
+  return (
+    <DateTimePicker
+      value={parsed && parsed.isValid() ? parsed : null}
+      onChange={(v) =>
+        onChange(
+          v && v.isValid()
+            ? v.startOf("minute").format(MINUTE_VALUE_FORMAT)
+            : "",
+        )
+      }
+      views={["year", "month", "day", "hours", "minutes"]}
+      format="YYYY. MM. DD HH:mm"
+      ampm={false}
+      timeSteps={{ minutes: 1 }}
+      localeText={{
+        fieldHoursPlaceholder: () => "HH",
+        fieldMinutesPlaceholder: () => "mm",
+      }}
+      minDateTime={min ? dayjs(min) : undefined}
+      disabled={disabled}
+      slotProps={{ textField: { size: "small", sx: dateInputSx } }}
+    />
+  );
+}
 
 // 멀티 등록 — 채널을 여러 개 고르고 채널별 기간만 입력하면 채널 수만큼 DRAFT 프로모션이 생성된다
 export default function MultiRegisterDialog({
@@ -140,7 +191,7 @@ export default function MultiRegisterDialog({
       maxWidth={false}
       fullWidth
       PaperProps={{
-        sx: { borderRadius: "12px", maxHeight: "92vh", maxWidth: 1040 },
+        sx: { borderRadius: "12px", maxHeight: "92vh", maxWidth: 1120 },
       }}
     >
       {/* header */}
@@ -287,142 +338,140 @@ export default function MultiRegisterDialog({
         {rows.length === 0 ? (
           <EmptyHint text="Select channels." />
         ) : (
-          <Box sx={{ overflowX: "auto" }}>
-            <Table
-              size="small"
-              sx={{
-                "& th": {
-                  fontWeight: 500,
-                  color: TEXT_TERTIARY,
-                  whiteSpace: "nowrap",
-                  borderBottom: `1px solid ${BORDER}`,
-                  px: 1,
-                },
-                "& td": {
-                  px: 1,
-                  py: 0.75,
-                  borderBottom: `1px solid ${BORDER}`,
-                },
-              }}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableCell>Channel</TableCell>
-                  <TableCell>Promotion Name</TableCell>
-                  <TableCell>Start</TableCell>
-                  <TableCell>End</TableCell>
-                  <TableCell />
-                  <TableCell />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((r) => {
-                  const c = channelColor(channels, r.channel);
-                  return (
-                    <TableRow key={r.key}>
-                      <TableCell sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.75,
-                          }}
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Box sx={{ overflowX: "auto" }}>
+              <Table
+                size="small"
+                sx={{
+                  "& th": {
+                    fontWeight: 500,
+                    color: TEXT_TERTIARY,
+                    whiteSpace: "nowrap",
+                    borderBottom: `1px solid ${BORDER}`,
+                    px: 1,
+                  },
+                  "& td": {
+                    px: 1,
+                    py: 0.75,
+                    borderBottom: `1px solid ${BORDER}`,
+                  },
+                }}
+              >
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Channel</TableCell>
+                    <TableCell>Promotion Name</TableCell>
+                    <TableCell>Start</TableCell>
+                    <TableCell>End</TableCell>
+                    <TableCell />
+                    <TableCell />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((r) => {
+                    const c = channelColor(channels, r.channel);
+                    return (
+                      <TableRow key={r.key}>
+                        <TableCell
+                          sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
                         >
-                          <ChannelDot color={c.color} />
-                          {r.channel}
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ minWidth: 180 }}>
-                        <TextField
-                          size="small"
-                          fullWidth
-                          value={r.name}
-                          onChange={(e) =>
-                            patchRow(r.key, { name: e.target.value })
-                          }
-                          sx={cellInputSx}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <TextField
-                          size="small"
-                          type="datetime-local"
-                          value={r.start}
-                          onChange={(e) =>
-                            patchRow(r.key, { start: e.target.value })
-                          }
-                          sx={dateInputSx}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <TextField
-                          size="small"
-                          type="datetime-local"
-                          value={r.end}
-                          disabled={r.always}
-                          onChange={(e) =>
-                            patchRow(r.key, { end: e.target.value })
-                          }
-                          sx={dateInputSx}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: "nowrap" }}>
-                        <FormControlLabel
-                          sx={{
-                            m: 0,
-                            "& .MuiTypography-root": { fontSize: 12 },
-                          }}
-                          control={
-                            <Checkbox
-                              size="small"
-                              checked={r.always}
-                              onChange={(e) =>
-                                patchRow(r.key, { always: e.target.checked })
-                              }
-                              sx={{
-                                p: 0.5,
-                                color: WARNING,
-                                "&.Mui-checked": { color: WARNING },
-                              }}
-                            />
-                          }
-                          label="Always on"
-                        />
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: "nowrap" }}>
-                        <Button
-                          size="small"
-                          onClick={() => addRow(r.channel, r)}
-                          title="Add another period on the same channel (e.g. round 1 · round 2)"
-                          sx={{
-                            textTransform: "none",
-                            fontSize: 12,
-                            minWidth: 0,
-                            px: 1,
-                          }}
-                        >
-                          + Period
-                        </Button>
-                        <Button
-                          size="small"
-                          color="error"
-                          onClick={() => removeRow(r.key)}
-                          sx={{
-                            textTransform: "none",
-                            fontSize: 12,
-                            minWidth: 0,
-                            px: 1,
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.75,
+                            }}
+                          >
+                            <ChannelDot color={c.color} />
+                            {r.channel}
+                          </Box>
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 180 }}>
+                          <TextField
+                            size="small"
+                            fullWidth
+                            value={r.name}
+                            onChange={(e) =>
+                              patchRow(r.key, { name: e.target.value })
+                            }
+                            sx={cellInputSx}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <MinuteDateTimePicker
+                            value={r.start}
+                            onChange={(v) => patchRow(r.key, { start: v })}
+                            // 과거 시각 선택 불가
+                            min={nowLocal()}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <MinuteDateTimePicker
+                            value={r.end}
+                            disabled={r.always}
+                            onChange={(v) => patchRow(r.key, { end: v })}
+                            // Start 이후 시각만 선택 가능
+                            min={r.start || nowLocal()}
+                          />
+                        </TableCell>
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          <FormControlLabel
+                            sx={{
+                              m: 0,
+                              "& .MuiTypography-root": { fontSize: 12 },
+                            }}
+                            control={
+                              <Checkbox
+                                size="small"
+                                checked={r.always}
+                                onChange={(e) =>
+                                  patchRow(r.key, { always: e.target.checked })
+                                }
+                                sx={{
+                                  p: 0.5,
+                                  color: WARNING,
+                                  "&.Mui-checked": { color: WARNING },
+                                }}
+                              />
+                            }
+                            label="Always on"
+                          />
+                        </TableCell>
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
+                          <Button
+                            size="small"
+                            onClick={() => addRow(r.channel, r)}
+                            title="Add another period on the same channel (e.g. round 1 · round 2)"
+                            sx={{
+                              textTransform: "none",
+                              fontSize: 12,
+                              minWidth: 0,
+                              px: 1,
+                            }}
+                          >
+                            + Period
+                          </Button>
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => removeRow(r.key)}
+                            sx={{
+                              textTransform: "none",
+                              fontSize: 12,
+                              minWidth: 0,
+                              px: 1,
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Box>
+          </LocalizationProvider>
         )}
 
         {/* preview */}
